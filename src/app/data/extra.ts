@@ -7,7 +7,7 @@ import { BUILT, PICTURES } from './parts.ts'
 import { STORIES, STORY_VOICE } from './stories.ts'
 import { SEALS } from './seals.ts'
 import { GARDEN_ITEMS, NIGHT_LINE, SEASON_LINES } from './garden.ts'
-import { QUEST_SPEECH } from './quest.ts'
+import { QUEST, QUEST_SPEECH } from './quest.ts'
 import { pinyinSpeech } from './pinyin.ts'
 
 // Speech for the games beyond the word bank and the trip, gathered for
@@ -23,12 +23,27 @@ export interface ExtraSpeech {
 
 const WORD_VOICE = 'Kore'
 
+// What Settings plays to try the speech speed: a line from the trip, in
+// the student's voice
+export const SPEED_SAMPLE = { voice: 'Autonoe', text: '你学中文多长时间了？' }
+
 const joined = (zh: string) =>
   zh
     .split(' ')
     .filter(Boolean)
     .map((t) => t.split('=')[0])
     .join('')
+
+// The lines of the games beyond the trip, word by word, in which a word
+// can be tapped and heard on its own (lib/speech.ts finds the numbers)
+export const EXTRA_LINES: Array<string> = [
+  ...STORIES.flatMap((s) => s.lines.map(([zh]) => zh)),
+  ...[...ORDERS, ...MISSIONS, ...CAPTAIN_LINES, ...SHOP_ORDERS].map(
+    (o) => o.zh,
+  ),
+  ...QUEST.flatMap((c) => (c.demon.line ? [c.demon.line.zh] : [])),
+  ...[...Object.values(SEASON_LINES), NIGHT_LINE].map((l) => l.zh),
+]
 
 export const EXTRA_SPEECH: Array<ExtraSpeech> = [
   ...TONE_SETS.flatMap((s) =>
@@ -80,6 +95,7 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
     (l) => ({ voice: WORD_VOICE, text: joined(l.zh), kind: 'line' as const }),
   ),
   ...QUEST_SPEECH,
+  { ...SPEED_SAMPLE, kind: 'line' as const },
   // The pinyin chart, every sound read from its pinyin
   ...pinyinSpeech().map((s) => ({
     voice: WORD_VOICE,

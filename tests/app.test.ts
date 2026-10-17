@@ -531,6 +531,18 @@ describe('the learning games: art and feedback', () => {
     }
   })
 
+  test('everything the games can say has a recording', async () => {
+    const { speechItems, speechKey } = await import('../src/app/lib/speech')
+    const { readFileSync } = await import('node:fs')
+    const files = JSON.parse(
+      readFileSync('src/app/data/audio.json', 'utf8'),
+    ) as Record<string, string>
+    const missing = speechItems()
+      .map((it) => speechKey(it.voice, it.text))
+      .filter((k) => !files[k])
+    expect(missing).toEqual([])
+  })
+
   test('every order at the stall is in a customer voice', async () => {
     const { SHOP_ORDERS, CUSTOMER_VOICES } =
       await import('../src/app/data/shop')

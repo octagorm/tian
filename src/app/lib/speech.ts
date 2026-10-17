@@ -1,7 +1,7 @@
 import { COUNTRIES, WORDS } from '../data/words.ts'
 import { PLAYER_VOICE, SCENES } from '../data/trip.ts'
-import { EXTRA_SPEECH } from '../data/extra.ts'
-import { plain } from './text.ts'
+import { EXTRA_LINES, EXTRA_SPEECH } from '../data/extra.ts'
+import { plain, tokens } from './text.ts'
 
 // Everything Tian can play, as voice and text: each word in the word
 // voice, and each line of the trip in its speaker's voice, once for every
@@ -53,5 +53,19 @@ export function speechItems(): Array<SpeechItem> {
       }
     }
   for (const e of EXTRA_SPEECH) add(e.voice, e.text, e.kind, e.read)
+  // A number is one word in a line but not in the bank: tapped, it is
+  // heard on its own, as a word
+  const lines = [
+    ...SCENES.flatMap((s) =>
+      s.steps.flatMap((step) =>
+        step.kind === 'line' ? [step.zh] : step.options.map((o) => o.zh),
+      ),
+    ),
+    ...EXTRA_LINES,
+  ]
+  for (const zh of lines)
+    for (const home of COUNTRIES)
+      for (const t of tokens(zh, { home: home.id }))
+        if (t.parts) add(WORD_VOICE, t.h, 'word')
   return items
 }

@@ -1,5 +1,6 @@
 import { Download, Share } from 'lucide-react'
 import { COUNTRIES } from '../data/words'
+import { SPEED_SAMPLE } from '../data/extra'
 import { useStore } from '../lib/store'
 import { blip, say } from '../lib/audio'
 import { setMusic, setSoundEffects, setVolume, useSound } from '../lib/music'
@@ -90,7 +91,7 @@ export default function Settings() {
             <Btn
               kind="ghost"
               className="px-2 py-1 text-sm"
-              onClick={() => void say('你好，欢迎！')}
+              onClick={() => void say(SPEED_SAMPLE.text, SPEED_SAMPLE.voice)}
             >
               Try
             </Btn>

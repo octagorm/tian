@@ -27,6 +27,8 @@ import type { Token } from '../lib/text'
 interface Line {
   zh: string
   en: string
+  // Who says it on the trip, whose recording is played
+  voice: string
 }
 
 const LINES: Array<Line> = (() => {
@@ -35,7 +37,11 @@ const LINES: Array<Line> = (() => {
   for (const s of SCENES)
     for (const step of s.steps) {
       const lines =
-        step.kind === 'line' ? [step] : step.options.filter((o) => o.right)
+        step.kind === 'line'
+          ? [{ ...step, voice: s.cast[step.by].voice }]
+          : step.options
+              .filter((o) => o.right)
+              .map((o) => ({ ...o, voice: PLAYER_VOICE }))
       for (const l of lines) {
         const words = l.zh.split(' ').filter((t) => !/^[，。！？]$/.test(t))
         const inner = l.zh
@@ -45,7 +51,7 @@ const LINES: Array<Line> = (() => {
         if (words.length < 3 || words.length > 9 || inner || seen.has(l.zh))
           continue
         seen.add(l.zh)
-        out.push({ zh: l.zh, en: l.en })
+        out.push({ zh: l.zh, en: l.en, voice: l.voice })
       }
     }
   return out
@@ -240,7 +246,7 @@ export default function Order() {
     const ok = built === words.map((t) => t.h).join('')
     setResult({ ok, t: Date.now(), mine: placed })
     blip(ok ? 'right' : 'wrong')
-    void say(plain(line.zh, vars), PLAYER_VOICE)
+    void say(plain(line.zh, vars), line.voice)
     setScore((s) => {
       const n = {
         right: s.right + (ok ? 1 : 0),
