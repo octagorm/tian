@@ -1,5 +1,5 @@
 import { ConvexError, v } from 'convex/values'
-import { internalMutation, mutation, query } from './_generated/server'
+import { mutation, query } from './_generated/server'
 import { requireMember } from './access'
 
 // The word bank on the account, so it follows the player from device to
@@ -43,31 +43,6 @@ export const save = mutation({
         data,
         updatedAt: Date.now(),
       })
-    else
-      await ctx.db.insert('banks', {
-        userId: user._id,
-        data,
-        updatedAt: Date.now(),
-      })
-  },
-})
-
-// One-off, for the move from the homepage's Convex: the bank of the user
-// with this email. Remove once used.
-export const adopt = internalMutation({
-  args: { email: v.string(), data: v.string() },
-  handler: async (ctx, { email, data }) => {
-    const user = await ctx.db
-      .query('users')
-      .withIndex('email', (q) => q.eq('email', email))
-      .first()
-    if (!user) throw new ConvexError('No such user yet')
-    const row = await ctx.db
-      .query('banks')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .first()
-    if (row)
-      await ctx.db.patch('banks', row._id, { data, updatedAt: Date.now() })
     else
       await ctx.db.insert('banks', {
         userId: user._id,

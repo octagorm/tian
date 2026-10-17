@@ -8,6 +8,7 @@ Tian (天, *tiān*: day, sky; 天天向上, a little further every day) is a set
 - The game is `src/app/`; paths below without a folder are in it. The page is `src/pages/index.astro`; `/admin` and `/invite` are for access.
 - Convex (project `tian`) keeps the word bank of members (`convex/bank.ts`) and who they are (`convex/access.ts`): anyone can sign in with Google, but only the admin (Gorm) and members keep their bank on the account. The admin lets people in at `/admin`, by answering requests or with invitation links (`/invite?code=…`).
 - Hosting: the Cloudflare Worker `tian`, built by Workers Builds on push to `main` (other branches get preview URLs). The files are static assets; `worker/index.ts` runs only for `/api/auth/*`, passing Google's sign-in on to Convex so that Google's page names tian.ymse.land (Convex's `CUSTOM_AUTH_SITE_URL`). Headers are in `public/_headers`.
+- Google sign-in uses Ymseland's client («Hjemmeside» in the Google Cloud project `gorms-homepage-442022`) and its verified brand, so Google's page says «Ymseland»; `https://tian.ymse.land/api/auth/callback/google` is one of its redirect URIs. Its privacy policy, ymse.land/personvern, covers the word bank. Production's Convex is `valuable-akita-141`, with `SITE_URL` and `CUSTOM_AUTH_SITE_URL` https://tian.ymse.land; development's (`dutiful-hummingbird-800`) has no Google sign-in.
 
 Commands:
 
