@@ -1,4 +1,4 @@
-// The app icons of Tian (public/icons/): the seal beside the home
+// The app icons of Tian (public/app/): the seal beside the home
 // screen's title, 天 cut white into red in Ma Shan Zheng, worn as a real
 // stamp is. Drawn as ornament/Seal.tsx draws it (keep the two alike), in a
 // browser for the font and the filter, then scaled down. Where the game
@@ -92,8 +92,8 @@ for (const icon of ICONS) {
     'Lanczos',
     '-resize',
     `${icon.size}x${icon.size}`,
-    `public/icons/${icon.file}`,
+    `public/app/${icon.file}`,
   ])
-  console.log(`public/icons/${icon.file} (${icon.size} px)`)
+  console.log(`public/app/${icon.file} (${icon.size} px)`)
 }
 await browser.close()

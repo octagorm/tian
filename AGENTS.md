@@ -23,7 +23,7 @@ Don't commit or push unless asked.
 
 ## The game
 
-`index.tsx` is the shell: one game per hash (`/#tones`), each loaded lazily from `games/`, and the home screen (`home.tsx`) without one. To add a game, add a file there and a line to `GAMES` in `registry.tsx`; `GROUPS` in `home.tsx` puts it under a heading (or the game names its own `group`; one in neither shows under More). The page installs as an app of its own (`public/manifest.webmanifest`, icons in `public/icons/`, drawn from the seal beside the home screen's title by `node scripts/icons.mjs`).
+`index.tsx` is the shell: one game per hash (`/#tones`), each loaded lazily from `games/`, and the home screen (`home.tsx`) without one. To add a game, add a file there and a line to `GAMES` in `registry.tsx`; `GROUPS` in `home.tsx` puts it under a heading (or the game names its own `group`; one in neither shows under More). The page installs as an app of its own (`public/manifest.webmanifest`, icons in `public/app/`, drawn from the seal beside the home screen's title by `node scripts/icons.mjs`).
 
 To look at a change without a dev server, build, serve `dist/` and take screenshots with `scripts/shot.mjs` (puppeteer; `--learner` seeds a bank with some words met and known, `--mobile` for a phone, `--click "<text>"` presses a button first, `--wait <ms>` lets animations settle). Some pages read the query: `/?time=21:30` (or `?date=2027-02-06&time=20:00`) shows the home screen's scene at that hour, `?story=pangu&line=3#stories` opens a story at a line, and `?cast#stories` lays out every puppet.
 
