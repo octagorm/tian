@@ -24,6 +24,7 @@ import { TONE_NAME, join } from '../lib/pinyin'
 import {
   dayDone,
   dayOf,
+  doneToday,
   finished,
   hideKey,
   isDone,
@@ -38,7 +39,6 @@ import {
 import { todays } from '../lib/today'
 import { Btn, Frame, LEVEL_COLOR, Mixed, Ruby, shuffle, usePeek } from '../ui'
 import { EnterToContinue, Quiz } from '../quiz'
-import { Pix } from '../pixel/Pix'
 import { Seal } from '../ornament'
 import { MeetCard } from './today'
 import { ToneGlyph } from './tones'
@@ -110,6 +110,7 @@ function Overview({ onOpen }: { onOpen: (id: string) => void }) {
   const now = Date.now()
   const next = nextPart(bank)
   const rest = restToday(bank, now)
+  const doneDay = rest && doneToday(bank, now)
   const done = partsDone(bank)
   return (
     <Frame title="First steps" zh="入门">
@@ -126,7 +127,8 @@ function Overview({ onOpen }: { onOpen: (id: string) => void }) {
             <p className="leading-snug text-[var(--ink-2)]">
               New to Chinese? Seven days of three short parts, about ten minutes
               a day. How Chinese is written and said, how its sentences are
-              built, and your first words.
+              built, and your first words. Take them in order, or start with any
+              part.
             </p>
             <div className="mt-3">
               <Progress at={done} of={PARTS.length} />
@@ -137,7 +139,11 @@ function Overview({ onOpen }: { onOpen: (id: string) => void }) {
           <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-[var(--paper-2)] pt-4">
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-[var(--ink-2)] uppercase">
-                {rest ? `Day ${rest.n - 1} done` : done ? 'Next' : 'Start here'}
+                {doneDay
+                  ? `Day ${doneDay.n} done`
+                  : done
+                    ? 'Next'
+                    : 'Start here'}
               </p>
               <p className="font-bold">
                 {rest
@@ -300,12 +306,6 @@ function Player({
     setAt((a) => Math.max(a, from + 1))
     window.scrollTo(0, 0)
   }
-  // On to a game: the part is done, and the page left
-  const go = (from: number, href: string) => {
-    next(from)()
-    window.location.hash = href
-  }
-
   const s = at < last ? part.screens[at] : null
   return (
     <div className="mx-auto max-w-2xl px-4 pt-4 pb-16">
@@ -335,43 +335,20 @@ function Player({
           {!['quiz', 'ear'].includes(s.k) && (
             <Progress at={at} of={last} className="mb-4" />
           )}
-          <ScreenView
-            key={at}
-            s={s}
-            onNext={next(at)}
-            onGo={(h) => go(at, h)}
-          />
+          <ScreenView key={at} s={s} onNext={next(at)} />
         </>
       )}
     </div>
   )
 }
 
-function ScreenView({
-  s,
-  onNext,
-  onGo,
-}: {
-  s: Screen
-  onNext: () => void
-  onGo: (href: string) => void
-}) {
+function ScreenView({ s, onNext }: { s: Screen; onNext: () => void }) {
   if (s.k === 'read') return <Read s={s} onNext={onNext} />
   if (s.k === 'meet') return <Meet ids={s.ids} onNext={onNext} />
   if (s.k === 'quiz') return <WordQuiz ids={s.ids} onNext={onNext} />
   if (s.k === 'ask') return <Ask s={s} onNext={onNext} />
   if (s.k === 'ear') return <Ear s={s} onNext={onNext} />
-  if (s.k === 'build') return <Build lines={s.lines} onNext={onNext} />
-  return (
-    <div className="zh-card zh-rise p-6 text-center sm:p-8">
-      <Pix name="map" size={72} className="zh-bob mx-auto" />
-      <h2 className="zh-head mt-3 text-2xl">{s.title}</h2>
-      <Prose text={s.text} className="mx-auto mt-2 max-w-md" />
-      <Btn onClick={() => onGo(s.href)} className="mt-6 px-6">
-        {s.label} <ArrowRight size={18} />
-      </Btn>
-    </div>
-  )
+  return <Build lines={s.lines} onNext={onNext} />
 }
 
 function PartDone({
@@ -439,7 +416,7 @@ function PartDone({
       </h2>
       <p className="mx-auto mt-2 max-w-md text-[var(--ink-2)]">
         {all
-          ? '入门, rùmén, is to come in at the gate: to make a start. You have. From here, Today makes your ten minutes each day.'
+          ? '入门, rùmén, is to come in at the gate: to make a start. You have. Your first scene is passport control at Beijing Capital Airport.'
           : rest
             ? `Day ${rest.n}, ${rest.title.toLowerCase()}, is for tomorrow. What you met today will have settled by then.`
             : whole
@@ -452,16 +429,16 @@ function PartDone({
         {all ? (
           <>
             <a
-              href="#today"
+              href="#trip"
               className="zh-btn inline-flex items-center gap-1.5 rounded-xl bg-[var(--red)] px-5 py-2 font-bold text-[#fff6ea] [--edge:#8e2219]"
             >
-              Today <ArrowRight size={18} />
+              Start the trip <ArrowRight size={18} />
             </a>
             <a
-              href="#trip"
+              href="#today"
               className="zh-btn inline-flex items-center gap-1.5 rounded-xl bg-[var(--paper-2)] px-5 py-2 font-bold [--edge:#d4c19c]"
             >
-              The trip
+              Today
             </a>
           </>
         ) : (

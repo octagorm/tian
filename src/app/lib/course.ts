@@ -28,9 +28,28 @@ export const dayOf = (part: Part): Day =>
 export const dayDone = (bank: Bank, day: Day) =>
   day.parts.every((p) => isDone(bank, p.id))
 
-// The next part to take, in order; none once all are done
-export const nextPart = (bank: Bank): Part | null =>
-  PARTS.find((p) => !isDone(bank, p.id)) ?? null
+// The part done last, taken again or for the first time
+const lastDone = (bank: Bank): Part | null =>
+  PARTS.reduce<Part | null>(
+    (last, p) =>
+      (doneAt(bank, p.id) ?? 0) > (last ? (doneAt(bank, last.id) ?? 0) : 0)
+        ? p
+        : last,
+    null,
+  )
+
+// The next part to take: the first not done after the one done last, so
+// that someone who skips ahead goes on from there, and only then those
+// left behind; none once all are done
+export function nextPart(bank: Bank): Part | null {
+  const last = lastDone(bank)
+  const from = last ? PARTS.indexOf(last) + 1 : 0
+  return (
+    [...PARTS.slice(from), ...PARTS.slice(0, from)].find(
+      (p) => !isDone(bank, p.id),
+    ) ?? null
+  )
+}
 
 export const partsDone = (bank: Bank) =>
   PARTS.filter((p) => isDone(bank, p.id)).length
@@ -39,24 +58,36 @@ export const finished = (bank: Bank) => partsDone(bank) === PARTS.length
 
 export const started = (bank: Bank) => partsDone(bank) > 0
 
-// A day is meant for one sitting: once one is done, the next is for
-// tomorrow. It can still be taken today.
+const doneOn = (bank: Bank, p: Part, now: number) => {
+  const t = doneAt(bank, p.id)
+  return !!t && dayKey(t) === dayKey(now)
+}
+
+// The day of the course taken whole today, if one was (the latest)
+export const doneToday = (bank: Bank, now: number): Day | null =>
+  COURSE.filter((d) => d.parts.every((p) => doneOn(bank, p, now))).at(-1) ??
+  null
+
+// A day is meant for one sitting: once a whole day has been taken today,
+// the next is for tomorrow, unless it is under way already. It can still
+// be taken today.
 export function restToday(bank: Bank, now: number): Day | null {
   const next = nextPart(bank)
   if (!next) return null
   const day = dayOf(next)
-  if (day.parts[0] !== next || day.n === 1) return null
-  const before = COURSE[day.n - 2]
-  const last = Math.max(...before.parts.map((p) => doneAt(bank, p.id) ?? 0))
-  return dayKey(last) === dayKey(now) ? day : null
+  if (day.parts.some((p) => doneOn(bank, p, now))) return null
+  const done = doneToday(bank, now)
+  return done && done !== day ? day : null
 }
 
 // The parts Today's session carries (lib/today.ts): what is left of the
-// day the course is on, while it is offered and not resting until
-// tomorrow
+// day the course is on, from the next part, while it is offered and not
+// resting until tomorrow. Parts skipped earlier in the day are left out.
 export function partsToday(bank: Bank, now: number): Array<Part> {
   const next = offered(bank) && !restToday(bank, now) ? nextPart(bank) : null
-  return next ? dayOf(next).parts.filter((p) => !isDone(bank, p.id)) : []
+  if (!next) return []
+  const { parts } = dayOf(next)
+  return parts.slice(parts.indexOf(next)).filter((p) => !isDone(bank, p.id))
 }
 
 export const partOf = (id: string | undefined) => PARTS.find((p) => p.id === id)

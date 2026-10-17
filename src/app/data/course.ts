@@ -9,7 +9,8 @@ import { PICTURES, pictureArt } from './parts.ts'
 //
 // A part is a few screens: something to read, with things to hear (`show`),
 // words to meet and a quiz on them, a question, a round by ear, or a line
-// to build. Lines are the trip's, in its speakers' voices, or the
+// to build. The parts can be taken in any order (lib/course.ts goes on
+// from the one done last). Lines are the trip's, in its speakers' voices, or the
 // course's own examples (OWN_LINES), read by the teacher. Everything it
 // plays is listed for lib/speech.ts by courseSpeech (lib/course.ts).
 //
@@ -84,8 +85,6 @@ export type Screen =
   // Lines of the trip to put in Chinese order, each with its punctuation
   // at the end only
   | { k: 'build'; lines: Array<string> }
-  // On to a game, which ends the part
-  | { k: 'go'; title: string; text: string; href: string; label: string }
 
 export interface Part {
   id: string
@@ -138,27 +137,35 @@ const ONE_TO_TEN = ['一', '二', '三', '四', '五', '六', '七', '八', '九
 // word voice), with what they mean
 export const COURSE_VOICE = 'Kore'
 export const OWN_LINES: Record<string, string> = {
-  '我 是 老师 。': 'I am a teacher.',
+  '我 是=am 老师 。': 'I am a teacher.',
   '他 是 老师 。': 'He is a teacher.',
   '他们 是 老师 。': 'They are teachers.',
   '他 是 中国 人 吗 ？': 'Is he Chinese?',
   '是 ， 他 是 中国 人 。': 'Yes, he is Chinese.',
   '不 是 ， 他 是 美国 人 。': 'No, he is American.',
+  '我 不 是 中国 人 。': 'I am not Chinese.',
   '你 叫 什么 名字 ？': 'What is your name?',
   '我 叫 小李 。': 'My name is Xiao Li.',
   '一 个 人 ， 两 个 人 ， 三 个 人 。':
     'One person, two people, three people.',
-  '我 不 是 中国 人 。': 'I am not Chinese.',
-  '我 没有 护照 。': 'I do not have a passport.',
+  '我 喝 茶 。': 'I drink tea.',
+  '你 吃 什么 ？': 'What will you eat?',
 }
 
+// The order is the point: sounds before the words that need them, and few
+// new words at a time, short ones first. Day 1 meets three greetings and
+// day 2 single syllables (我, 你, 他); set phrases with a tone change and
+// a light syllable in them (不客气, 对不起) wait for day 7, when the tones
+// and the change of 不 are known. Each sentence pattern is met with the
+// words it needs, and used in a line to build, and the week ends ready for
+// the trip's first scene, passport control.
 export const COURSE: Array<Day> = [
   {
     n: 1,
-    title: 'How it works',
-    zh: '开始',
-    py: 'kāishǐ, to begin',
-    blurb: 'Characters, pinyin, and your first four words.',
+    title: 'Hello',
+    zh: '你好',
+    py: 'nǐ hǎo, hello',
+    blurb: 'How characters work, and your first three words.',
     parts: [
       {
         id: '1a',
@@ -168,7 +175,7 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'One character, one syllable',
-            text: 'Chinese is written in characters, 汉字 _hànzì_. Each is said as one syllable, and most carry a meaning of their own.\n\nThere is no alphabet to spell words with. Characters are learnt one at a time, and the same few hundred turn up everywhere. Tap one to hear it.',
+            text: 'Chinese is written in characters, 汉字 _hànzì_. Each is said as one syllable, and most carry a meaning of their own. Some began as pictures, like these.\n\nThere is no alphabet to spell words with, so characters are learnt one at a time. The commonest few hundred make up most of any page. Tap one to hear it.',
             show: { k: 'glyphs', items: [pic('人'), pic('山'), pic('口')] },
           },
           {
@@ -210,37 +217,54 @@ export const COURSE: Array<Day> = [
             ],
             note: 'Someone from outside the country. The taxi driver in Beijing will ask if you are one.',
           },
-          {
-            k: 'read',
-            title: 'Simplified characters',
-            text: 'Tian teaches simplified characters (简体字), the ones used in mainland China and Singapore. Taiwan, Hong Kong and Macau write the traditional forms (繁体字), often with many more strokes. The sound and the meaning are the same.\n\nMany characters, such as 人, 中 and 山, are written the same in both.',
-            show: {
-              k: 'forms',
-              pairs: [
-                { s: '国', t: '國', strokes: [8, 11] },
-                { s: '学', t: '學', strokes: [8, 16] },
-                { s: '说', t: '說', strokes: [9, 14] },
-                { s: '马', t: '馬', strokes: [3, 10] },
-                { s: '门', t: '門', strokes: [3, 8] },
-                { s: '车', t: '車', strokes: [4, 7] },
-                { s: '书', t: '書', strokes: [4, 10] },
-                { s: '龙', t: '龍', strokes: [5, 16] },
-              ],
-            },
-          },
         ],
       },
       {
         id: '1b',
-        title: 'Pinyin, and how Tian shows words',
-        minutes: 3,
+        title: 'Hello, thank you, goodbye',
+        minutes: 4,
         screens: [
           {
             k: 'read',
             title: 'Pinyin',
-            text: 'Pinyin (拼音 _pīnyīn_) writes how a character is said, in Latin letters, with a mark for the tone. 你好 is _nǐ hǎo_. You will use it to read new words, to type Chinese and to look words up.\n\nIt is not English spelling. q, x and zh say something else, as day 3 shows.',
-            show: { k: 'glyphs', items: [w('你好'), w('谢谢', 'thank you')] },
+            text: 'Above each character is its pinyin, 拼音 _pīnyīn_: the sound in Latin letters, with a mark for the tone. Day 2 is about the tones.\n\n你好 _nǐ hǎo_ is 你, you, and 好, good: hello. It suits anyone, at any time of day.',
+            show: {
+              k: 'glyphs',
+              items: [
+                w('你', 'you'),
+                w('好', 'good'),
+                w('你好', 'hello', 'you + good'),
+              ],
+            },
           },
+          {
+            k: 'read',
+            title: 'Thank you and goodbye',
+            text: '谢谢 _xièxie_ is thank you. The voice falls on the first 谢, and the second is short and light.\n\n再见 _zàijiàn_ is goodbye: 再 again and 见 see, as in "see you again". The voice falls on both.',
+            show: {
+              k: 'glyphs',
+              items: [
+                w('谢谢', 'thank you'),
+                w('再见', 'goodbye', 'again + see'),
+              ],
+            },
+          },
+          { k: 'meet', ids: ['你好', '谢谢', '再见'] },
+          { k: 'quiz', ids: ['你好', '谢谢', '再见'] },
+          {
+            k: 'ask',
+            q: 'Someone holds a door open for you. What do you say?',
+            zh: true,
+            options: ['谢谢 ！', '你好 ！', '再见 ！'],
+            note: '谢谢, thank you. 你好 is hello, and 再见 goodbye.',
+          },
+        ],
+      },
+      {
+        id: '1c',
+        title: 'How Tian shows words',
+        minutes: 3,
+        screens: [
           {
             k: 'read',
             title: 'Words as you know them',
@@ -264,33 +288,10 @@ export const COURSE: Array<Day> = [
             ],
             note: 'Known words lose their pinyin. If one fades, or you get it wrong, the pinyin comes back until you get it right again.',
           },
-        ],
-      },
-      {
-        id: '1c',
-        title: 'Your first words',
-        minutes: 4,
-        screens: [
-          {
-            k: 'read',
-            title: 'Hello and goodbye',
-            text: '你好 is 你 you and 好 good: hello. 谢谢 is thank you, and the answer to it is 不客气, you are welcome. 再见 is goodbye, literally "again see".',
-            show: {
-              k: 'glyphs',
-              items: [
-                w('你好', 'hello', 'you + good'),
-                w('谢谢', 'thank you'),
-                w('不客气', "you're welcome"),
-                w('再见', 'goodbye', 'again + see'),
-              ],
-            },
-          },
-          { k: 'meet', ids: ['你好', '谢谢', '不客气', '再见'] },
-          { k: 'quiz', ids: ['你好', '谢谢', '不客气', '再见'] },
           {
             k: 'read',
             title: 'In your word bank',
-            text: 'These four are in your word bank now. Every game shares it, so a word learnt in one is known in all, and each game asks it again as it begins to fade. Tomorrow, the tones.',
+            text: 'Your three words are in your word bank now. Every game shares it, so a word learnt in one is known in all, and each game asks it again as it begins to fade.\n\nNext, the tones.',
           },
         ],
       },
@@ -301,7 +302,7 @@ export const COURSE: Array<Day> = [
     title: 'Tones',
     zh: '声调',
     py: 'shēngdiào, tones',
-    blurb: 'Four shapes of the voice, and how they change in words.',
+    blurb: 'Four shapes of the voice, and the words for I, you, he and she.',
     parts: [
       {
         id: '2a',
@@ -323,10 +324,13 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'The marks',
-            text: 'Pinyin draws the tone over the vowel, in the shape the voice makes: ā á ǎ à. No mark means the neutral tone, short and light. The second 谢 of 谢谢 _xièxie_ is neutral, and so is 吗 _ma_, which turns a sentence into a question.',
+            text: 'Pinyin draws the tone over the vowel, in the shape the voice makes: ā á ǎ à. No mark means the neutral tone, short and light, like the second 谢 of 谢谢 _xièxie_.',
             show: {
               k: 'glyphs',
-              items: [w('谢谢', 'thank you'), w('吗', 'question word')],
+              items: [
+                w('谢谢', 'thank you', '4th + neutral'),
+                w('再见', 'goodbye', '4th + 4th'),
+              ],
             },
           },
           {
@@ -383,49 +387,45 @@ export const COURSE: Array<Day> = [
       },
       {
         id: '2c',
-        title: 'Tones in words',
+        title: 'I, you, he and she',
         minutes: 5,
         screens: [
           {
             k: 'read',
             title: 'Two third tones',
-            text: "When two third tones meet, the first is said as a second. 你好 is written _nǐ hǎo_ and said _ní hǎo_. 可以, may, is written _kěyǐ_ and said _kéyǐ_. Pinyin keeps each syllable's own mark, and the change is only in the saying.",
-            show: { k: 'glyphs', items: [w('你好'), w('可以', 'may, can')] },
-          },
-          {
-            k: 'read',
-            title: '不 and 一 change too',
-            text: '不 _bù_, not, is said _bú_ before a fourth tone, as in 不是 _búshì_, is not, and 不客气 _búkèqi_. 一 _yī_, one, is said _yí_ before a fourth tone and _yì_ before the others, as in 一点 _yìdiǎn_, a little. Tian writes both as they are said.',
+            text: 'You know 你好. Its halves are words too: 你 _nǐ_, you, and 好 _hǎo_, good, both third tones. When two third tones meet, the first is said as a second, so 你好 is said _ní hǎo_. Pinyin keeps the written marks.',
             show: {
               k: 'glyphs',
-              small: true,
               items: [
-                w('不', 'not'),
-                { h: '不是', p: 'bù shì', m: 'is not', say: '不是' },
-                w('不客气', "you're welcome"),
-                w('一', 'one'),
-                w('一点', 'a little'),
+                w('你', 'you'),
+                w('好', 'good'),
+                w('你好', 'hello', 'said ní hǎo'),
               ],
             },
           },
           {
             k: 'read',
-            title: 'Five words for every day',
-            text: 'You will use these in nearly every sentence. 我 I and 你 you are both third tones. 好 is good, 是 is "to be", and 不 is not.',
+            title: 'I, he and she',
+            text: '我 _wǒ_, I or me, is a third tone as well. 他, he, and 她, she, are both _tā_, high and level, so you cannot hear which is meant. In writing, 她 has 女, woman, on its left.',
             show: {
               k: 'glyphs',
               small: true,
               items: [
                 w('我', 'I, me'),
                 w('你', 'you'),
-                w('好', 'good'),
-                w('是', 'to be'),
-                w('不', 'not'),
+                w('他', 'he'),
+                w('她', 'she'),
               ],
             },
           },
-          { k: 'meet', ids: ['我', '你', '好', '是', '不'] },
-          { k: 'quiz', ids: ['我', '你', '好', '是', '不'] },
+          { k: 'meet', ids: ['我', '你', '好', '他', '她'] },
+          { k: 'quiz', ids: ['我', '你', '好', '他', '她'] },
+          {
+            k: 'read',
+            title: 'Words fade, then stay',
+            text: 'Each word you meet has a memory in your word bank. Just after you meet it, it fades within hours. Each time you get it right as it begins to fade, it lasts longer, from hours to days and then to weeks.\n\nSo ten minutes every day does more than an hour once a week, and Today begins with the words that are fading.',
+            show: { k: 'memory' },
+          },
         ],
       },
     ],
@@ -463,22 +463,19 @@ export const COURSE: Array<Day> = [
           },
           {
             k: 'read',
-            title: 'He, she and they',
-            text: '他 he and 她 she are both _tā_, with that puff of air. Spoken Chinese does not tell them apart. 们 after a person makes a group: 我们 we, 你们 you all, 他们 they.',
+            title: 'We, you all, they',
+            text: '他 and 她 start with that puff of air: _tā_. Put 们 _men_ after 我, 你 or 他, and it means more than one: 我们 we, 你们 you all, 他们 they. 们 is light, in the neutral tone.',
             show: {
               k: 'glyphs',
-              small: true,
               items: [
-                w('他', 'he'),
-                w('她', 'she'),
-                w('我们', 'we'),
+                w('我们', 'we, us'),
                 w('你们', 'you all'),
                 w('他们', 'they'),
               ],
             },
           },
-          { k: 'meet', ids: ['他', '她', '我们', '你们', '他们'] },
-          { k: 'quiz', ids: ['他', '她', '我们', '你们', '他们'] },
+          { k: 'meet', ids: ['我们', '你们', '他们'] },
+          { k: 'quiz', ids: ['我们', '你们', '他们'] },
         ],
       },
       {
@@ -561,7 +558,7 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'The hard part is done',
-            text: 'Those are the sounds English does not have. The pinyin chart has all of them, each with how to say it, and lets you record yourself beside the voice.',
+            text: 'Those are the sounds English does not have. The pinyin chart has all of them, each with how to say it, and lets you record yourself beside the voice.\n\nNext, your first sentences.',
           },
         ],
         more: { href: '#pinyin', label: 'The pinyin chart' },
@@ -573,79 +570,67 @@ export const COURSE: Array<Day> = [
     title: 'First sentences',
     zh: '句子',
     py: 'jùzi, sentences',
-    blurb: 'Word order, questions, and verbs that never change.',
+    blurb: 'Saying who you are, saying no, and asking.',
     parts: [
       {
         id: '4a',
-        title: 'Who does what',
+        title: 'I am, you are',
         minutes: 4,
         screens: [
           {
             k: 'read',
-            title: 'The order of English',
-            text: 'A plain sentence goes as in English: who, does, what. A country and 人, person, make a nationality, so 中国人 is a Chinese person.',
+            title: 'Who, then what',
+            text: 'A plain sentence goes as in English: who, then the verb, then the rest. 是 _shì_ joins two things, as am, is and are do.',
+            show: { k: 'lines', zh: ['我 是=am 老师 。'] },
+          },
+          {
+            k: 'read',
+            title: 'Nothing changes',
+            text: '是 is am, is and are alike: 我是, 他是, 他们是. A verb never changes for who does it, or for when. Nor does a noun change for how many: 老师 is a teacher, or teachers.',
+            show: { k: 'lines', zh: ['他 是 老师 。', '他们 是 老师 。'] },
+          },
+          {
+            k: 'read',
+            title: 'Where you are from',
+            text: 'A country and 人, person, make a nationality, as 中国人 did on day 1. Say yours with 是.',
             show: { k: 'lines', zh: ['我 是=am {home} 人 。'] },
           },
-          {
-            k: 'read',
-            title: 'Verbs never change',
-            text: '是 is am, is and are: 我是, 你是, 他是. No verb changes for who does it, or for when. Time is told by words such as 明天, tomorrow.',
-            show: { k: 'lines', zh: ['我 是 老师 。', '他 是 老师 。'] },
-          },
-          {
-            k: 'read',
-            title: 'No plurals',
-            text: 'A noun stays as it is, one or many. 老师 is a teacher, or teachers, and a number or the sense says how many. Only for people can 们 make a group, as in 我们, we, and 他们, they.',
-            show: { k: 'lines', zh: ['他们 是 老师 。'] },
-          },
-          { k: 'meet', ids: ['人', '中国', '中文', '说'] },
-          { k: 'quiz', ids: ['人', '中国', '中文', '说'] },
+          { k: 'meet', ids: ['是', '人', '中国'] },
+          { k: 'quiz', ids: ['是', '人', '中国'] },
           {
             k: 'build',
-            lines: ['我 是=am {home} 人 。', '我 会 说 一点 中文 。'],
+            lines: ['我 是=am {home} 人 。', '他们 是 老师 。'],
           },
         ],
       },
       {
         id: '4b',
-        title: 'Questions',
+        title: 'No, and questions',
         minutes: 4,
         screens: [
           {
             k: 'read',
+            title: '不, not',
+            text: '不 _bù_, not, goes before the verb. Before a fourth tone it is said _bú_, so 不是 is _búshì_. Tian writes it as it is said.',
+            show: { k: 'lines', zh: ['我 不 是 中国 人 。'] },
+          },
+          {
+            k: 'read',
             title: 'Add 吗',
-            text: 'To ask a yes-or-no question, put 吗 at the end of a statement. Nothing else moves.',
-            show: { k: 'lines', zh: ['你 会 说 中文 吗 ？'] },
+            text: 'To ask a yes-or-no question, put 吗 _ma_ at the end of a statement. Nothing else moves.',
+            show: { k: 'lines', zh: ['他 是 中国 人 吗 ？'] },
           },
           {
             k: 'read',
             title: 'No word for yes',
-            text: 'Chinese has no one word for yes or no. Answer with the verb of the question. Asked with 是, say 是 or 不是. Asked with 会, can, say 会 or 不会. 对, right, is a common yes too.',
+            text: 'Chinese has no one word for yes or no. Answer with the verb of the question: 是, or 不是.',
             show: {
               k: 'lines',
-              zh: [
-                '他 是 中国 人 吗 ？',
-                '是 ， 他 是 中国 人 。',
-                '不 是 ， 他 是 美国 人 。',
-              ],
+              zh: ['是 ， 他 是 中国 人 。', '不 是 ， 他 是 美国 人 。'],
             },
           },
-          {
-            k: 'read',
-            title: 'Question words stay put',
-            text: 'A question word sits where the answer will go, and the rest keeps its order. 你是哪国人 is "you are which country person?", and the answer puts your country in the same place. 你叫什么名字 is "you are called what name?"',
-            show: {
-              k: 'lines',
-              zh: [
-                '你 是 哪 国 人 ？',
-                '我 是=am {home} 人 。',
-                '你 叫 什么 名字 ？',
-                '我 叫 小李 。',
-              ],
-            },
-          },
-          { k: 'meet', ids: ['吗', '哪', '什么', '叫', '会'] },
-          { k: 'quiz', ids: ['吗', '哪', '什么', '叫', '会'] },
+          { k: 'meet', ids: ['不', '吗'] },
+          { k: 'quiz', ids: ['不', '吗'] },
           {
             k: 'ask',
             q: 'Which one asks "Are you Chinese?"',
@@ -662,31 +647,29 @@ export const COURSE: Array<Day> = [
       },
       {
         id: '4c',
-        title: 'Describing',
+        title: 'Names and countries',
         minutes: 4,
         screens: [
           {
             k: 'read',
-            title: 'The description comes first',
-            text: 'Whatever describes a thing comes before it, joined by 的: 我的护照, my passport, 你的中文, your Chinese.\n\nAn adjective needs no 是. "Your Chinese very good" is a whole sentence, with 很, very, linking the two. Often 很 says little more than "is".',
-            show: { k: 'lines', zh: ['你 的 中文 很 好 ！'] },
+            title: 'Question words stay put',
+            text: 'A question word sits where the answer will go, and the rest keeps its order. 你是哪国人 is "you are which country person?" The answer puts your country in the same place.',
+            show: {
+              k: 'lines',
+              zh: ['你 是 哪 国 人 ？', '我 是=am {home} 人 。'],
+            },
           },
-          { k: 'meet', ids: ['的', '很', '一点'] },
-          { k: 'quiz', ids: ['的', '很', '一点'] },
+          {
+            k: 'read',
+            title: 'Your name',
+            text: '叫 _jiào_ is to be called. 你叫什么名字 is "you are called what name?", and the answer is 我叫 and your name.',
+            show: { k: 'lines', zh: ['你 叫 什么 名字 ？', '我 叫 小李 。'] },
+          },
+          { k: 'meet', ids: ['哪', '国', '叫', '什么'] },
+          { k: 'quiz', ids: ['哪', '国', '叫', '什么'] },
           {
             k: 'build',
-            lines: [
-              '你 的 中文 很 好 ！',
-              '请 给 我=me 你 的 护照 。',
-              '你 会 说 中文 吗 ？',
-            ],
-          },
-          {
-            k: 'ask',
-            q: 'How do you say "my passport"?',
-            zh: true,
-            options: ['我 的 护照', '护照 的 我', '我 护照 的', '的 我 护照'],
-            note: 'Me first, then 的, then the passport, as an English "my passport".',
+            lines: ['你 是 哪 国 人 ？', '你 叫 什么 名字 ？'],
           },
         ],
         more: { href: '#order', label: 'More in Word order' },
@@ -818,8 +801,8 @@ export const COURSE: Array<Day> = [
             text: '几 asks how many, when the answer is small, and it sits where the number would. 天, day, is counted without a measure word.',
             show: { k: 'lines', zh: ['好的 。 住 几 天 ？', '住 三 天 。'] },
           },
-          { k: 'meet', ids: ['个', '两', '几', '包子'] },
-          { k: 'quiz', ids: ['个', '两', '几', '包子'] },
+          { k: 'meet', ids: ['个', '两', '几'] },
+          { k: 'quiz', ids: ['个', '两', '几'] },
           {
             k: 'ask',
             q: '我要＿个包子, I would like two buns. Which word fills the gap?',
@@ -974,13 +957,13 @@ export const COURSE: Array<Day> = [
       },
       {
         id: '6c',
-        title: 'Strokes',
-        minutes: 4,
+        title: 'Writing',
+        minutes: 5,
         screens: [
           {
             k: 'read',
             title: 'Stroke by stroke',
-            text: 'Characters are written in strokes, in a set order. Top before bottom, left before right, across before down. 十 is across, then down. 人 is the stroke to the left, then the one to the right. A box such as 口 is closed last, with the stroke along its bottom.',
+            text: 'Characters are written in strokes, in a set order. Top before bottom, left before right, across before down. 十 is across, then down. 人 is the stroke to the left, then the one to the right. A box such as 口 is closed last, with the stroke along its bottom.\n\nMany learners read and type long before they write by hand. To type, you write the pinyin and pick the character.',
             show: {
               k: 'glyphs',
               items: [
@@ -992,11 +975,25 @@ export const COURSE: Array<Day> = [
           },
           {
             k: 'read',
-            title: 'Reading before writing',
-            text: 'Many learners read and type long before they write by hand. To type, you write the pinyin and pick the character. Writing a few by hand still helps to tell them apart, and Brush shows the strokes of every word you meet.',
+            title: 'Simplified characters',
+            text: 'Tian teaches simplified characters (简体字), the ones used in mainland China and Singapore. Taiwan, Hong Kong and Macau write the traditional forms (繁体字), often with many more strokes. The sound and the meaning are the same.\n\nMany characters, such as 人, 中 and 山, are written the same in both.',
+            show: {
+              k: 'forms',
+              pairs: [
+                { s: '国', t: '國', strokes: [8, 11] },
+                { s: '学', t: '學', strokes: [8, 16] },
+                { s: '说', t: '說', strokes: [9, 14] },
+                { s: '马', t: '馬', strokes: [3, 10] },
+                { s: '门', t: '門', strokes: [3, 8] },
+                { s: '车', t: '車', strokes: [4, 7] },
+                { s: '书', t: '書', strokes: [4, 10] },
+                { s: '龙', t: '龍', strokes: [5, 16] },
+              ],
+            },
           },
           { k: 'meet', ids: ['吃', '喝', '水', '茶'] },
           { k: 'quiz', ids: ['吃', '喝', '水', '茶'] },
+          { k: 'build', lines: ['我 喝 茶 。', '你 吃 什么 ？'] },
         ],
         more: { href: '#write', label: 'Write them in Brush' },
       },
@@ -1007,21 +1004,61 @@ export const COURSE: Array<Day> = [
     title: 'A first conversation',
     zh: '对话',
     py: 'duìhuà, conversation',
-    blurb: 'Saying no, being modest, and into the trip.',
+    blurb: 'Polite replies, a little Chinese, and into the trip.',
     parts: [
       {
         id: '7a',
-        title: 'Saying no',
+        title: 'Thanks and sorry',
         minutes: 4,
         screens: [
           {
             k: 'read',
-            title: '不 and 没',
-            text: '不 _bù_ puts not before a verb or an adjective: 不好, not good, 不是, is not. 有, to have, is the one verb it never goes with. "Not have" is 没有 _méiyǒu_.',
+            title: 'Two pairs',
+            text: '谢谢 is answered with 不客气 _búkèqi_, "no need to be polite": you are welcome. 对不起 _duìbuqǐ_ is sorry, and the answer to it is 没关系 _méiguānxi_, it does not matter.\n\nIn 不客气, 不 is _bú_ before the fourth tone of 客, as in 不是. Learn each of these whole, as one word.',
             show: {
-              k: 'lines',
-              zh: ['我 不 是 中国 人 。', '我 没有 护照 。'],
+              k: 'glyphs',
+              items: [
+                w('谢谢', 'thank you'),
+                w('不客气', "you're welcome"),
+                w('对不起', 'sorry'),
+                w('没关系', "it's OK"),
+              ],
             },
+          },
+          { k: 'meet', ids: ['不客气', '对不起', '没关系'] },
+          { k: 'quiz', ids: ['不客气', '对不起', '没关系'] },
+          {
+            k: 'ask',
+            q: 'Someone says 谢谢 to you. What do you say?',
+            zh: true,
+            options: ['不客气 。', '没关系 。', '对不起 。', '再见 ！'],
+            note: '不客气, you are welcome. 没关系 is the answer to 对不起.',
+          },
+          {
+            k: 'ask',
+            q: "You step on someone's foot. What do you say?",
+            zh: true,
+            options: ['对不起 。', '没关系 。', '不客气 。', '你好 ！'],
+            note: '对不起, sorry. They may well answer 没关系.',
+          },
+        ],
+      },
+      {
+        id: '7b',
+        title: 'A little Chinese',
+        minutes: 5,
+        screens: [
+          {
+            k: 'read',
+            title: 'Can you speak Chinese?',
+            text: '会 _huì_ is can, for something learnt, such as a language. 说 _shuō_ is to speak, and 中文, which you saw on day 1, is Chinese. With 吗 at the end it is a question.',
+            show: { k: 'lines', zh: ['你 会 说 中文 吗 ？'] },
+          },
+          {
+            k: 'read',
+            title: 'A little',
+            text: '一点 _yìdiǎn_ is a little. 一 _yī_, one, changes like 不: it is _yì_ before the first three tones, and _yí_ before a fourth.',
+            show: { k: 'lines', zh: ['我 会 说 一点 中文 。'] },
           },
           {
             k: 'read',
@@ -1032,27 +1069,18 @@ export const COURSE: Array<Day> = [
               zh: ['你 的 中文 很 好 ！', '谢谢 ！ 我 的 中文 不 好 。'],
             },
           },
+          { k: 'meet', ids: ['会', '说', '中文', '一点'] },
+          { k: 'quiz', ids: ['会', '说', '中文', '一点'] },
           {
-            k: 'read',
-            title: 'Sorry, and never mind',
-            text: "对不起 is sorry, and the answer to it is 没关系, it doesn't matter. 对 alone is right, correct, and a common way to say yes.",
-            show: {
-              k: 'glyphs',
-              items: [
-                w('对不起', 'sorry'),
-                w('没关系', "it's OK"),
-                w('对', 'right'),
-              ],
-            },
+            k: 'build',
+            lines: ['我 会 说 一点 中文 。', '你 会 说 中文 吗 ？'],
           },
-          { k: 'meet', ids: ['没有', '对', '对不起', '没关系'] },
-          { k: 'quiz', ids: ['没有', '对', '对不起', '没关系'] },
         ],
       },
       {
-        id: '7b',
+        id: '7c',
         title: 'Into the trip',
-        minutes: 5,
+        minutes: 3,
         screens: [
           {
             k: 'read',
@@ -1065,11 +1093,15 @@ export const COURSE: Array<Day> = [
           },
           {
             k: 'ask',
-            q: 'The officer says hello. What do you say?',
+            q: 'The officer asks where you are from. What do you say?',
             zh: true,
-            show: { k: 'lines', zh: ['你好 ！'] },
-            options: ['你好 ！', '再见 ！', '谢谢 ！', '不客气 。'],
-            note: 'Hello back. 再见 is goodbye, and there is nothing to thank for yet.',
+            show: { k: 'lines', zh: ['你 是 哪 国 人 ？'] },
+            options: [
+              '我 是=am {home} 人 。',
+              '我 叫 {home} 。',
+              '我 是=am 中国 人 。',
+            ],
+            note: 'Your country, then 人. 叫 is for names.',
           },
           {
             k: 'ask',
@@ -1080,34 +1112,9 @@ export const COURSE: Array<Day> = [
             note: 'Thank you. 对不起 is sorry and 没关系 answers one, while 不客气 answers a thank-you.',
           },
           {
-            k: 'go',
-            title: 'Passport control',
-            text: 'Your first scene: Beijing Capital Airport, and an officer who waves you over. Come back here when you are through.',
-            href: '#trip',
-            label: 'Start the trip',
-          },
-        ],
-      },
-      {
-        id: '7c',
-        title: 'Keep going',
-        minutes: 3,
-        screens: [
-          {
-            k: 'read',
-            title: 'Words fade, then stay',
-            text: 'Each word you meet has a memory in your word bank. Just after you meet it, it fades within hours. Each time you get it right as it begins to fade, it lasts longer, from hours to days and then to weeks.\n\nSo ten minutes every day does more than an hour once a week.',
-            show: { k: 'memory' },
-          },
-          {
             k: 'read',
             title: 'Ten minutes a day',
-            text: 'Today, at the top of the home screen, makes your ten minutes for you. It has the words that are fading, a few new ones, a scene of the trip or a game, and a little listening. It is the one thing to do each day.',
-          },
-          {
-            k: 'read',
-            title: 'Where to go next',
-            text: 'The trip goes on to Shanghai, with new words in every scene. Pinyin and Tones train your ear, Character parts and Brush your eye and hand. And any word you forget is a tap away, in every game.',
+            text: 'From here on, Today at the top of the home screen makes your ten minutes: the words that are fading, a few new ones, a scene of the trip or a game, and a little listening.\n\nPinyin and Tones train your ear, Character parts and Brush your eye and hand. Any word you forget is a tap away, in every game.',
           },
         ],
       },

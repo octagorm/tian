@@ -4,6 +4,7 @@ import { useStore } from '../lib/store'
 import {
   dayDone,
   dayOf,
+  doneToday,
   hideKey,
   nextPart,
   offered,
@@ -54,7 +55,9 @@ export function CourseStrip({
   const next = nextPart(bank)
   if (!offered(bank) || !next) return null
   const day = dayOf(next)
-  const rest = restToday(bank, Date.now())
+  const now = Date.now()
+  const rest = restToday(bank, now)
+  const doneDay = rest && doneToday(bank, now)
   return (
     <div
       className={`flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-[var(--ink-2)] ${className}`}
@@ -77,8 +80,8 @@ export function CourseStrip({
         })}
       </ol>
       <span>
-        {rest
-          ? `Day ${rest.n - 1} of First steps done. Day ${rest.n} is for tomorrow.`
+        {rest && doneDay
+          ? `Day ${doneDay.n} of First steps done. Day ${rest.n} is for tomorrow.`
           : `First steps, day ${day.n} of 7`}
       </span>
       {leading ? (

@@ -48,9 +48,17 @@ export interface Question {
   kind: Kind
 }
 
-// Four choices: the word and three others, alike in kind where possible
+// Four choices: the word and three others, alike in kind where possible,
+// and never one that sounds the same (他 and 她 are both tā)
 export function distractors(w: Word, pool: Array<Word>): Array<Word> {
-  const others = pool.filter((x) => x.id !== w.id && x.g !== w.g && x.h !== w.h)
+  const sound = w.p.toLowerCase()
+  const others = pool.filter(
+    (x) =>
+      x.id !== w.id &&
+      x.g !== w.g &&
+      x.h !== w.h &&
+      x.p.toLowerCase() !== sound,
+  )
   const alike = others.filter(
     (x) =>
       x.tags.some((t) => w.tags.includes(t)) ||

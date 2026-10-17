@@ -1407,6 +1407,40 @@ describe('first steps, the beginner course', () => {
     expect(award(b, NOON).seals).toContain('start')
   })
 
+  test('someone who skips ahead goes on from there', async () => {
+    const { PARTS } = await import('../src/app/data/course')
+    const { nextPart, partKey, partsToday, restToday, doneToday } =
+      await import('../src/app/lib/course')
+    const b = emptyBank()
+    const done = (ids: Array<string>, t: number) => {
+      for (const id of ids) b.scenes[partKey(id)] = t
+    }
+    done(['1a'], NOON)
+    done(['4a'], NOON + 1)
+    expect(nextPart(b)?.id).toBe('4b')
+    // Today carries the rest of day 4, not the days skipped
+    expect(partsToday(b, NOON + 2).map((p) => p.id)).toEqual(['4b', '4c'])
+    // a part skipped within a day is left behind too
+    done(['4c'], NOON + 2)
+    expect(nextPart(b)?.id).toBe('5a')
+    expect(restToday(b, NOON + 3)).toBeNull()
+    // a whole day taken today: the next is for tomorrow
+    done(['4b'], NOON + 3)
+    expect(doneToday(b, NOON + 4)?.n).toBe(4)
+    expect(restToday(b, NOON + 4)?.n).toBe(5)
+    // a part taken again goes on after it, past those done
+    done(['1a'], NOON + 5)
+    expect(nextPart(b)?.id).toBe('1b')
+    done(['1b', '1c'], NOON + 6)
+    expect(nextPart(b)?.id).toBe('2a')
+    // at the end, those left behind
+    done(
+      PARTS.slice(PARTS.findIndex((p) => p.id === '5a')).map((p) => p.id),
+      NOON + 7,
+    )
+    expect(nextPart(b)?.id).toBe('2a')
+  })
+
   test('someone who knows many words is not offered it unless they ask', async () => {
     const { offered, hideKey } = await import('../src/app/lib/course')
     const b = emptyBank()
