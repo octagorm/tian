@@ -16,8 +16,8 @@ import type { Bank, Level, Path } from './bank'
 
 // The word bank and the settings as React state, for every game at once.
 // Both are kept in localStorage; for a member, the bank is also kept on
-// the account (convex/bank.ts): the two are merged when the account's
-// copy comes in, and each change is saved a moment later.
+// the account (convex/bank.ts): the two are merged whenever the
+// account's copy comes in, and each change is saved a moment later.
 //
 // After every change the store looks for seals earned and things grown in
 // the garden (lib/achievements.ts, loaded apart from the rest), adds
@@ -363,18 +363,29 @@ function useAccount(local: Bank, setLocal: (b: Bank) => void): Account {
     }
   }, [remoteRaw])
 
+  // The bank as it is now, for merging in the account's copy without
+  // merging again on every change here
+  const latest = useRef(local)
+  useEffect(() => {
+    latest.current = local
+  }, [local])
+
+  // Each copy that comes from the account, on sign-in and whenever another
+  // device saves, is merged in, never overwritten: saving this device's
+  // bank over it would lose what the other one learnt
   useEffect(() => {
     if (!member) {
       merged.current = false
       return
     }
-    if (remote === undefined || merged.current) return
+    if (remote === undefined) return
     merged.current = true
-    const both = merge(local, remote ?? emptyBank())
-    if (!same(both, local)) setLocal(both)
+    const mine = latest.current
+    const both = merge(mine, remote ?? emptyBank())
+    if (!same(both, mine)) setLocal(both)
     if (!remote || !same(both, remote))
       void save({ data: JSON.stringify(both) }).catch(() => {})
-  }, [member, remote, local, setLocal, save])
+  }, [member, remote, setLocal, save])
 
   useEffect(() => {
     if (!member || !merged.current || !remote || same(local, remote)) return
