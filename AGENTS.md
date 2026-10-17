@@ -1,0 +1,104 @@
+# Tian
+
+Tian (天, *tiān*: day, sky; 天天向上, a little further every day) is a set of games for learning Mandarin (simplified characters), in English, at https://tian.ymse.land. It is one of the sites of Ymseland (see the ymseland skill, and https://ymse.land/oversikt). It was `/chinese` in the homepage repo until October 2026.
+
+## The repo
+
+- Astro with one React island (`client:only`), Tailwind v4, built to static files.
+- The game is `src/app/`; paths below without a folder are in it. The page is `src/pages/index.astro`; `/admin` and `/invite` are for access.
+- Convex (project `tian`) keeps the word bank of members (`convex/bank.ts`) and who they are (`convex/access.ts`): anyone can sign in with Google, but only the admin (Gorm) and members keep their bank on the account. The admin lets people in at `/admin`, by answering requests or with invitation links (`/invite?code=…`).
+- Hosting: the Cloudflare Worker `tian`, built by Workers Builds on push to `main` (other branches get preview URLs). The files are static assets; `worker/index.ts` runs only for `/api/auth/*`, passing Google's sign-in on to Convex so that Google's page names tian.ymse.land (Convex's `CUSTOM_AUTH_SITE_URL`). Headers are in `public/_headers`.
+
+Commands:
+
+- `npm run dev` – Convex and Astro (the user runs it; don't)
+- `npm run build` – type check and build to `dist/`
+- `npm run preview` – build and serve `dist/` with Wrangler, as Cloudflare will
+- `npm test` – Vitest: the game's data (`tests/app.test.ts`), access, the Worker
+- `npm run lint`, `npm run format`
+
+Changes in `convex/` go to production with `npx convex deploy`, separately from the site. When removing a function, push the frontend that stops calling it first.
+
+Don't commit or push unless asked.
+
+## The game
+
+`index.tsx` is the shell: one game per hash (`/#tones`), each loaded lazily from `games/`, and the home screen (`home.tsx`) without one. To add a game, add a file there and a line to `GAMES` in `registry.tsx`; `GROUPS` in `home.tsx` puts it under a heading (or the game names its own `group`; one in neither shows under More). The page installs as an app of its own (`public/manifest.webmanifest`, icons in `public/icons/`, drawn from the seal beside the home screen's title by `node scripts/icons.mjs`).
+
+To look at a change without a dev server, build, serve `dist/` and take screenshots with `scripts/shot.mjs` (puppeteer; `--learner` seeds a bank with some words met and known, `--mobile` for a phone, `--click "<text>"` presses a button first, `--wait <ms>` lets animations settle). Some pages read the query: `/?time=21:30` (or `?date=2027-02-06&time=20:00`) shows the home screen's scene at that hour, `?story=pangu&line=3#stories` opens a story at a line, and `?cast#stories` lays out every puppet.
+
+## The word bank
+
+Every game reads and writes one bank (`lib/bank.ts`), so a word learnt in one is known in all. Each word met has a card with a memory in the manner of FSRS: `s` is the stability in days, recall is `1 / (1 + t / 9s)`, a right answer multiplies `s` by more the more it had faded (crammed answers count little, spaced ones a lot), a wrong one cuts it, and a real slip brings a known word back to pinyin. Games weigh what an answer says (`record(id, right, weight)`): typing pinyin 1, picking from four about 0.6, hints that a word was looked up 0.3.
+
+A word's card decides how it is shown everywhere (`Mixed`, `Sprinkled` and `Ruby` in `ui.tsx`):
+
+- not met: in English, its gloss, in Chinese word order ("I want two (item) steamed bun");
+- met (learning): hanzi with pinyin above;
+- known (stability 1.5 days or more, not faded): hanzi alone.
+
+`lib/store.tsx` holds the bank and the settings as React state, in `localStorage` (`tian:bank:v1`, `tian:settings:v1`). For a member (see `convex/access.ts`) the bank is also kept on the account (`convex/bank.ts`, as the page's own JSON) and merged on sign-in: per word the card seen last, per score, day, scene and garden thing the highest, per seal the first day it was earned, and of two Today sessions the later day's, or the one further on.
+
+## The daily habit
+
+- Today (`lib/today.ts`, `games/today.tsx`): a session of about ten minutes, made once a day from the bank and kept in it (`bank.path`), so it can be taken up again on any device: fading words, a few new ones, a trip scene or a game, some listening, then a summary. The steps played in Today keep each answer as it is given (`got` on the step: a word reviewed, a new word met and asked its meaning and by ear, a line heard), so a step can be left anywhere and goes on from there; it is done with its last answer. It is the home screen's main card; `daily/TodayDock.tsx` leads back to it from a step played on its own page.
+- Seals (`data/seals.ts`, `lib/achievements.ts`, `games/seals.tsx`): achievements as red seal stamps, each carved with a character it teaches. What earns one is read from the bank alone, so it is earned in whichever game does it; `daily/SealToaster.tsx` stamps new ones anywhere on the page.
+- The garden (`data/garden.ts`, `lib/garden.ts`, `garden/`, `games/garden.tsx`): a courtyard where each lesson grows one thing, started when its words are under way and grown when they are known. It never shrinks.
+
+## Words and text
+
+- `data/words.ts`: the vocabulary, in lessons that follow the trip, then topic lessons (space, myth and history, ideas, games and music, the starship, the garden, legends, the road west). A row is `hanzi|pinyin|gloss|meaning|tags`. Every id is in one lesson only (a test checks). Pinyin is one syllable per character, dictionary tones; `lib/pinyin.ts` applies the tone changes of 不 and 一 in context (`inContext`), and `lib/numbers.ts` those of 一 in numbers. The gloss is what stands in for the word in mixed text, so it must read well in Chinese order.
+- Lines of Chinese anywhere (trip, starship, stall, stories) are written word by word with spaces: `请 给 我=me 你 的 护照 。`. `word=gloss` gives one use a better gloss, `{home}` is the player's country, numbers are one word (`五百一十五`, `八零六` for digits). `lib/text.ts` turns a line into tokens. Every word must be in the bank: `tests/app.test.ts` checks every line of every game.
+- English with words in it (the quest) writes a word as `{id}`, or `{id=gloss}` for a better gloss in that place.
+- `data/syllables.ts` is every Mandarin syllable with a common character for each tone it is said in, written by `uv run scripts/syllables.py` from pypinyin's readings and wordfreq's counts (a character's other readings count only when a common word has them). The pinyin chart (`data/pinyin.ts`) builds its table and its ear training on it. A syllable is spoken in the tones a word has (in others the voice drifts to one that has a word), from a character with no other reading (`READ_AS`; a character with two is read alone as the voice likes best: 撇 asked for as piē came out piě), or one picked by hand where the voice was heard to miss (`READ_INSTEAD` in the script: the rare 熘 came out liú, like the 留 in it), or else from its pinyin, in lists of eight; either way the direction spells out its pinyin and tone, and asks for the puff of air of p, t, k, q, ch and c, which the voice drops from bare pinyin.
+
+## Sound
+
+Speech is made ahead with Gemini TTS (`gemini-3.8-flash-tts`). `node scripts/speech.ts > .cache/speech.json` lists everything any game can say (`lib/speech.ts`, with each game's extra lines in `data/extra.ts`) and the cast, and `uv run scripts/audio.py .cache/speech.json --job` makes what is missing in Gemini's batch mode, at half the price and outside the daily cap on requests (about 100 on the paid tier), answered within minutes or hours: lines one to a request, words and syllables in lists of eight with a long pause after each, as a teacher reads a word list (a character asked for on its own comes out in a less exact tone). A list that does not cut cleanly is asked for again in halves. `--remake <names>` (or `words`, `lines`, `syllables`) makes them again after a change in the cast, and `--retrim` trims again from the recordings kept. A piece is cut where the sound is quieter than −38 dB, then widened to its quiet edges (−55 dB): cut without the puff of air of p, t and k, tà sounds like dà. Files go to `public/audio/<hash>.mp3` and `data/audio.json` maps `voice|text` to them; files no longer named are removed.
+
+The cast is `data/voices.ts`: every voice name the data uses, with the Gemini voice behind it and a few words on how it speaks. Words are read in Kore, as a teacher reads a word list; the trip's people keep the prebuilt voice they are named by, each with a manner of their own; each demon on the road west has a voice and manner of its own; and the masters of the sayings, the storyteller, the radio announcer of the slogans, the demon king and the monkey are voices designed from a description (`DESIGNED`, their ids in `scripts/voices.json`: delete one to design it again).
+
+`node scripts/tones-check.ts` compares each word's recorded pitch with its tones and lists the worst, to listen to first. Its ideal contours are no judge of a second tone against a third (it fits most second tones to the third), and nor is Gemini asked by ear: it hears a level first tone as a second and a rising second as a third. Where they disagree, compare the clip with the same voice's other syllables, by where its pitch starts, dips and ends.
+
+Where there is no file, `lib/audio.ts` falls back on the browser's own Chinese voice, so everything works before the sound is made.
+
+Everything else is made on the spot with Web Audio: the interface's small sounds (`lib/audio.ts`), music to learn by (`lib/music.ts`, a zither in the five-note scale, off until the player turns it on, quieter while a word is spoken), the fights (`quest/sfx.ts`) and the theatre's clapper (`paper/clapper.ts`).
+
+## Art
+
+No emoji anywhere in the page's graphics. Plain controls use lucide icons.
+
+- Painted pictures are generated with `node scripts/image.mjs --out <png> --pixel 320x180 --colors 48 "<description>"`, which asks the image tool of the Codex CLI on the ChatGPT plan, then scales the picture down and cuts its palette so it is true pixel art, shown crisp and scaled up. They are in `public/art/`: `shell/` (the home screen's scene at dawn, day, dusk and night), `trip/` (a scene each), `games/` (the rain's town, the stall and its customers) and `quest/` (a battlefield per chapter, the fighters and the map of the road west). Keep the full-size originals out of `public/`.
+- What moves is drawn over a picture in its own pixels, as a function of time: `pixel/ambient.ts` (water, lanterns, mist, birds, people passing) and `pixel/props.ts` (a panda, a taxi, fireworks). The trip's scenes are `pixel/art.ts` (picture and layers per scene) on the stage of `pixel/stage.ts`, with people head to toe from `pixel/figure.ts`; its map is `pixel/MapView.tsx`. The home screen's scene is `ornament/scene.ts`, by the player's clock, season and moon.
+- Sprites (`pixel/sprites.ts`, rows of letters coloured from a shared palette, some animated) stand in for icons, food, pictographs, demons and the starship, shown with `<Pix name>`; people of the trip, the stall and the bridge are portraits drawn from a few traits (`Look`: hair, hat, beard, glasses, coat) with `<Face look>` (`pixel/portraits.ts`), which blink and talk. `/#gallery` (not on the home screen) shows them all. `tests/app.test.ts` checks that every sprite is well formed and every one the data names exists.
+- `ornament/` has the page's decoration: seals, cloud and fret borders, paper-cut corners, lanterns, a brush underline and a celebration.
+- The stories are a shadow theatre (皮影戏, `paper/`): jointed leather puppets built from traits (`puppets.ts`), their poses (`acts.ts`), scenery (`scenery.tsx`), a script that says where everything is at each line and beat (`stage.ts`), and a show that moves them with CSS transforms (`show.ts`, `Theatre.tsx`). The covers are the same figures cut from red paper (`PaperCut.tsx`, `still.ts`, `leather.tsx`), with window flowers (`WindowFlower.tsx`).
+- The quest's fights are a canvas of their own (`quest/stage.ts`) with its own icons, pixel font and walking party (`quest/icons.ts`, `font.ts`, `walkers.ts`); the starship is low-poly 3D with three.js (`games/bridge/`); the garden draws with the small kit of `pixel/draw.ts`.
+
+## Games
+
+| Game                | File                        | What                                                                                                                                                                                                                |
+| ------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Today               | `games/today.tsx`           | The day's ten minutes, made from the bank (`lib/today.ts`)                                                                                                                                                          |
+| The trip            | `games/trip.tsx`            | Scenes from Beijing to Shanghai (`data/trip.ts`, a small script format). Each meets a few new words                                                                                                                 |
+| Journey to the West | `games/quest.tsx`, `quest/` | An RPG along the road west: a map, fights on a canvas, Wukong's arts unlocked by known words (`data/quest.ts`)                                                                                                      |
+| Stories             | `games/stories.tsx`         | Old tales played with shadow puppets, in mixed text, with three questions each (`data/stories.ts`)                                                                                                                  |
+| Starship            | `games/bridge.tsx`          | Orders in Chinese, controls in pictures, a bridge in 3D (`data/bridge.ts`, `games/bridge/`)                                                                                                                         |
+| Learn, Review       | `games/learn.tsx` …         | New words five at a time; the faded ones. The questions are in `quiz.tsx`                                                                                                                                           |
+| Listening, Pairs    | `games/listen.tsx` …        | Lines of the trip by ear; memory with cards, a word's hanzi against its meaning or sound                                                                                                                            |
+| Word order          | `games/order.tsx`           | Lines from the trip, to build in Chinese order                                                                                                                                                                      |
+| Pinyin              | `games/pinyin.tsx`          | The pinyin chart: initials, finals and syllables read whole, each with how to say it and a way to record yourself beside it; every syllable in its tones; ear training on sounds easy to confuse (`data/pinyin.ts`) |
+| Tones               | `games/tones.tsx`           | Four tones, tone pairs (scores by pair), and Say it: the mic's pitch (`lib/pitch.ts`, YIN) over the voice's                                                                                                         |
+| Character parts     | `games/parts.tsx`           | Pictographs, and characters built from meaning and sound parts (`data/parts.ts`)                                                                                                                                    |
+| Brush               | `games/write.tsx`           | Stroke order with Hanzi Writer; its stroke data loads from jsDelivr                                                                                                                                                 |
+| Numbers             | `games/numbers.tsx`         | Prices, times, phone numbers (1 is yāo) and big numbers by ear (`data/numbers.ts`)                                                                                                                                  |
+| Sayings             | `games/sayings.tsx`         | Classics and slogans, character by character (`data/sayings.ts`)                                                                                                                                                    |
+| Pinyin rain         | `games/rain.tsx`            | Type the pinyin of words falling on a town at night (`rainScene.ts`)                                                                                                                                                |
+| Dumpling stall      | `games/shop.tsx`            | Spoken orders: number, measure word, thing (`data/shop.ts`, seeded so each order has a voice; `shopScene.ts`)                                                                                                       |
+| Mahjong             | `games/mahjong.tsx`         | Solitaire where a pair is a word and its meaning; every deal can be cleared (`lib/mahjong.ts`)                                                                                                                      |
+| Garden, Seals       | `games/garden.tsx` …        | What the lessons have grown; the album of seals                                                                                                                                                                     |
+| Word bank, Settings | `games/words.tsx` …         | Every word by lesson; mark what you know                                                                                                                                                                            |
+
+Answers in the learning games get their feedback from `games/fx.tsx`: a burst and a +1 for a right one, a shake for a wrong one, a combo for a streak, and the same keys everywhere (1–4 to choose, Enter to go on, Space to hear it again).
+
+Write content in plain, exact English, and check Chinese against a dictionary: a learner relies on it. Open questions are in `TODO.md`.

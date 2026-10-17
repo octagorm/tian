@@ -1,0 +1,303 @@
+/* Tian: the paper, the ink and a brush-like face for hanzi */
+
+/* The colours, on the body too (src/pages/index.astro), so that what is
+   laid over the page outside it, such as the word sheet, has them */
+.zh-body,
+.zh-page {
+  --paper: #f7f0e3;
+  --paper-2: #efe4cf;
+  --paper-3: #e3d3b5;
+  --card: #fffaf1;
+  --ink: #221c18;
+  --ink-2: #5b4f45;
+  --red: #c8372d;
+  --red-2: #a62a22;
+  --jade: #2f7d6d;
+  --gold: #d9a441;
+  --gold-2: #b8862a;
+  --sky: #3d6fa8;
+  --night: #101a3f;
+}
+
+.zh-page {
+  color: var(--ink);
+  min-height: 100dvh;
+  /* Paper: a fine grain over the colour, and very faintly, a brocade of
+     cloud heads (祥云), as on the endpapers of an old book */
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.36 0 0 0 0 0.28 0 0 0 0 0.18 0.16 0 0 0 -0.04'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='176' height='176' viewBox='0 0 176 176'%3E%3Cg fill='none' stroke='%23b8862a' stroke-opacity='0.11' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath id='c' transform='translate(44 46) scale(0.9)' d='M-7.2 2.3L-7.3 2.4L-7.4 2.4L-7.5 2.5L-7.7 2.6L-7.8 2.6L-8 2.6L-8.1 2.6L-8.3 2.6L-8.4 2.5L-8.6 2.4L-8.8 2.3L-8.9 2.2L-9.1 2.1L-9.2 1.9L-9.3 1.7L-9.3 1.5L-9.4 1.2L-9.4 1L-9.4 0.8L-9.4 0.5L-9.3 0.3L-9.2 0L-9 -0.2L-8.8 -0.5L-8.6 -0.7L-8.4 -0.8L-8.1 -1L-7.8 -1.1L-7.5 -1.2L-7.2 -1.3L-6.9 -1.3L-6.5 -1.2L-6.2 -1.2L-5.8 -1L-5.5 -0.9L-5.2 -0.7L-4.9 -0.4L-4.6 -0.1L-4.4 0.2L-4.2 0.6L-4 1L-3.9 1.4L-3.9 1.8L-3.9 2.2L-3.9 2.7L-4 3.1L-4.2 3.6L-4.4 4L-4.7 4.4L-5 4.7L-5.4 5.1L-5.8 5.4L-6.2 5.6L-6.7 5.8L-7.2 5.9L-7.7 6L-8.3 6L-8.8 5.9L-9.4 5.8L-9.9 5.6L-10.4 5.3L-10.9 5L-11.3 4.6L-11.7 4.2L-12.1 3.7L-12.4 3.2L-12.6 2.6L-12.8 2L-12.8 1.4L-12.8 0.7L-12.8 0.1L-12.6 -0.6L-12.4 -1.2L-12.1 -1.8L-11.7 -2.4L-11.3 -2.9L-10.8 -3.4L-10.2 -3.8L-9.6 -4.1L-8.9 -4.4L-8.2 -4.6L-7.5 -4.7C-3 -5.2 -1.6 -8.2 0 -11.5C1.6 -8.2 3 -5.2 7.5 -4.7L7.5 -4.7L8.2 -4.6L8.9 -4.4L9.6 -4.1L10.2 -3.8L10.8 -3.4L11.3 -2.9L11.7 -2.4L12.1 -1.8L12.4 -1.2L12.6 -0.6L12.8 0.1L12.9 0.7L12.8 1.4L12.8 2L12.6 2.6L12.4 3.2L12.1 3.7L11.7 4.2L11.3 4.6L10.9 5L10.4 5.3L9.9 5.6L9.4 5.8L8.8 5.9L8.3 6L7.7 6L7.2 5.9L6.7 5.8L6.2 5.6L5.8 5.4L5.4 5.1L5 4.7L4.7 4.4L4.4 4L4.2 3.6L4 3.1L3.9 2.7L3.9 2.2L3.9 1.8L3.9 1.4L4 1L4.2 0.6L4.4 0.2L4.6 -0.1L4.9 -0.4L5.2 -0.7L5.5 -0.9L5.8 -1L6.2 -1.2L6.5 -1.2L6.9 -1.3L7.2 -1.3L7.5 -1.2L7.8 -1.1L8.1 -1L8.4 -0.8L8.6 -0.7L8.9 -0.5L9 -0.2L9.2 0L9.3 0.3L9.4 0.5L9.4 0.8L9.4 1L9.4 1.2L9.4 1.5L9.3 1.7L9.2 1.9L9.1 2.1L8.9 2.2L8.8 2.3L8.6 2.4L8.5 2.5L8.3 2.6L8.1 2.6L8 2.6L7.8 2.6L7.7 2.6L7.5 2.5L7.4 2.4L7.3 2.4L7.3 2.3'/%3E%3Cuse href='%23c' transform='translate(88 88)'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.zh {
+  font-family:
+    'Kaiti SC', 'STKaiti', 'KaiTi', 'BiauKai', 'Noto Serif SC', 'Songti SC',
+    'PingFang SC', serif;
+}
+
+.zh-sans {
+  font-family:
+    'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei',
+    sans-serif;
+}
+
+/* Calligraphy, for titles and seals only (never for text to learn from,
+   which stays in Kaiti above) */
+.zh-display {
+  font-family:
+    'Ma Shan Zheng', 'Kaiti SC', 'STKaiti', 'KaiTi', 'BiauKai', serif;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+
+/* Headings in Latin letters */
+.zh-head {
+  font-family:
+    'Cormorant Garamond', 'Iowan Old Style', 'Palatino Linotype', Palatino,
+    Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.005em;
+  line-height: 1.05;
+}
+
+.zh ruby rt,
+ruby.zh rt,
+ruby.py rt,
+ruby.zh-gloss rt {
+  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.5em;
+  color: var(--jade);
+  letter-spacing: 0;
+}
+
+/* The pinyin over an English gloss, a word not yet met: as large as over
+   hanzi, though the gloss is smaller, and upright */
+ruby.zh-gloss rt {
+  font-size: 0.75em;
+  font-style: normal;
+}
+
+.zh-card {
+  background: var(--card);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 1px 0 rgba(34, 28, 24, 0.06),
+    0 8px 24px -12px rgba(34, 28, 24, 0.25);
+}
+
+/* A card that rises a little under the pointer */
+.zh-lift {
+  transition:
+    transform 0.25s cubic-bezier(0.3, 0.7, 0.4, 1),
+    box-shadow 0.25s ease;
+}
+.zh-lift:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 1px 0 rgba(34, 28, 24, 0.06),
+    0 18px 32px -16px rgba(120, 50, 20, 0.35);
+}
+.zh-lift:active {
+  transform: translateY(-1px);
+}
+
+.zh-seal {
+  background: var(--red);
+  color: #fff6ea;
+}
+
+/* Keyboard focus, everywhere on the page: a gold ring */
+.zh-body :focus-visible,
+.zh-page :focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+/* Buttons that press down: a darker edge under each, which they sink
+   onto when pressed */
+.zh-btn {
+  box-shadow:
+    0 3px 0 var(--edge, #8e2219),
+    0 7px 14px -8px rgba(34, 28, 24, 0.5);
+  transition:
+    transform 0.08s ease,
+    box-shadow 0.08s ease,
+    filter 0.15s ease;
+}
+.zh-btn:hover:not(:disabled),
+.group:hover .zh-btn-follow {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow:
+    0 4px 0 var(--edge, #8e2219),
+    0 9px 16px -8px rgba(34, 28, 24, 0.5);
+}
+.zh-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow:
+    0 1px 0 var(--edge, #8e2219),
+    0 2px 6px -4px rgba(34, 28, 24, 0.5);
+}
+.zh-btn:disabled {
+  box-shadow: 0 2px 0 var(--edge, #8e2219);
+}
+
+/* The home screen's scene: darker at the top, where the title is, and
+   melting into the paper at the bottom */
+.zh-hero-shade {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(12, 14, 34, 0.42),
+      rgba(12, 14, 34, 0.12) 26%,
+      rgba(12, 14, 34, 0) 42%
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(247, 240, 227, 0) 58%,
+      rgba(247, 240, 227, 0.55) 80%,
+      var(--paper) 100%
+    );
+}
+
+.zh-on-sky {
+  color: #fff8ec;
+  text-shadow:
+    0 1px 2px rgba(10, 12, 30, 0.55),
+    0 0 14px rgba(10, 12, 30, 0.35);
+}
+
+/* A glass button over the scene */
+.zh-glass {
+  background: rgba(255, 250, 241, 0.16);
+  color: #fff8ec;
+  box-shadow: inset 0 0 0 1px rgba(255, 250, 241, 0.28);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.zh-glass:hover {
+  background: rgba(255, 250, 241, 0.28);
+}
+
+@keyframes zh-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-6px);
+  }
+  40%,
+  80% {
+    transform: translateX(6px);
+  }
+}
+.zh-shake {
+  animation: zh-shake 0.35s ease;
+}
+
+@keyframes zh-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.zh-pop {
+  animation: zh-pop 0.35s ease-out;
+}
+
+@keyframes zh-rise {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.zh-rise {
+  animation: zh-rise 0.3s ease-out both;
+}
+
+@keyframes zh-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(217, 164, 65, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(217, 164, 65, 0.55);
+  }
+}
+.zh-new {
+  animation: zh-glow 1.6s ease-in-out 3;
+  border-radius: 0.4rem;
+}
+
+/* A sprite bobbing while its tile is under the pointer */
+@keyframes zh-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  30% {
+    transform: translateY(-4px) rotate(-3deg);
+  }
+  60% {
+    transform: translateY(-1px) rotate(2deg);
+  }
+}
+.group:hover .zh-bob,
+.group:focus-visible .zh-bob {
+  animation: zh-bob 0.9s ease-in-out infinite;
+}
+
+/* Moving between the home screen and a game: the old page fades, the new
+   one rises into place; the game's name flies from its tile to the top */
+::view-transition-old(root) {
+  animation: zh-vt-out 0.2s ease-in both;
+}
+::view-transition-new(root) {
+  animation: zh-vt-in 0.34s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+::view-transition-group(zh-title) {
+  animation-duration: 0.38s;
+  animation-timing-function: cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+@keyframes zh-vt-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes zh-vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zh-lift,
+  .zh-lift:hover {
+    transition: none;
+    transform: none;
+  }
+  .group:hover .zh-bob,
+  .group:focus-visible .zh-bob {
+    animation: none;
+  }
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

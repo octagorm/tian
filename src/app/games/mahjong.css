@@ -1,0 +1,56 @@
+/* Mahjong: tiles that lift when free, leave in a puff, and glow for a hint */
+
+.zh-tile {
+  transition:
+    transform 0.16s ease-out,
+    filter 0.2s,
+    opacity 0.3s;
+}
+.zh-tile[data-free='true']:hover {
+  transform: translateY(-2px);
+}
+.zh-tile[data-free='false'] {
+  filter: brightness(0.86) saturate(0.8);
+  cursor: default;
+}
+.zh-tile[data-picked='true'] {
+  transform: translateY(-4px);
+}
+
+@keyframes zh-tile-go {
+  0% {
+    transform: translateY(-4px) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-22px) scale(1.12);
+    opacity: 0;
+  }
+}
+.zh-tile-go {
+  animation: zh-tile-go 0.34s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes zh-tile-hint {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(242, 193, 78, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(242, 193, 78, 0.85);
+  }
+}
+.zh-tile-hint {
+  animation: zh-tile-hint 0.7s ease-in-out 3;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zh-tile,
+  .zh-tile-go,
+  .zh-tile-hint {
+    transition: none;
+    animation-duration: 0.01s;
+  }
+}

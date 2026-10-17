@@ -1,0 +1,49 @@
+---
+import '~/styles/app.css'
+
+// Every page's <html>. The game has the whole viewport; there is no header
+// or footer.
+interface Props {
+  // Shown as "<title> | Tian". Without it, "Tian".
+  title?: string
+  description?: string
+  noindex?: boolean
+  // For the page's background, so nothing flashes before its island renders
+  bodyClass?: string
+}
+
+const SITE = 'Tian'
+const { title, description, noindex = false, bodyClass } = Astro.props
+const documentTitle = title ? `${title} | ${SITE}` : SITE
+const metaDescription =
+  description ??
+  'Games for learning Mandarin around one word bank: a trip across China, Journey to the West, tones, pinyin rain and more.'
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{documentTitle}</title>
+    <meta name="description" content={metaDescription} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <meta property="og:title" content={documentTitle} />
+    <meta property="og:description" content={metaDescription} />
+    <meta name="theme-color" content="#f7f0e3" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <slot name="head" />
+  </head>
+  <body class={bodyClass}>
+    <slot />
+    <script>
+      // iOS hands a touch to pointer listeners only where it finds one on an
+      // element with a box. React listens on <astro-island>, which has none
+      // (display: contents), so a tap fired click but neither pointerdown nor
+      // pointerup, and nothing could be dragged. A listener on the window
+      // covers the whole page.
+      addEventListener('pointerdown', () => {}, { passive: true })
+    </script>
+  </body>
+</html>

@@ -1,0 +1,70 @@
+/* Sprite strips and portrait layers for Pix.tsx. A strip holds an animation's
+   steps side by side and slides one step at a time (steps() set inline), on
+   the compositor; with reduced motion it holds its first step. */
+
+@keyframes zh-pix-run {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.zh-pix-run {
+  display: block;
+  max-width: none;
+  image-rendering: pixelated;
+  animation-name: zh-pix-run;
+  animation-iteration-count: infinite;
+}
+
+.zh-face-layer {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  image-rendering: pixelated;
+}
+
+/* Eyes shut for a moment at the end of each round. Two overlays with
+   different rounds blink at uneven intervals together. */
+@keyframes zh-face-blink {
+  0%,
+  97% {
+    opacity: 0;
+  }
+  97.01%,
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes zh-face-blink-2 {
+  0%,
+  98.2% {
+    opacity: 0;
+  }
+  98.21%,
+  100% {
+    opacity: 1;
+  }
+}
+
+.zh-face-blink {
+  opacity: 0;
+  animation: zh-face-blink 4s linear infinite;
+}
+
+.zh-face-blink-2 {
+  animation-name: zh-face-blink-2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zh-pix-run,
+  .zh-face-blink {
+    animation: none;
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "tian",
+  "private": true,
+  "sideEffects": false,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "npx convex dev --once && concurrently -r npm:dev:web npm:dev:convex",
+    "dev:web": "astro dev",
+    "dev:convex": "npx convex dev",
+    "build": "astro check && astro build",
+    "preview": "astro build && wrangler dev",
+    "format": "prettier --write .",
+    "lint": "astro check && eslint . --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@astrojs/react": "^7.0.1",
+    "@auth/core": "^0.37.0",
+    "@convex-dev/auth": "^0.0.90",
+    "astro": "^7.3.8",
+    "convex": "^1.31.0",
+    "hanzi-writer": "^3.7.2",
+    "lucide-react": "^0.562.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@convex-dev/eslint-plugin": "^1.1.1",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/eslint-config": "^0.3.2",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@types/three": "^0.186.0",
+    "@types/topojson-client": "^3.1.5",
+    "concurrently": "~9.2.1",
+    "convex-test": "^0.0.38",
+    "prettier": "^3.6.2",
+    "puppeteer": "^24.35.0",
+    "tailwindcss": "^4.3.3",
+    "topojson-client": "^3.1.0",
+    "typescript": "^5.9.2",
+    "vite": "^8.3.4",
+    "vitest": "^5.0.2",
+    "wrangler": "^4.149.0"
+  }
+}

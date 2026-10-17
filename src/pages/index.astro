@@ -1,0 +1,44 @@
+---
+import Base from '~/layouts/Base.astro'
+import Tian from '~/app'
+---
+
+<Base bodyClass="zh-body bg-[#f7f0e3]">
+  <Fragment slot="head">
+    <!-- Installable as an app -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Tian" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- Ma Shan Zheng for calligraphic titles and seals; Cormorant Garamond
+         for headings in Latin letters -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Ma+Shan+Zheng&display=swap"
+    />
+    <!-- A Google sign-in from the installed app that came back without a
+         code failed: marked so, the app tries once more by itself
+         (src/app/account.tsx) -->
+    <script is:inline>
+      try {
+        const p = JSON.parse(localStorage.getItem('tian:signin') || 'null')
+        const failed =
+          p &&
+          !p.failed &&
+          navigator.standalone &&
+          Date.now() - p.at < 300000 &&
+          !new URLSearchParams(location.search).has('code')
+        if (failed) {
+          const marked = JSON.stringify({ ...p, failed: true })
+          localStorage.setItem('tian:signin', marked)
+        }
+      } catch {
+        // no storage, no second try
+      }
+    </script>
+  </Fragment>
+  <Tian client:only="react" />
+</Base>

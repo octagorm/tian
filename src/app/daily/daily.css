@@ -1,0 +1,98 @@
+/* The daily pieces: a seal coming down on the paper and the slip it lands
+   on, and the ring of the day's steps */
+
+@keyframes zh-stamp-drop {
+  0% {
+    transform: translateY(-42px) scale(1.75) rotate(-16deg);
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
+  }
+  68% {
+    transform: translateY(0) scale(0.93) rotate(-3deg);
+  }
+  80% {
+    transform: translateY(0) scale(1.04) rotate(-3deg);
+  }
+  100% {
+    transform: translateY(0) scale(1) rotate(-3deg);
+  }
+}
+.zh-stamp {
+  animation: zh-stamp-drop 0.46s cubic-bezier(0.55, 0, 0.75, 0.4) both;
+}
+
+/* A ring of paste pressed out round the stamp as it lands */
+@keyframes zh-stamp-ring {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+.zh-stamp-ring {
+  animation: zh-stamp-ring 0.6s ease-out both;
+}
+
+@keyframes zh-toast-in {
+  from {
+    transform: translateY(-130%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.zh-toast {
+  animation: zh-toast-in 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15) both;
+}
+
+@keyframes zh-toast-out {
+  to {
+    transform: translateY(-130%);
+    opacity: 0;
+  }
+}
+.zh-toast-out {
+  animation: zh-toast-out 0.28s ease-in both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zh-stamp,
+  .zh-stamp-ring,
+  .zh-toast,
+  .zh-toast-out {
+    animation-duration: 0.01s;
+  }
+  .zh-stamp-ring {
+    display: none;
+  }
+}
+
+/* The step to do now, breathing */
+@keyframes zh-ring-now {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.zh-ring-now {
+  animation: zh-ring-now 1.8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zh-ring-now {
+    animation: none;
+  }
+}

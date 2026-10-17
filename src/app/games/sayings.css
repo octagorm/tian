@@ -1,0 +1,184 @@
+/* Sayings: a hanging scroll (挂轴) over an ink-wash landscape. The scroll
+   is a cord, a top rod, silk mounting with two hanging strips, the paper,
+   and a heavier bottom rod with knobs; it unrolls downward when opened. */
+
+.say-landscape {
+  background: url('/art/games/ink-landscape.webp') 50% 40% / cover no-repeat;
+}
+
+/* mist that drifts across the mountains, and birds far off */
+.say-mist {
+  position: absolute;
+  inset: 0 -40%;
+  background:
+    radial-gradient(
+      ellipse 30% 14% at 30% 42%,
+      rgba(250, 246, 236, 0.75),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 26% 10% at 70% 58%,
+      rgba(250, 246, 236, 0.6),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 34% 12% at 50% 75%,
+      rgba(250, 246, 236, 0.55),
+      transparent 70%
+    );
+  animation: say-drift 70s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+.say-mist-2 {
+  animation-duration: 95s;
+  animation-direction: alternate-reverse;
+  opacity: 0.7;
+  transform: translateY(-12%);
+}
+@keyframes say-drift {
+  from {
+    transform: translateX(-12%);
+  }
+  to {
+    transform: translateX(12%);
+  }
+}
+.say-birds {
+  position: absolute;
+  top: 18%;
+  left: -10%;
+  animation: say-fly 48s linear infinite;
+  pointer-events: none;
+}
+@keyframes say-fly {
+  from {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(60vw) translateY(-14px);
+  }
+  to {
+    transform: translateX(120vw) translateY(6px);
+  }
+}
+
+/* --- the scroll --- */
+
+.say-cord {
+  width: 46%;
+  height: 22px;
+  margin: 0 auto -2px;
+  border: 2px solid #6b4a2e;
+  border-bottom: none;
+  border-radius: 60% 60% 0 0 / 100% 100% 0 0;
+}
+.say-rod {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #7a5233, #3d2616 70%, #2a190e);
+  box-shadow: 0 3px 6px rgba(30, 18, 8, 0.4);
+}
+.say-rod-bottom {
+  height: 16px;
+  margin: 0 -14px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #6b4428, #34200f 70%, #1e1208);
+}
+/* the knobs at the ends of the bottom rod */
+.say-rod-bottom::before,
+.say-rod-bottom::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  width: 16px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #c9a25a, #f2d58a 45%, #8a6a2a);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+}
+.say-rod-bottom::before {
+  left: -12px;
+}
+.say-rod-bottom::after {
+  right: -12px;
+}
+
+/* the silk around the paper: a muted teal with a small woven figure */
+.say-silk {
+  position: relative;
+  background-color: #6f8c84;
+  background-image:
+    radial-gradient(circle, rgba(242, 222, 170, 0.28) 1px, transparent 1.6px),
+    radial-gradient(circle, rgba(242, 222, 170, 0.16) 1px, transparent 1.6px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(0, 0, 0, 0.12));
+  background-size:
+    10px 10px,
+    10px 10px,
+    100% 100%;
+  background-position:
+    0 0,
+    5px 5px,
+    0 0;
+  box-shadow:
+    inset 0 0 0 3px #5b766e,
+    inset 0 0 0 4px rgba(242, 222, 170, 0.35);
+}
+/* the two strips that hang from the top (惊燕) */
+.say-strip {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 46%;
+  background: #5b766e;
+  box-shadow:
+    inset 0 0 0 1px rgba(242, 222, 170, 0.4),
+    1px 0 2px rgba(0, 0, 0, 0.15);
+}
+
+.say-paper {
+  position: relative;
+  background-color: #f6eedb;
+  box-shadow:
+    0 0 0 2px #e9dcc0,
+    inset 0 0 30px rgba(160, 120, 60, 0.12);
+}
+
+/* unrolling: the paper's height grows from nothing */
+.say-unroll {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 1.5s cubic-bezier(0.35, 0.75, 0.3, 1);
+}
+.say-unroll.say-open {
+  grid-template-rows: 1fr;
+}
+.say-unroll > div {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.say-char {
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    text-shadow 0.2s;
+}
+.say-char:hover,
+.say-char.say-on {
+  color: #a62a22;
+  text-shadow: 0 0 12px rgba(217, 164, 65, 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .say-mist,
+  .say-birds {
+    animation: none;
+  }
+  .say-birds {
+    display: none;
+  }
+  .say-unroll {
+    transition: none;
+  }
+}

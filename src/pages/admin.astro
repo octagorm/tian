@@ -1,0 +1,8 @@
+---
+import Base from '~/layouts/Base.astro'
+import Admin from '~/components/Admin'
+---
+
+<Base title="Access" noindex bodyClass="bg-slate-50">
+  <Admin client:only="react" />
+</Base>

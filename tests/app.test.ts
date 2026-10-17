@@ -1,0 +1,1228 @@
+import { describe, expect, test } from 'vitest'
+import { COUNTRIES, WORDS } from '../src/app/data/words'
+import { CITIES, SCENES } from '../src/app/data/trip'
+import {
+  join,
+  matches,
+  numbered,
+  syllables,
+  toneOf,
+} from '../src/app/lib/pinyin'
+import {
+  numberGloss,
+  numberPinyin,
+  toHanzi,
+  value,
+} from '../src/app/lib/numbers'
+import { tokens } from '../src/app/lib/text'
+import {
+  answer,
+  emptyBank,
+  level,
+  merge,
+  newCard,
+  pick,
+} from '../src/app/lib/bank'
+
+// Tian: the words, the trip's scripts and the helpers they rely on
+
+const PINYIN = /^[a-zA-Zāáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜü]+$/
+
+describe('words', () => {
+  test('ids are unique', () => {
+    const seen = new Set<string>()
+    for (const w of WORDS) {
+      expect(seen.has(w.id), w.id).toBe(false)
+      seen.add(w.id)
+    }
+  })
+
+  test('one syllable per character (erhua joins 儿)', () => {
+    for (const w of WORDS) {
+      const s = syllables(w.p)
+      const chars = [...w.h].filter(
+        (c) => c !== '儿' || !s.at(-1)?.endsWith('r'),
+      )
+      expect(s.length, `${w.h} ${w.p}`).toBe(chars.length)
+      for (const syl of s) expect(syl, `${w.h} ${w.p}`).toMatch(PINYIN)
+    }
+  })
+
+  test('at most one tone mark per syllable', () => {
+    for (const w of WORDS)
+      for (const syl of syllables(w.p)) {
+        const marks = [...syl].filter((c) =>
+          /[āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ]/.test(c),
+        )
+        expect(marks.length, `${w.h} ${syl}`).toBeLessThanOrEqual(1)
+      }
+  })
+
+  test('every word has a gloss', () => {
+    for (const w of WORDS) expect(w.g, w.h).not.toBe('')
+  })
+})
+
+describe('trip', () => {
+  test('every line is made of known words, for every home country', () => {
+    for (const home of COUNTRIES)
+      for (const s of SCENES)
+        for (const step of s.steps) {
+          const lines =
+            step.kind === 'line' ? [step.zh] : step.options.map((o) => o.zh)
+          for (const l of lines)
+            expect(() => tokens(l, { home: home.id }), l).not.toThrow()
+        }
+  })
+
+  test('each choice has one right answer first, and a reason for each wrong one', () => {
+    for (const s of SCENES)
+      for (const step of s.steps) {
+        if (step.kind !== 'choice') continue
+        expect(step.options[0].right, `${s.id}: ${step.options[0].zh}`).toBe(
+          true,
+        )
+        for (const o of step.options)
+          if (!o.right) expect(o.note, `${s.id}: ${o.zh}`).toBeTruthy()
+        expect(step.options.length, `${s.id}`).toBeGreaterThanOrEqual(1)
+      }
+  })
+
+  test('lines are spoken by the cast', () => {
+    for (const s of SCENES)
+      for (const step of s.steps)
+        if (step.kind === 'line')
+          expect(s.cast[step.by], `${s.id}: ${step.by}`).toBeTruthy()
+  })
+
+  test('grammar notes belong to scenes', async () => {
+    const { GRAMMAR } = await import('../src/app/data/grammar')
+    const ids = new Set(SCENES.map((s) => s.id))
+    for (const id of Object.keys(GRAMMAR)) expect(ids.has(id), id).toBe(true)
+  })
+
+  test('scene ids are unique', () => {
+    const ids = SCENES.map((s) => s.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(CITIES.length).toBeGreaterThan(3)
+  })
+})
+
+describe('pinyin', () => {
+  test('tones and numbers', () => {
+    expect(toneOf('mā')).toBe(1)
+    expect(toneOf('ma')).toBe(5)
+    expect(numbered('nǚ')).toBe('nv3')
+    expect(join(['Xī', 'ān'])).toBe("Xī'ān")
+  })
+
+  test('typed answers', () => {
+    expect(matches('ni3hao3', 'nǐ hǎo')).toBe(true)
+    expect(matches('nǐ hǎo', 'nǐ hǎo')).toBe(true)
+    expect(matches('nihao', 'nǐ hǎo')).toBe(false)
+    expect(matches('nihao', 'nǐ hǎo', false)).toBe(true)
+    expect(matches('xie4xie', 'xiè xie')).toBe(true)
+    expect(matches('xie4xie5', 'xiè xie')).toBe(true)
+    expect(matches('lv4se4', 'lǜ sè')).toBe(true)
+    expect(matches('ni2hao3', 'nǐ hǎo')).toBe(false)
+  })
+
+  test('不 and 一 change tone in context', () => {
+    const p = (l: string) =>
+      tokens(l, { home: '挪威' })
+        .filter((t) => !t.punct)
+        .map((t) => t.pinyin.join(' '))
+    expect(p('不客气 。')).toEqual(['bú kè qi'])
+    expect(p('不 好')).toEqual(['bù', 'hǎo'])
+    expect(p('不 是')).toEqual(['bú', 'shì'])
+    expect(p('一 个')).toEqual(['yí', 'gè'])
+    expect(p('一 杯')).toEqual(['yì', 'bēi'])
+    expect(p('一点')).toEqual(['yì diǎn'])
+    expect(p('第一')).toEqual(['dì yī'])
+    expect(p('一路平安')).toEqual(['yí lù píng ān'])
+  })
+})
+
+describe('numbers', () => {
+  test('to and from hanzi', () => {
+    for (const n of [
+      0, 5, 10, 15, 20, 45, 100, 105, 110, 515, 1005, 2000, 2300, 23000, 99999,
+    ])
+      expect(value(toHanzi(n)), `${n} ${toHanzi(n)}`).toBe(n)
+    expect(toHanzi(15)).toBe('十五')
+    expect(toHanzi(105)).toBe('一百零五')
+    expect(toHanzi(2000)).toBe('两千')
+    expect(toHanzi(222)).toBe('两百二十二')
+  })
+
+  test('digits and their sound', () => {
+    expect(numberGloss('八零六')).toBe('806')
+    expect(numberGloss('五百一十五')).toBe('515')
+    expect(numberPinyin('一一零')).toEqual(['yāo', 'yāo', 'líng'])
+    expect(numberPinyin('一百一十五')).toEqual(['yì', 'bǎi', 'yī', 'shí', 'wǔ'])
+    expect(numberPinyin('一万')).toEqual(['yí', 'wàn'])
+    expect(numberPinyin('一千')).toEqual(['yì', 'qiān'])
+  })
+})
+
+describe('bank', () => {
+  const H = 3_600_000
+  const D = 24 * H
+
+  test('cramming builds memory slowly, spacing builds it fast', () => {
+    let crammed = newCard(0)
+    for (let i = 1; i <= 10; i++) crammed = answer(crammed, true, i * 60_000)
+    let spaced = newCard(0)
+    for (let i = 1; i <= 4; i++) spaced = answer(spaced, true, i * D)
+    expect(crammed.s).toBeLessThan(0.5)
+    expect(spaced.s).toBeGreaterThan(3)
+    expect(level(spaced, 4 * D)).toBe(2)
+    expect(level(crammed, H)).toBe(1)
+  })
+
+  test('a wrong answer brings a known word back to pinyin', () => {
+    let c = newCard(0, 5)
+    expect(level(c, H)).toBe(2)
+    c = answer(c, false, H)
+    expect(level(c, H)).toBe(1)
+  })
+
+  test('picking prefers faded words and adds new ones when short', () => {
+    const bank = emptyBank()
+    bank.cards['你好'] = newCard(0)
+    bank.cards['谢谢'] = { ...newCard(0), s: 10 }
+    const { words, fresh } = pick(
+      bank,
+      4,
+      D,
+      () => true,
+      () => 0,
+    )
+    expect(words[0].id).toBe('你好')
+    expect(fresh.length).toBe(2)
+    expect(words.length).toBe(4)
+  })
+
+  test('merging keeps the card seen last and the best scores', () => {
+    const a = emptyBank()
+    const b = emptyBank()
+    a.cards['你好'] = { ...newCard(0), s: 1 }
+    b.cards['你好'] = { ...newCard(5), s: 2 }
+    a.best.rain = 10
+    b.best.rain = 4
+    const m = merge(a, b)
+    expect(m.cards['你好']?.s).toBe(2)
+    expect(m.best.rain).toBe(10)
+  })
+})
+
+describe('the other games', () => {
+  test("the captain's orders and the stall's orders are known words", async () => {
+    const { ORDERS, MISSIONS } = await import('../src/app/data/bridge')
+    const { SHOP_ORDERS, MENU } = await import('../src/app/data/shop')
+    for (const o of [...ORDERS, ...MISSIONS, ...SHOP_ORDERS])
+      expect(() => tokens(o.zh, { home: '挪威' }), o.zh).not.toThrow()
+    for (const m of MENU) {
+      expect(
+        WORDS.some((w) => w.id === m.id),
+        m.id,
+      ).toBe(true)
+      expect(
+        WORDS.some((w) => w.id === m.mw),
+        m.mw,
+      ).toBe(true)
+    }
+    expect(SHOP_ORDERS.length).toBe(48)
+  })
+
+  test('stories are made of known words, and questions have answers', async () => {
+    const { STORIES } = await import('../src/app/data/stories')
+    for (const st of STORIES) {
+      for (const [zh] of st.lines)
+        expect(() => tokens(zh, { home: '挪威' }), zh).not.toThrow()
+      for (const q of st.questions) expect(q.options.length, q.q).toBe(4)
+    }
+  })
+
+  test('the quest only names words in the bank', async () => {
+    const { QUEST } = await import('../src/app/data/quest')
+    const ids = new Set(WORDS.map((w) => w.id))
+    for (const c of QUEST) {
+      const text = [...c.intro, c.win].join(' ')
+      for (const m of text.matchAll(/\{([^}=]+)(=[^}]*)?\}/g))
+        expect(ids.has(m[1]), `${c.id}: ${m[1]}`).toBe(true)
+      for (const id of c.teach) expect(ids.has(id), `${c.id}: ${id}`).toBe(true)
+    }
+  })
+
+  test('sayings have a syllable and a gloss for every character', async () => {
+    const { SAYINGS } = await import('../src/app/data/sayings')
+    for (const s of SAYINGS) {
+      const chars = [...s.zh].filter((c) => !/[，。？！、]/.test(c))
+      expect(s.py.split(' ').length, s.id).toBe(chars.length)
+      expect(s.gloss.split('|').length, s.id).toBe(chars.length)
+      for (const p of s.py.split(' ')) expect(p, s.id).toMatch(PINYIN)
+    }
+  })
+
+  test('character parts use known radicals or named parts', async () => {
+    const { BUILT, RADICALS, PART_MEANING } =
+      await import('../src/app/data/parts')
+    for (const b of BUILT) {
+      for (const p of b.parts)
+        expect(
+          !!RADICALS.find((r) => r.part === p) || !!PART_MEANING[p],
+          `${b.c}: ${p}`,
+        ).toBe(true)
+      expect(b.p, b.c).toMatch(PINYIN)
+    }
+  })
+
+  test('numbers by ear have answers that match their hanzi', async () => {
+    const { NUMBER_ITEMS } = await import('../src/app/data/numbers')
+    for (const n of NUMBER_ITEMS.filter((x) => x.kind === 'big'))
+      expect(String(value(n.zh)), n.zh).toBe(n.answer)
+    expect(NUMBER_ITEMS.find((x) => x.kind === 'phone')?.say).toMatch(
+      /幺|[^一]/,
+    )
+  })
+})
+
+describe('pixel art', () => {
+  test('sprites are rectangles of known colours', async () => {
+    const { SPRITES, PALETTE } = await import('../src/app/pixel/sprites')
+    for (const [name, sp] of Object.entries(SPRITES)) {
+      if (!sp) continue
+      const w = sp.rows[0].length
+      sp.rows.forEach((row, i) => {
+        expect(row.length, `${name} row ${i}`).toBe(w)
+        for (const ch of row)
+          if (ch !== '.')
+            expect(!!(sp.pal?.[ch] ?? PALETTE[ch]), `${name}: ${ch}`).toBe(true)
+      })
+    }
+  })
+
+  test('every sprite named in the data exists, and every scene has a backdrop', async () => {
+    const { SPRITES } = await import('../src/app/pixel/sprites')
+    const { QUEST } = await import('../src/app/data/quest')
+    const { MENU } = await import('../src/app/data/shop')
+    const { PICTURES } = await import('../src/app/data/parts')
+    const { MISSIONS } = await import('../src/app/data/bridge')
+    const { hasScene } = await import('../src/app/pixel/scenes')
+    const names = [
+      ...QUEST.flatMap((c) => c.demon.sprite ?? []),
+      ...MENU.map((m) => m.sprite),
+      ...PICTURES.map((p) => p.sprite),
+      ...MISSIONS.map((m) => m.sprite),
+    ]
+    for (const n of names) expect(SPRITES[n], n).toBeTruthy()
+    for (const s of SCENES) expect(hasScene(s.id), s.id).toBe(true)
+  })
+})
+
+describe('journey to the west', () => {
+  test('every chapter has its battlefield, its demon and a stop on the map', async () => {
+    const { existsSync } = await import('node:fs')
+    const { QUEST } = await import('../src/app/data/quest')
+    const { STOPS } = await import('../src/app/quest/map')
+    const art = (name: string) => `public/art/quest/${name}.png`
+    const ids = QUEST.map((c) => c.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    for (const c of QUEST) {
+      expect(existsSync(art(c.id)), art(c.id)).toBe(true)
+      expect(existsSync(art(c.demon.art)), art(c.demon.art)).toBe(true)
+      expect(STOPS[c.id], c.id).toBeTruthy()
+    }
+    for (const name of [
+      'wukong',
+      'wukong-strike',
+      'wukong-win',
+      'monk-back',
+      'pig-back',
+      'sand-back',
+      'spider-small',
+      'bone-girl',
+      'bone-granny',
+      'bone-grandpa',
+      'portrait',
+      'map',
+    ])
+      expect(existsSync(art(name)), art(name)).toBe(true)
+  })
+
+  test('what the demons say is made of known words', async () => {
+    const { QUEST, QUEST_SPEECH } = await import('../src/app/data/quest')
+    for (const c of QUEST) {
+      const line = c.demon.line
+      expect(line, c.id).toBeTruthy()
+      if (line)
+        expect(() => tokens(line.zh, { home: '挪威' }), line.zh).not.toThrow()
+    }
+    expect(QUEST_SPEECH.length).toBe(QUEST.length)
+  })
+
+  test('twists, rewards and the words they keep to are known', async () => {
+    const { FOOD, NUMBERS, QUEST, REWARDS, TWISTS } =
+      await import('../src/app/data/quest')
+    const ids = new Set(WORDS.map((w) => w.id))
+    for (const c of QUEST) {
+      expect(TWISTS[c.demon.twist], c.id).toBeTruthy()
+      if (c.reward) expect(REWARDS[c.reward], c.id).toBeTruthy()
+    }
+    for (const id of [...FOOD, ...NUMBERS]) expect(ids.has(id), id).toBe(true)
+  })
+
+  test('icons and walkers are rectangles of known colours', async () => {
+    const { ICONS, ICON_PAL } = await import('../src/app/quest/icons')
+    const { WALKERS, WALK_PAL } = await import('../src/app/quest/walkers')
+    const { SKILLS } = await import('../src/app/data/quest')
+    const check = (
+      name: string,
+      rows: Array<string>,
+      pal: Record<string, string>,
+    ) =>
+      rows.forEach((row, i) => {
+        expect(row.length, `${name} row ${i}`).toBe(rows[0].length)
+        for (const ch of row)
+          if (ch !== '.') expect(!!pal[ch], `${name}: ${ch}`).toBe(true)
+      })
+    for (const [name, rows] of Object.entries(ICONS)) {
+      expect(rows.length, name).toBe(16)
+      expect(rows[0].length, name).toBe(16)
+      check(name, rows, ICON_PAL)
+    }
+    for (const [name, frames] of Object.entries(WALKERS))
+      frames.forEach((rows, i) => check(`${name} ${i}`, rows, WALK_PAL))
+    for (const k of SKILLS) expect(ICONS[k.id], k.id).toBeTruthy()
+    for (const m of ['cudgel', 'eyes', 'cloud', 'peach', 'gourd', 'pill'])
+      expect(ICONS[m], m).toBeTruthy()
+  })
+
+  test('Wukong grows with the word bank, by less and less', async () => {
+    const { heroOf, isOpen, powerAt, reached } =
+      await import('../src/app/quest/hero')
+    const { QUEST, SKILLS } = await import('../src/app/data/quest')
+    const bank = emptyBank()
+    expect(heroOf(bank).level).toBe(1)
+    expect(heroOf(bank).power).toBe(1)
+    for (const w of WORDS.slice(0, 25)) bank.cards[w.id] = newCard(0, 5)
+    const h = heroOf(bank, 3_600_000)
+    expect(h.level).toBe(3)
+    expect(h.known).toBe(25)
+    expect(h.hp).toBe(150)
+    expect(h.skills.map((s) => s.id)).toEqual(
+      SKILLS.filter((s) => s.known <= 25).map((s) => s.id),
+    )
+    expect(powerAt(100)).toBeLessThan(2.5)
+    expect(powerAt(3) - powerAt(2)).toBeGreaterThan(powerAt(30) - powerAt(29))
+    // the road opens a chapter at a time
+    expect(isOpen(bank, 0)).toBe(true)
+    expect(isOpen(bank, 1)).toBe(false)
+    bank.scenes[QUEST[0].id] = 2
+    expect(isOpen(bank, 1)).toBe(true)
+    expect(reached(bank)).toBe(1)
+    // a chapter added before ones already won stays open
+    bank.scenes[QUEST[5].id] = 1
+    expect(isOpen(bank, 3)).toBe(true)
+    expect(heroOf(bank).hairs).toBe(QUEST[0].reward === 'hairs')
+  })
+})
+
+describe('the shell', () => {
+  test('the greetings are made of known words', async () => {
+    const { greeting } = await import('../src/app/ornament/sky')
+    for (let h = 0; h < 24; h++)
+      expect(() => tokens(greeting(h), { home: '挪威' }), `${h}`).not.toThrow()
+  })
+
+  test('the scene shows one picture, or two crossfading, all day', async () => {
+    const { periods, sunTimes } = await import('../src/app/ornament/sky')
+    for (const day of [
+      '2026-03-20',
+      '2026-06-21',
+      '2026-10-16',
+      '2026-12-21',
+    ]) {
+      const { rise, set } = sunTimes(new Date(`${day}T12:00:00`))
+      expect(rise, day).toBeGreaterThan(3 * 60)
+      expect(set, day).toBeLessThan(23 * 60)
+      expect(rise, day).toBeLessThan(set)
+      for (let m = 0; m < 24 * 60; m += 10) {
+        const d = new Date(`${day}T00:00:00`)
+        d.setMinutes(m)
+        const ws = periods(d)
+        expect(ws.length, `${day} ${m}`).toBeLessThanOrEqual(2)
+        const sum = ws.reduce((s, [, w]) => s + w, 0)
+        expect(sum, `${day} ${m}`).toBeCloseTo(1, 6)
+      }
+      const noon = new Date(`${day}T13:30:00`)
+      expect(periods(noon)[0][0], day).toBe('day')
+      const midnight = new Date(`${day}T00:30:00`)
+      expect(periods(midnight)[0][0], day).toBe('night')
+    }
+  })
+
+  test('the moon is new at the eclipse of 8 April 2024 and full a fortnight on', async () => {
+    const { moon } = await import('../src/app/ornament/sky')
+    expect(moon(new Date('2024-04-08T18:21:00Z')).lit).toBeLessThan(0.02)
+    expect(moon(new Date('2024-04-23T23:49:00Z')).lit).toBeGreaterThan(0.98)
+  })
+
+  test('the festivals fall on their days', async () => {
+    const { festival } = await import('../src/app/ornament/sky')
+    const on = (d: string) => festival(new Date(`${d}T12:00:00`))?.id ?? null
+    expect(on('2027-02-05')).toBe('spring')
+    expect(on('2027-02-06')).toBe('spring')
+    expect(on('2027-02-20')).toBe('lantern')
+    expect(on('2027-02-21')).toBe(null)
+    expect(on('2026-09-25')).toBe('mid-autumn')
+    expect(on('2026-10-16')).toBe(null)
+  })
+
+  test('the ornaments are well-formed paths', async () => {
+    const shapes = await import('../src/app/ornament/shapes')
+    for (const d of [
+      shapes.ruyiCloud(),
+      shapes.ruyiHead(),
+      shapes.curlEnd(),
+      shapes.paperCorner(),
+      shapes.brushStroke(1),
+      shapes.brushStroke(7),
+    ]) {
+      expect(d).toMatch(/^M/)
+      expect(d).not.toMatch(/NaN|Infinity|undefined/)
+    }
+  })
+})
+
+describe('the learning games: art and feedback', () => {
+  // A PNG's width and height, from its header
+  const pngSize = async (path: string) => {
+    const { readFileSync } = await import('node:fs')
+    const b = readFileSync(path)
+    return [b.readUInt32BE(16), b.readUInt32BE(20)]
+  }
+  const art = (f: string) => `public/art/games/${f}`
+
+  test('the pictures are the sizes their scenes draw them at', async () => {
+    const { existsSync } = await import('node:fs')
+    const { W, H } = await import('../src/app/games/shopScene')
+    expect(await pngSize(art('rain-town.png'))).toEqual([256, 256])
+    expect(await pngSize(art('stall.png'))).toEqual([W, H])
+    // eight customers, in cells of 77 × 90: four men, then four women
+    expect(await pngSize(art('customers.png'))).toEqual([8 * 77, 90])
+    expect(existsSync(art('ink-landscape.webp'))).toBe(true)
+  })
+
+  test('every voice that speaks is cast, in a Gemini voice or a designed one', async () => {
+    const { speechItems } = await import('../src/app/lib/speech')
+    const { VOICES, DESIGNED } = await import('../src/app/data/voices')
+    const PREBUILT = new Set(
+      'Zephyr Puck Charon Kore Fenrir Leda Orus Aoede Callirrhoe Autonoe Enceladus Iapetus Umbriel Algieba Despina Erinome Algenib Rasalgethi Laomedeia Achernar Alnilam Schedar Gacrux Pulcherrima Achird Zubenelgenubi Vindemiatrix Sadachbia Sadaltager Sulafat'.split(
+        ' ',
+      ),
+    )
+    for (const it of speechItems())
+      expect(VOICES[it.voice], `${it.voice}: ${it.text}`).toBeTruthy()
+    for (const [name, v] of Object.entries(VOICES)) {
+      expect(PREBUILT.has(v.base) || v.base in DESIGNED, name).toBe(true)
+      expect(v.style.length, name).toBeLessThan(80)
+    }
+  })
+
+  test('every order at the stall is in a customer voice', async () => {
+    const { SHOP_ORDERS, CUSTOMER_VOICES } =
+      await import('../src/app/data/shop')
+    for (const o of SHOP_ORDERS)
+      expect(CUSTOMER_VOICES.includes(o.voice), o.zh).toBe(true)
+  })
+
+  test("the games' own words of praise and blame are in the bank", () => {
+    // 对 right, 不对 not right, 好 and 很好 on the seals, 加油 for a streak,
+    // 学 on a saying's seal, 下雨 for the rain
+    for (const l of ['对', '不 对', '好', '很 好', '加油', '学', '下雨'])
+      expect(() => tokens(l, { home: '挪威' }), l).not.toThrow()
+  })
+})
+
+describe('starship', () => {
+  test('everything the captain says is made of known words', async () => {
+    const { CAPTAIN_LINES, ORDERS, VOYAGE } =
+      await import('../src/app/data/bridge')
+    for (const l of [...ORDERS, ...VOYAGE, ...CAPTAIN_LINES])
+      expect(() => tokens(l.zh, { home: '挪威' }), l.zh).not.toThrow()
+  })
+
+  test('orders are well formed, and every planet ends with a stop', async () => {
+    const { ACTIONS, ORDERS, STEER, VOYAGE } =
+      await import('../src/app/data/bridge')
+    const ids = new Set(ACTIONS.map((a) => a.id))
+    for (const o of ORDERS) {
+      for (const a of o.do) expect(ids.has(a), o.zh).toBe(true)
+      // Two steps steer first, then meet something where they steered to
+      if (o.do.length > 1) {
+        expect(o.do.length, o.zh).toBe(2)
+        expect(STEER.includes(o.do[0]), o.zh).toBe(true)
+        expect(STEER.includes(o.do[1]), o.zh).toBe(false)
+      }
+      // A "don't" order asks for nothing but waiting
+      if (o.not) expect(o.do, o.zh).toEqual([])
+      else expect(o.do.length, o.zh).toBeGreaterThan(0)
+    }
+    for (const leg of VOYAGE) {
+      expect(leg.arrive.arrival, leg.id).toBe(true)
+      expect(leg.arrive.do, leg.id).toEqual(['stop'])
+      expect(ORDERS.includes(leg.arrive), leg.id).toBe(true)
+      expect(
+        WORDS.some((w) => w.id === leg.name),
+        leg.id,
+      ).toBe(true)
+    }
+  })
+
+  test('points for quick answers, and less time as orders go on', async () => {
+    const { gain, span } = await import('../src/app/games/bridge/flight')
+    const { ORDERS } = await import('../src/app/data/bridge')
+    const one = ORDERS.find((o) => o.do.length === 1 && !o.not)
+    const two = ORDERS.find((o) => o.do.length === 2)
+    const not = ORDERS.find((o) => o.not)
+    if (!one || !two || !not) throw new Error('missing kinds of order')
+    expect(gain(one, true, 1, false)).toBe(20)
+    expect(gain(one, true, 0, true)).toBe(20)
+    expect(gain(one, false, 1, true)).toBe(0)
+    expect(gain(not, true, 0, false)).toBe(15)
+    expect(span(one, 0)).toBe(6)
+    expect(span(one, 100)).toBe(2.6)
+    expect(span(two, 0)).toBeCloseTo(8.4)
+  })
+
+  test('a flight: right orders score, wrong ones cost the hull, five end it', async () => {
+    const { Flight, HULL } = await import('../src/app/games/bridge/flight')
+    type Hud = InstanceType<typeof Flight>['hud']
+    // A scene that draws nothing
+    const stage = {
+      setOff: () => {},
+      warp: () => 1,
+      course: () => {},
+      order: () => {},
+      progress: () => {},
+      act: () => {},
+      resolve: () => 1,
+      arrive: () => {},
+      setHull: () => {},
+      wreck: () => {},
+    }
+    const seen: { hud: Hud | null; over: Hud | null } = {
+      hud: null,
+      over: null,
+    }
+    const settled: Array<{ ok: boolean; gain: number }> = []
+    const flight = new Flight(stage, {
+      officer: false,
+      speak: () => Promise.resolve(),
+      onHud: (h) => (seen.hud = h),
+      onSettled: (s) => settled.push(s),
+      onOver: (h) => (seen.over = h),
+      random: () => 0,
+    })
+    void flight.run()
+    const flush = () => new Promise((r) => setTimeout(r, 0))
+    // Runs the clock until an order is given, or the game is over
+    const nextOrder = async (): Promise<Hud | null> => {
+      for (let i = 0; i < 400; i++) {
+        flight.update(0.05)
+        await flush()
+        if (seen.over) return null
+        if (seen.hud?.phase === 'order') return seen.hud
+      }
+      throw new Error('no order')
+    }
+
+    const first = await nextOrder()
+    for (const a of first?.order?.do ?? []) flight.act(a)
+    await flush()
+    expect(settled[0].ok).toBe(true)
+    expect(settled[0].gain).toBeGreaterThan(10)
+
+    for (let h = await nextOrder(); h; h = await nextOrder()) {
+      // The first leg gives single orders only
+      expect(h.order?.do.length).toBe(1)
+      flight.act(h.order?.do[0] === 'left' ? 'right' : 'left')
+      await flush()
+    }
+    expect(settled.filter((s) => !s.ok).length).toBe(HULL / 20)
+    expect(seen.over?.hull).toBeLessThanOrEqual(0)
+    expect(seen.over?.score).toBe(settled[0].gain)
+    flight.stop()
+  })
+})
+
+describe('the trip as scenes', () => {
+  test('every scene has its picture, and a place for each of the cast and the player', async () => {
+    const { existsSync } = await import('node:fs')
+    const { TRIP_ART } = await import('../src/app/pixel/art')
+    for (const s of SCENES) {
+      const art = TRIP_ART[s.id]
+      expect(art, s.id).toBeTruthy()
+      expect(existsSync(`public${art?.src}`), `${s.id}: ${art?.src}`).toBe(true)
+      for (const key of [...Object.keys(s.cast), 'you']) {
+        const spot = art?.spots[key]
+        expect(spot, `${s.id}: ${key}`).toBeTruthy()
+        expect(spot!.x, `${s.id}: ${key}`).toBeGreaterThanOrEqual(0)
+        expect(spot!.x, `${s.id}: ${key}`).toBeLessThanOrEqual(art!.w)
+      }
+    }
+  })
+
+  test('every look of the cast can be drawn head to toe, in every pose', async () => {
+    const { drawFigure } = await import('../src/app/pixel/figure')
+    const { PLAYER_LOOK } = await import('../src/app/data/trip')
+    const looks = [
+      PLAYER_LOOK,
+      ...SCENES.flatMap((s) => Object.values(s.cast).map((c) => c.look)),
+    ]
+    const poses = [
+      {},
+      { breath: 1, blink: true },
+      { mouth: 1, arm: 'chest' as const },
+      { mouth: 2, arm: 'out' as const },
+      { arm: 'up' as const, flutter: 1 },
+      { walk: 1 },
+    ]
+    const light = { tint: '#ffd0a0', tintAmount: 0.2, rim: '#ffffff' }
+    for (const look of looks)
+      for (const pose of poses) {
+        const f = drawFigure(look, pose, { ...light, rimAmount: 0.5 })
+        expect(f.data.length).toBe(f.w * f.h * 4)
+        let seen = 0
+        for (let i = 3; i < f.data.length; i += 4) if (f.data[i]) seen++
+        expect(seen, JSON.stringify(look)).toBeGreaterThan(300)
+      }
+  })
+
+  test('every city is on the map', async () => {
+    const { CITY_AT, MAP_H, MAP_W } = await import('../src/app/data/map')
+    for (const c of CITIES) {
+      const at = CITY_AT[c.id]
+      expect(at, c.id).toBeTruthy()
+      expect(at![0]).toBeGreaterThan(0)
+      expect(at![0]).toBeLessThan(MAP_W)
+      expect(at![1]).toBeGreaterThan(0)
+      expect(at![1]).toBeLessThan(MAP_H)
+    }
+  })
+})
+
+describe('the pinyin chart', () => {
+  test('every syllable of the words is in the table, as an initial and a final', async () => {
+    const { SYLLABLES } = await import('../src/app/data/syllables')
+    const { parts, TABLE_INITIALS, TABLE_FINALS } =
+      await import('../src/app/data/pinyin')
+    const { bare } = await import('../src/app/lib/pinyin')
+    for (const w of WORDS)
+      for (const s of syllables(w.p)) {
+        let b = bare(s.toLowerCase())
+        // erhua: 哪儿 nǎr is na with an r
+        if (b.endsWith('r') && b !== 'er' && !SYLLABLES[b]) b = b.slice(0, -1)
+        // me (么) is only ever said in the neutral tone, so has no place
+        // among the four
+        if (b === 'me' && toneOf(s) === 5) continue
+        expect(SYLLABLES[b], `${w.h} ${s}`).toBeTruthy()
+      }
+    for (const s of Object.keys(SYLLABLES)) {
+      if (s === 'yo') continue
+      const p = parts(s)
+      expect(TABLE_INITIALS.includes(p.initial), s).toBe(true)
+      expect(TABLE_FINALS.includes(p.final), s).toBe(true)
+    }
+    expect(parts('ju')).toEqual({ initial: 'j', final: 'ü' })
+    expect(parts('zhi')).toEqual({ initial: 'zh', final: '-i' })
+    expect(parts('wei')).toEqual({ initial: '', final: 'ui' })
+  })
+
+  test('every sound can be heard, and every contrast trained', async () => {
+    const { INITIALS, FINALS, WHOLE, CONTRASTS, frames, nameOf, pinyinSpeech } =
+      await import('../src/app/data/pinyin')
+    const { mark } = await import('../src/app/lib/pinyin')
+    const said = new Set(pinyinSpeech().map((s) => s.text))
+    for (const g of INITIALS)
+      for (const s of g.sounds) {
+        expect(s.tip.length, s.id).toBeGreaterThan(5)
+        expect(said.has(nameOf(s)), s.id).toBe(true)
+      }
+    for (const g of [...FINALS, WHOLE])
+      for (const s of g.sounds)
+        for (const t of [1, 2, 3, 4])
+          expect(said.has(mark(s.say, t)), `${s.id} ${t}`).toBe(true)
+    expect(nameOf(INITIALS[4].sounds[3])).toBe('rì')
+    for (const c of CONTRASTS) {
+      const f = frames(c)
+      expect(f.length, c.id).toBeGreaterThanOrEqual(8)
+      for (const q of f) {
+        expect(q.length, c.id).toBeGreaterThanOrEqual(2)
+        for (const s of q) expect(said.has(s), `${c.id} ${s}`).toBe(true)
+      }
+    }
+  })
+
+  test('sounds told apart merge as tones do, the count with more tries', () => {
+    const a = emptyBank()
+    const b = emptyBank()
+    a.sounds['zh-z-j'] = [3, 5]
+    b.sounds['zh-z-j'] = [6, 9]
+    b.sounds['an-ang'] = [1, 1]
+    const m = merge(a, b)
+    expect(m.sounds).toEqual({ 'zh-z-j': [6, 9], 'an-ang': [1, 1] })
+    expect(merge({ cards: {} }, emptyBank()).sounds).toEqual({})
+  })
+})
+
+describe('the daily habit: Today, seals, the garden, mahjong', () => {
+  const H = 3_600_000
+  const D = 24 * H
+  // Noon on a day, on the local clock, so day keys are as expected
+  const NOON = new Date(2026, 9, 16, 12).getTime()
+
+  // Words known for a while, and words met an hour ago
+  const bankWith = (known: Array<string>, met: Array<string> = []) => {
+    const b = emptyBank()
+    for (const id of known) b.cards[id] = { ...newCard(NOON - 2 * D, 5), n: 3 }
+    for (const id of met) b.cards[id] = newCard(NOON - H)
+    return b
+  }
+
+  test('banks saved before seals, sessions and the garden still merge', () => {
+    const old = { cards: { 你好: newCard(0) }, days: { '2026-10-15': 3 } }
+    const m = merge(old, emptyBank())
+    expect(m.seals).toEqual({})
+    expect(m.path).toBeNull()
+    expect(m.daily).toEqual({})
+    expect(m.garden).toEqual({})
+    expect(m.days['2026-10-15']).toBe(3)
+    expect(m.cards['你好']).toBeTruthy()
+    expect(() => merge({}, {})).not.toThrow()
+  })
+
+  test('merging keeps each seal at its earlier date, the most grown garden and the session further on', async () => {
+    const { plan, markDone } = await import('../src/app/lib/today')
+    const a = emptyBank()
+    const b = emptyBank()
+    a.seals.first = 100
+    b.seals.first = 50
+    b.seals.known10 = 70
+    a.garden['1'] = 2
+    b.garden['1'] = 1
+    b.garden['2'] = 1
+    a.daily['2026-10-15'] = 1
+    const p = plan(bankWith(['你好', '谢谢']), NOON)
+    a.path = p
+    b.path = markDone(p, 0, NOON + H)
+    const m = merge(a, b)
+    expect(m.seals).toEqual({ first: 50, known10: 70 })
+    expect(m.garden).toEqual({ '1': 2, '2': 1 })
+    expect(m.daily['2026-10-15']).toBe(1)
+    expect(m.path?.steps[0].done).toBe(NOON + H)
+    // a later day's session wins over one further on
+    expect(merge(b, { ...a, path: { ...p, d: '2026-10-17' } }).path?.d).toBe(
+      '2026-10-17',
+    )
+  })
+
+  test('every seal has a check, a character and its pinyin', async () => {
+    const { SEALS } = await import('../src/app/data/seals')
+    const { checked } = await import('../src/app/lib/achievements')
+    expect(checked()).toBe(true)
+    expect(new Set(SEALS.map((s) => s.id)).size).toBe(SEALS.length)
+    for (const s of SEALS) {
+      expect([...s.zh].length, s.id).toBeLessThanOrEqual(2)
+      expect(s.py, s.id).toMatch(PINYIN)
+    }
+  })
+
+  test('seals are awarded from the bank, once', async () => {
+    const { award } = await import('../src/app/lib/achievements')
+    expect(award(emptyBank(), NOON).seals).toEqual([])
+    const b = bankWith(WORDS.slice(0, 12).map((w) => w.id))
+    const got = award(b, NOON).seals
+    expect(got).toContain('first')
+    expect(got).toContain('known10')
+    expect(got).not.toContain('known100')
+    for (const id of got) b.seals[id] = NOON
+    expect(award(b, NOON).seals).toEqual([])
+  })
+
+  test('streak seals follow the days with points', async () => {
+    const { award } = await import('../src/app/lib/achievements')
+    const { dayKey } = await import('../src/app/lib/bank')
+    const b = emptyBank()
+    for (let i = 0; i < 7; i++) b.days[dayKey(NOON - i * D)] = 10
+    const got = award(b, NOON).seals
+    expect(got).toContain('streak3')
+    expect(got).toContain('streak7')
+    expect(got).not.toContain('streak10')
+  })
+
+  test('the garden grows with the lessons, and never shrinks', async () => {
+    const { growth, newGrowth } = await import('../src/app/lib/garden')
+    const { award } = await import('../src/app/lib/achievements')
+    const lesson1 = WORDS.filter((w) => w.lesson === 1).map((w) => w.id)
+    const b = bankWith(lesson1)
+    expect(newGrowth(b, NOON)['1']).toBe(2)
+    const got = award(b, NOON)
+    expect(got.garden['1']).toBe(2)
+    expect(got.seals).toContain('plum')
+    // kept in the bank, it stays when the words fade
+    b.garden['1'] = 2
+    const later = NOON + 400 * D
+    expect(growth(b, later)[0].now).toBeLessThan(2)
+    expect(growth(b, later)[0].stage).toBe(2)
+    // words only just met start a thing growing
+    const lesson2 = WORDS.filter((w) => w.lesson === 2).map((w) => w.id)
+    expect(newGrowth(bankWith([], lesson2), NOON)['2']).toBe(1)
+  })
+
+  test('every lesson grows something, and the garden’s words are in the bank', async () => {
+    const { GARDEN_ITEMS, itemOf, SEASON_LINES, NIGHT_LINE } =
+      await import('../src/app/data/garden')
+    const { LESSONS } = await import('../src/app/data/words')
+    for (const l of LESSONS.slice(0, GARDEN_ITEMS.length))
+      expect(itemOf(l.n), `lesson ${l.n}`).toBeTruthy()
+    for (const g of GARDEN_ITEMS) {
+      if (g.word)
+        expect(
+          WORDS.some((w) => w.id === g.word),
+          g.word,
+        ).toBe(true)
+      expect(g.py, g.id).toMatch(PINYIN)
+    }
+    for (const line of [
+      ...Object.values(SEASON_LINES),
+      NIGHT_LINE,
+      { zh: '明天 见 ！' },
+    ])
+      expect(() => tokens(line.zh, { home: '挪威' }), line.zh).not.toThrow()
+  })
+
+  test('Today plans the fading words, new ones, the trip or a game, and listening', async () => {
+    const { plan, settle, summary, current, finished, markDone } =
+      await import('../src/app/lib/today')
+    // a first visit: no words yet, so nothing to review
+    const first = plan(emptyBank(), NOON)
+    expect(first.steps.map((s) => s.k)).toEqual(['new', 'trip', 'listen'])
+    expect(first.steps[0].ids?.length).toBe(5)
+    // words left to fade for weeks are reviewed first
+    const b = emptyBank()
+    for (const w of WORDS.slice(0, 30))
+      b.cards[w.id] = newCard(NOON - 20 * D, 0.5)
+    const p = plan(b, NOON)
+    expect(p.steps[0].k).toBe('review')
+    expect(p.steps[0].ids?.length).toBe(8)
+    expect(p.steps[0].arg).toBeUndefined()
+    expect(p.s0[p.steps[0].ids?.[0] ?? '']).toBe(0.5)
+    expect(current(p)).toBe(0)
+    // the trip, played on its own page, is found done there
+    const i = p.steps.findIndex((s) => s.k === 'trip')
+    expect(i).toBeGreaterThan(0)
+    const opened = {
+      ...p,
+      steps: p.steps.map((s, j) => (j === i ? { ...s, pts: 0 } : s)),
+    }
+    expect(settle(opened, b, NOON)).toBe(opened)
+    b.scenes[p.steps[i].arg ?? ''] = 2
+    expect(settle(opened, b, NOON).steps[i].done).toBe(NOON)
+    let done = opened
+    for (let j = 0; j < done.steps.length; j++) done = markDone(done, j, NOON)
+    expect(finished(done)).toBe(true)
+    expect(current(done)).toBe(-1)
+    const s = summary(done, b, NOON)
+    expect(s.words.length).toBeGreaterThan(0)
+    expect(s.tomorrow).toBeGreaterThan(0)
+  })
+
+  test('Today keeps each answer, so a step can be left and taken up again', async () => {
+    const { plan, gain, progressOf, share, allAnswered, partKey, markDone } =
+      await import('../src/app/lib/today')
+    const b = emptyBank()
+    for (const w of WORDS.slice(0, 30))
+      b.cards[w.id] = newCard(NOON - 20 * D, 0.5)
+    const p = plan(b, NOON)
+    const ids = p.steps[0].ids ?? []
+    expect(p.steps[0].k).toBe('review')
+    // three words answered, then left
+    let q = p
+    for (const id of ids.slice(0, 3)) q = gain(q, 0, id)
+    expect(gain(q, 0, ids[0])).toBe(q)
+    expect(p.steps[0].got).toBeUndefined()
+    expect(progressOf(q.steps[0])).toEqual({ done: 3, of: ids.length })
+    expect(share(q.steps[0])).toBeCloseTo(3 / ids.length)
+    expect(allAnswered(q.steps[0])).toBe(false)
+    // a session further on wins a merge, even partway through a step
+    expect(merge({ path: p }, { path: q }).path).toBe(q)
+    expect(merge({ path: q }, { path: p }).path).toBe(q)
+    for (const id of ids.slice(3)) q = gain(q, 0, id)
+    expect(allAnswered(q.steps[0])).toBe(true)
+    // new words: each met, then asked its meaning and by ear
+    const i = q.steps.findIndex((s) => s.k === 'new')
+    const fresh = q.steps[i].ids ?? []
+    expect(fresh.length).toBeGreaterThan(0)
+    q = gain(q, i, partKey(fresh[0], 'met'))
+    q = gain(q, i, partKey(fresh[0], 'meaning'))
+    expect(progressOf(q.steps[i])).toEqual({ done: 2, of: fresh.length * 3 })
+    // listening: lines or words heard, four in all
+    const last = q.steps.length - 1
+    q = gain(q, last, '你好')
+    expect(progressOf(q.steps[last])).toEqual({ done: 1, of: 4 })
+    expect(share(markDone(q, last, NOON).steps[last])).toBe(1)
+  })
+
+  test('Today takes turns between the trip and the games', async () => {
+    const { plan } = await import('../src/app/lib/today')
+    const b = emptyBank()
+    for (const w of WORDS.slice(0, 60)) b.cards[w.id] = newCard(NOON - D, 3)
+    const played = Array.from({ length: 6 }, (_, k) =>
+      plan(b, NOON + k * D, ['mahjong', 'rain']).steps.find(
+        (s) => s.k === 'trip' || s.k === 'game',
+      ),
+    )
+    expect(played.filter((s) => s?.k === 'game').length).toBe(2)
+    expect(played.filter((s) => s?.k === 'trip').length).toBe(4)
+  })
+
+  test('mahjong deals can always be cleared', async () => {
+    const { LAYOUTS, deal, solvable, isFree } =
+      await import('../src/app/lib/mahjong')
+    let seed = 7
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) % 4294967296
+      return seed / 4294967296
+    }
+    for (const [id, l] of Object.entries(LAYOUTS)) {
+      expect(l.slots.length, id).toBe(l.pairs * 2)
+      const at = new Set(l.slots.map((s) => `${s.x},${s.y},${s.z}`))
+      expect(at.size, id).toBe(l.slots.length)
+      for (let k = 0; k < 6; k++) {
+        const pairs = Array.from({ length: l.pairs }, (_, i) => i)
+        const dealt = deal(l.slots, pairs, random)
+        expect(dealt, id).not.toBeNull()
+        if (!dealt) continue
+        for (const p of pairs)
+          expect(dealt.filter((x) => x === p).length, id).toBe(2)
+        expect(
+          solvable(
+            l.slots,
+            l.slots.map(() => true),
+            dealt,
+          ),
+          id,
+        ).toBe(true)
+      }
+    }
+    // the top of a pile is free; a tile with both sides closed is not
+    const small = LAYOUTS.small.slots
+    const all = small.map(() => true)
+    expect(
+      isFree(
+        small.findIndex((s) => s.z === 1),
+        small,
+        all,
+      ),
+    ).toBe(true)
+    const middle = small.findIndex((s) => s.z === 0 && s.x === 4 && s.y === 0)
+    expect(isFree(middle, small, all)).toBe(false)
+  })
+})
+
+describe('sprite frames and portraits', () => {
+  test('sprites are square, 16 or 24, and every frame matches the first', async () => {
+    const { SPRITES, PALETTE } = await import('../src/app/pixel/sprites')
+    for (const [name, sp] of Object.entries(SPRITES)) {
+      if (!sp) continue
+      const w = sp.rows[0].length
+      expect([16, 24], name).toContain(w)
+      expect(sp.rows.length, name).toBe(w)
+      const frames = sp.frames ?? []
+      frames.forEach((rows, f) => {
+        expect(rows.length, `${name} frame ${f + 1}`).toBe(w)
+        rows.forEach((row, i) => {
+          expect(row.length, `${name} frame ${f + 1} row ${i}`).toBe(w)
+          for (const ch of row)
+            if (ch !== '.')
+              expect(!!(sp.pal?.[ch] ?? PALETTE[ch]), `${name}: ${ch}`).toBe(
+                true,
+              )
+        })
+      })
+      if (frames.length) expect(sp.ms, name).toBeGreaterThan(0)
+      for (const i of sp.seq ?? [])
+        expect(i <= frames.length, `${name}: step ${i}`).toBe(true)
+    }
+  })
+
+  test('the gallery lists every sprite once', async () => {
+    const { SPRITES, SPRITE_GROUPS } = await import('../src/app/pixel/sprites')
+    const listed = SPRITE_GROUPS.flatMap((g) => g.names)
+    expect(new Set(listed).size).toBe(listed.length)
+    expect([...listed].sort()).toEqual(Object.keys(SPRITES).sort())
+  })
+
+  test('portraits are drawn whole, in known colours, for every look', async () => {
+    const { PARTS, FIGURES, portrait, PORTRAIT_W, PORTRAIT_H } =
+      await import('../src/app/pixel/portraits')
+    type Look = Parameters<typeof portrait>[0]
+    const { PLAYER_LOOK } = await import('../src/app/data/trip')
+    const { CUSTOMERS } = await import('../src/app/data/shop')
+    const grids = [
+      PARTS.HEAD,
+      ...Object.values(PARTS.FACE),
+      ...Object.values(PARTS.HAIR).flatMap((h) => [h.front, h.behind ?? []]),
+      ...Object.values(PARTS.HATS),
+      ...Object.values(PARTS.CLOTHES),
+      ...PARTS.TALK,
+      PARTS.CHILD,
+      PARTS.AGED,
+      PARTS.SHUT,
+      PARTS.GLASSES,
+      PARTS.BEARD,
+      PARTS.LONG_BEARD,
+    ]
+    for (const g of grids)
+      for (const row of g) expect(row.length, row).toBe(PORTRAIT_W)
+    const looks: Array<Look> = [
+      PLAYER_LOOK,
+      ...CUSTOMERS,
+      ...SCENES.flatMap((s) => Object.values(s.cast).map((c) => c.look)),
+      ...Object.values(FIGURES),
+    ]
+    // every style, hat, garment and face at least once, in combinations
+    const styles = Object.keys(PARTS.HAIR).concat(['cap', 'chef', 'kufi'])
+    const hats = Object.keys(PARTS.HATS)
+    const clothes = Object.keys(PARTS.CLOTHES)
+    const faces = Object.keys(PARTS.FACE)
+    const n = Math.max(styles.length, hats.length, clothes.length)
+    for (let i = 0; i < n; i++)
+      looks.push({
+        style: styles[i % styles.length] as Look['style'],
+        coat: '#3d6fa8',
+        headwear: hats[i % hats.length] as Look['headwear'],
+        clothes: clothes[i % clothes.length] as Look['clothes'],
+        expression: faces[i % faces.length] as Look['expression'],
+        age: (['adult', 'child', 'old'] as const)[i % 3],
+        beard: i % 4 === 0 ? true : i % 7 === 0 ? 'long' : false,
+        moustache: i % 4 === 1,
+        glasses: i % 3 === 0,
+        blush: i % 2 === 0,
+        earrings: i % 5 === 0 ? '#e8b84a' : undefined,
+      })
+    for (const look of looks) {
+      const p = portrait(look)
+      for (const rows of [p.rows, p.blink, ...p.talk]) {
+        expect(rows.length).toBe(PORTRAIT_H)
+        for (const row of rows) {
+          expect(row.length).toBe(PORTRAIT_W)
+          for (const ch of row)
+            if (ch !== '.')
+              expect(p.pal[ch], `${JSON.stringify(look)}: ${ch}`).toMatch(
+                /^#[0-9a-f]{6}$/,
+              )
+        }
+      }
+      expect(p.talk.length).toBeGreaterThan(1)
+    }
+  })
+})
+
+describe('the shadow theatre', () => {
+  test('every story is cast, staged and asked about', async () => {
+    const { GROUPS, STORIES } = await import('../src/app/data/stories')
+    const { PROPS, puppetOf } = await import('../src/app/paper/puppets')
+    const { ACTS } = await import('../src/app/paper/acts')
+    const { PIECE_NAMES } = await import('../src/app/paper/scenery')
+    const { beatsOf, stageAt } = await import('../src/app/paper/stage')
+    const ids = new Set<string>()
+    for (const st of STORIES) {
+      expect(ids.has(st.id), st.id).toBe(false)
+      ids.add(st.id)
+      expect(
+        GROUPS.some((g) => g.id === st.group),
+        st.id,
+      ).toBe(true)
+      expect(st.questions.length, st.id).toBe(3)
+      expect(st.cover ?? 0, st.id).toBeLessThan(st.lines.length)
+      const cast = st.cast ?? {}
+      for (const [id, kind] of Object.entries(cast))
+        expect(puppetOf(kind), `${st.id}: ${id} is a ${kind}`).toBeTruthy()
+      st.lines.forEach(([, , cue], i) => {
+        const at = `${st.id} line ${i + 1}`
+        for (let c = cue; c; c = c.then) {
+          for (const spec of c.set ?? [])
+            expect(PIECE_NAMES.has(spec.split(':')[0]), `${at}: ${spec}`).toBe(
+              true,
+            )
+          for (const [id, p] of Object.entries(c.on ?? {})) {
+            const def = puppetOf(cast[id] ?? '')
+            expect(def, `${at}: ${id} is not cast`).toBeTruthy()
+            if (!def) continue
+            if (p.act)
+              expect(
+                p.act in ACTS[def.rig],
+                `${at}: ${id} cannot ${p.act}`,
+              ).toBe(true)
+            if (p.hold) expect(PROPS[p.hold], `${at}: ${p.hold}`).toBeTruthy()
+            if (p.ride)
+              expect(
+                puppetOf(cast[p.ride] ?? '')?.saddle,
+                `${at}: ${id} rides ${p.ride}`,
+              ).toBeTruthy()
+          }
+          for (const off of c.off ?? [])
+            expect(cast[off.split(':')[0]], `${at}: ${off}`).toBeTruthy()
+          if (c.by) expect(cast[c.by], `${at}: ${c.by} speaks`).toBeTruthy()
+        }
+        for (let b = 0; b <= beatsOf(cue).length; b++)
+          expect(() => stageAt(st, i, b), at).not.toThrow()
+      })
+    }
+  })
+
+  test("a puppet's parts hang from parts before them", async () => {
+    const { PUPPET_KINDS, partsOf, puppetOf } =
+      await import('../src/app/paper/puppets')
+    for (const kind of PUPPET_KINDS) {
+      const def = puppetOf(kind)
+      expect(def, kind).toBeTruthy()
+      if (!def) continue
+      const seen = new Set<string>()
+      for (const p of partsOf(def, 'staff')) {
+        if (p.parent) expect(seen.has(p.parent), `${kind}: ${p.id}`).toBe(true)
+        else expect(seen.size, `${kind}: ${p.id} is a second root`).toBe(0)
+        seen.add(p.id)
+      }
+      for (const rod of def.rods)
+        expect(seen.has(rod.part), `${kind}: rod on ${rod.part}`).toBe(true)
+    }
+  })
+
+  test('the stage follows the script, beat by beat', async () => {
+    const { STORIES } = await import('../src/app/data/stories')
+    const { stageAt } = await import('../src/app/paper/stage')
+    const laozi = STORIES.find((s) => s.id === 'laozi')!
+    // he walks on alone, and mounts the ox in the third line's second beat
+    expect(stageAt(laozi, 0).cast.laozi?.ride).toBeUndefined()
+    expect(stageAt(laozi, 2, 0).cast.laozi?.ride).toBeUndefined()
+    expect(stageAt(laozi, 2, 1).cast.laozi?.ride).toBe('ox')
+    // he gets down to write, and rides off at the end
+    expect(stageAt(laozi, 7).cast.laozi?.ride).toBeUndefined()
+    expect(stageAt(laozi, 7).cast.laozi?.hold).toBe('brush')
+    expect(stageAt(laozi, 9).cast.laozi?.ride).toBe('ox')
+    expect(stageAt(laozi, 4).by).toBe('keeper')
+    const houyi = STORIES.find((s) => s.id === 'houyi')!
+    expect(stageAt(houyi, 8).set).toContain('suns:1')
+    // the horse runs off; who speaks changes with the beat
+    const saiweng = STORIES.find((s) => s.id === 'saiweng')!
+    expect(stageAt(saiweng, 1, 0).exits.horse).toBe('run-r')
+    expect(stageAt(saiweng, 1).cast.horse).toBeUndefined()
+    expect(stageAt(saiweng, 4, 0).by).toBe('man')
+    expect(stageAt(saiweng, 4, 1).by).toBe('elder')
+  })
+})
