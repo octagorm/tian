@@ -154,11 +154,7 @@ const CHECKS: Record<string, ((f: Facts) => Progress) | undefined> = {
   rain: (f) => count(f.best('rain'), 100),
   shop: (f) => count(f.best('shop'), 100),
   bridge: (f) => count(f.best('bridge'), 100),
-  pairs: (f) => {
-    // Pairs keeps 100 − turns as its best
-    const b = f.best('match', 'match-ears')
-    return once(b >= 92, b ? `Best so far: ${100 - b} turns` : undefined)
-  },
+  pairs: (f) => count(f.best('mahjong-clean'), 1),
   write: (f) => count(f.best('write'), 10),
   numbers: (f) =>
     count(

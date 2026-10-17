@@ -62,7 +62,7 @@ const GROUPS = [
     title: 'Practice',
     zh: '练习',
     pinyin: 'liànxí',
-    ids: ['learn', 'review', 'listen', 'match', 'order'],
+    ids: ['learn', 'review', 'listen', 'order'],
   },
   {
     id: 'skills',
@@ -430,13 +430,13 @@ function Today({
     art: <SpriteArt name="sprout" />,
   }
   const free: Step = {
-    href: '#match',
+    href: '#mahjong',
     zh: '玩',
     pinyin: 'wán',
     title: 'Play anything',
     text: 'Every word met, and none fading. Pick any game below.',
-    go: 'Pairs',
-    art: <SpriteArt name="cards" />,
+    go: 'Mahjong',
+    art: <SpriteArt name="mahjong" />,
   }
   // Today's guided ten minutes (games/today.tsx) come first until they are
   // done; then the one thing most worth doing next

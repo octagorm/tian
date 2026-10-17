@@ -29,7 +29,6 @@ export const STEP: Record<
 // that are not in the registry
 export const DAILY_GAMES = [
   'mahjong',
-  'match',
   'rain',
   'shop',
   'tones',

@@ -94,14 +94,6 @@ export const GAMES = [
     Page: page(() => import('./games/listen')),
   },
   {
-    id: 'match',
-    title: 'Pairs',
-    zh: '配对',
-    sprite: 'cards',
-    blurb: 'Turn the cards and find each word’s meaning, or its sound.',
-    Page: page(() => import('./games/match')),
-  },
-  {
     id: 'rain',
     title: 'Pinyin rain',
     zh: '下雨',

@@ -457,17 +457,6 @@ export const SEALS: Array<SealDef> = [
     note: '星舰 xīngjiàn, a starship: a warship of the stars.',
   },
   {
-    id: 'pairs',
-    zh: '对',
-    py: 'duì',
-    means: 'pair; right',
-    title: 'Pairs',
-    how: 'Clear Pairs in eight turns or fewer.',
-    group: 'games',
-    shape: 'round',
-    note: '对 is also how you say yes, that’s right.',
-  },
-  {
     id: 'write',
     zh: '笔',
     py: 'bǐ',
@@ -536,6 +525,17 @@ export const SEALS: Array<SealDef> = [
     how: 'Clear a board of mahjong.',
     group: 'games',
     note: '麻将牌 májiàngpái: mahjong tiles.',
+  },
+  {
+    id: 'pairs',
+    zh: '对',
+    py: 'duì',
+    means: 'pair; right',
+    title: 'Every pair right',
+    how: 'Clear a board of mahjong without a wrong pair or a hint.',
+    group: 'games',
+    shape: 'round',
+    note: '对 is also how you say yes, that’s right.',
   },
 
   // --- The garden

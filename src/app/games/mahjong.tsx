@@ -213,6 +213,9 @@ export default function Mahjong() {
         points(2 + Math.round(bd.words.length / 3))
         setBest('mahjong', sc)
         setBest('mahjong-boards', (bank.best['mahjong-boards'] ?? 0) + 1)
+        // every pair right, and none shown
+        if (!t.misses && !t.hints)
+          setBest('mahjong-clean', (bank.best['mahjong-clean'] ?? 0) + 1)
       }
     }, 330)
   }
