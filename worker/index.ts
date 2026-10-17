@@ -9,7 +9,7 @@ interface Env {
 }
 
 // Production's Convex deployment, which answers /api/auth/*
-const CONVEX_SITE = 'https://neat-dalmatian-797.convex.site'
+const CONVEX_SITE = 'https://valuable-akita-141.convex.site'
 
 export default {
   fetch(request: Request, env: Env): Promise<Response> {

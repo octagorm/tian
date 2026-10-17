@@ -37,7 +37,7 @@ describe('worker', () => {
 
     const [sent, init] = convex.mock.calls[0]
     expect(sent.url).toBe(
-      'https://neat-dalmatian-797.convex.site/api/auth/callback/google?code=c&state=s',
+      'https://valuable-akita-141.convex.site/api/auth/callback/google?code=c&state=s',
     )
     expect(sent.method).toBe('POST')
     expect(sent.headers.get('cookie')).toBe('__Host-googleOAuthpkce=v')
