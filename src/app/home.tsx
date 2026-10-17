@@ -76,7 +76,7 @@ const GROUPS = [
     title: 'Arcade',
     zh: '游戏',
     pinyin: 'yóuxì – games',
-    ids: ['rain', 'shop', 'market', 'mahjong'],
+    ids: ['rain', 'shop', 'market', 'taxi', 'mahjong'],
   },
 ] as const
 

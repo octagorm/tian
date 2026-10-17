@@ -120,6 +120,15 @@ export const GAMES = [
     Page: page(() => import('./games/market')),
   },
   {
+    id: 'taxi',
+    title: 'Taxi',
+    zh: '出租车',
+    sprite: 'taxi',
+    blurb:
+      'Passengers tell you the way in Chinese. Listen, and drive them there.',
+    Page: page(() => import('./games/taxi')),
+  },
+  {
     id: 'parts',
     title: 'Character parts',
     zh: '部首',

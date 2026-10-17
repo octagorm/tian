@@ -155,6 +155,8 @@ const CHECKS: Record<string, ((f: Facts) => Progress) | undefined> = {
   shop: (f) => count(f.best('shop'), 100),
   market: (f) => count(f.best('market'), 10),
   bridge: (f) => count(f.best('bridge'), 100),
+  // the taxi keeps the stars of its best shift: five rides of five
+  taxi: (f) => count(f.best('taxi'), 25),
   pairs: (f) => count(f.best('mahjong-clean'), 1),
   write: (f) => count(f.best('write'), 10),
   numbers: (f) =>

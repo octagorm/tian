@@ -467,6 +467,17 @@ export const SEALS: Array<SealDef> = [
     note: '星舰 xīngjiàn, a starship: a warship of the stars.',
   },
   {
+    id: 'taxi',
+    zh: '路',
+    py: 'lù',
+    means: 'road, way',
+    title: 'Taxi',
+    how: 'Get five stars from every passenger in one shift of the taxi.',
+    group: 'games',
+    style: 'red',
+    note: '路口 lùkǒu, the mouth of a road, is a crossing; 一路平安, peace all the way, is a safe journey.',
+  },
+  {
     id: 'write',
     zh: '笔',
     py: 'bǐ',

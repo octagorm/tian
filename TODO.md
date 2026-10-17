@@ -7,6 +7,7 @@
 - [ ] Listen to a sample of the generated words for wrong readings of characters with two readings, said alone: 了 (le/liǎo), 还 (hái/huán), 行 (xíng/háng), 得, 都 (dōu/dū).
 - [ ] `node scripts/tones-check.ts` lists words whose pitch matches their tones worst – the ones to listen to first. It is rough: the ends of falling tones are quiet and creaky, so fourth tones score low even when right. Of the first 45 files, 骂 mà tracks as rising: listen to it.
 - [ ] Particles said alone (吗, 呢, 吧, 的, 了, 啊) have no real tone; the word voice may say them oddly.
+- [ ] The taxi's passengers (17.10.2026): every line checked by transcription, Gemini Flash first and Pro on what Flash flagged (Flash alone misses a lot on short clips). Six lines were made again, for a slurred 往 or 学校 or an added 啊 or 嗯. The grandmother (Gacrux) still says 公园儿 in 到公园往左拐, as Beijingers do: make it again if that is unwanted.
 
 ## Unsure
 
@@ -15,6 +16,7 @@
 - Word order accepts only the trip's own order, though some lines allow another (time words before or after the subject).
 - Taxi praise: a modest answer is marked best, a plain thanks is accepted with a note.
 - 知之为知之 … 是知也: the last 知 is read zhī here; many read zhì.
+- Taxi: stopping is a real choice only where another place stands before the one asked for, on the same side (lib/taxi.ts picks such rides three times as often; about half of them). More places in the town (data/taxi.ts) would make it so more often, at four lines a place for each passenger.
 
 ## Next
 

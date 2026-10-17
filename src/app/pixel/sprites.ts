@@ -2656,6 +2656,28 @@ export const SPRITES: Record<string, Sprite | undefined> = {
   ]),
 
   // --- buildings and travel
+  // a Beijing taxi, yellow over green, with its lamp on the roof
+  taxi: s(
+    [
+      '................',
+      '................',
+      '.......KK.......',
+      '......KWWK......',
+      '...KKKKKKKKKK...',
+      '..KYYYYYYYYYYK..',
+      '.KYKcCKYYKccCYK.',
+      '.KYKCCKYYKCCCYYK',
+      'KYYYYYYYYYYYYYYK',
+      'KyYYYYYYYYYYYYUK',
+      'KEEEEEEEEEEEEEEK',
+      'KgGGGGGGGGGGGGGK',
+      'KRGKIKGGGGGKIKGK',
+      '.KKIAIKKKKKIAIK.',
+      '...KIK.....KIK..',
+      '................',
+    ],
+    { G: '#2a7a5e', g: '#1f5a46' },
+  ),
 
   pagoda: s([
     '.......KK.......',
@@ -4666,7 +4688,7 @@ export const SPRITE_GROUPS: Array<{ title: string; names: Array<string> }> = [
   },
   {
     title: 'buildings and travel',
-    names: ['pagoda', 'pavilion', 'train', 'bicycle'],
+    names: ['pagoda', 'pavilion', 'train', 'taxi', 'bicycle'],
   },
   {
     title: 'space: ships and travellers',

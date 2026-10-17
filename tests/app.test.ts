@@ -1556,3 +1556,112 @@ describe('first steps, the beginner course', () => {
     expect(offered(b)).toBe(true)
   })
 })
+
+describe('taxi', () => {
+  // The same rides every run
+  const seeded = (seed: number) => () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0
+    return seed / 4294967296
+  }
+
+  test('passengers only say words in the bank', async () => {
+    const { TAXI_LINES, PLACES } = await import('../src/app/data/taxi')
+    for (const line of TAXI_LINES)
+      expect(() => tokens(line, { home: '挪威' }), line).not.toThrow()
+    for (const p of PLACES)
+      expect(
+        WORDS.some((w) => w.id === p.id),
+        p.id,
+      ).toBe(true)
+  })
+
+  test('each place is once in town, and can be stopped at from two streets', async () => {
+    const { PLACES, NX, NY } = await import('../src/app/data/taxi')
+    const { stopsFor } = await import('../src/app/lib/taxi')
+    const lots = new Set(
+      PLACES.map((p) => `${p.lot.bx},${p.lot.by},${p.lot.q}`),
+    )
+    expect(lots.size).toBe(PLACES.length)
+    expect(new Set(PLACES.map((p) => p.id)).size).toBe(PLACES.length)
+    for (const p of PLACES) {
+      expect(p.lot.bx < NX - 1 && p.lot.by < NY - 1, p.id).toBe(true)
+      expect(stopsFor(p.lot).length, p.id).toBe(2)
+    }
+  })
+
+  test('every ride asks for each move once, in order, and ends at its place', async () => {
+    const { TAXI_LINES, FIRST_STOP } = await import('../src/app/data/taxi')
+    const { endOf, judge, loops, pathOf, plan, spotAt } =
+      await import('../src/app/lib/taxi')
+    const rand = seeded(20261017)
+    let spot = spotAt(FIRST_STOP)
+    const seen = new Set<string>()
+    for (let n = 0; n < 300; n++) {
+      const ride = plan(spot, rand, [])
+      const path = pathOf(ride.route)
+      expect(TAXI_LINES).toContain(ride.opener)
+      let s = -1
+      const crossings: Array<{ expect: string }> = []
+      for (const ins of ride.instructions) {
+        expect(TAXI_LINES, ins.line).toContain(ins.line)
+        seen.add(ins.kind)
+        ins.points.forEach((p, i) => {
+          expect(path.sOf(p), ins.line).toBeGreaterThan(s)
+          s = path.sOf(p)
+          // the move asked for is the one that is right
+          expect(judge(ins, i, p.expect).ok).toBe(true)
+          if (!p.lot) crossings.push(p)
+        })
+        for (const id of ins.words)
+          expect(
+            WORDS.some((w) => w.id === id),
+            id,
+          ).toBe(true)
+      }
+      expect(crossings.map((p) => p.expect)).toEqual(ride.route.moves)
+      const last = ride.instructions.at(-1)!
+      expect(last.kind).toBe('stop')
+      expect(last.points.at(-1)!.expect).toBe('stop')
+      expect(path.sOf(last.points.at(-1)!)).toBeCloseTo(path.len, 6)
+      expect(ride.route.moves.length).toBeGreaterThan(0)
+      // no round a block to get there
+      expect(loops(ride.route), ride.route.moves.join(' ')).toBe(false)
+      spot = endOf(ride)
+    }
+    // all kinds of instruction come up
+    expect([...seen].sort()).toEqual(
+      ['ahead', 'at', 'count', 'forward', 'stop', 'straight', 'turn'].sort(),
+    )
+  })
+
+  test('a turn too early, or a stop at the wrong place, is said so', async () => {
+    const { judge } = await import('../src/app/lib/taxi')
+    const count = {
+      kind: 'count' as const,
+      line: '在 第二 个 路口 往 左 拐 。',
+      words: ['第二', '左'],
+      points: [
+        { edge: 0, d: 64, expect: 'straight' as const },
+        { edge: 1, d: 64, expect: 'left' as const },
+      ],
+    }
+    expect(judge(count, 0, 'left')).toEqual({
+      ok: false,
+      missed: ['第二'],
+      complaint: 'early',
+    })
+    expect(judge(count, 1, 'right').missed).toEqual(['左'])
+    const lot = { bx: 1, by: 1, q: 0 as const }
+    const stop = {
+      kind: 'stop' as const,
+      line: '在 书店 前面 停 。',
+      words: ['书店', '停'],
+      points: [
+        { edge: 0, d: 24, expect: 'straight' as const, lot },
+        { edge: 0, d: 48, expect: 'stop' as const, lot },
+      ],
+    }
+    expect(judge(stop, 0, 'stop').complaint).toBe('notHere')
+    expect(judge(stop, 1, 'straight').missed).toEqual(['书店'])
+  })
+})

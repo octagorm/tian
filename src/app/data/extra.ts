@@ -2,6 +2,7 @@ import { courseSpeech } from '../lib/course.ts'
 import { TONE_SETS } from './tones.ts'
 import { CAPTAIN_LINES, CAPTAIN_VOICE, MISSIONS, ORDERS } from './bridge.ts'
 import { SHOP_ORDERS } from './shop.ts'
+import { PASSENGERS, TAXI_LINES } from './taxi.ts'
 import { NUMBER_ITEMS } from './numbers.ts'
 import { SAYINGS, sayer } from './sayings.ts'
 import { BUILT, PICTURES } from './parts.ts'
@@ -43,6 +44,7 @@ export const EXTRA_LINES: Array<string> = [
   ...[...ORDERS, ...MISSIONS, ...CAPTAIN_LINES, ...SHOP_ORDERS].map(
     (o) => o.zh,
   ),
+  ...TAXI_LINES,
   ...QUEST.flatMap((c) => (c.demon.line ? [c.demon.line.zh] : [])),
   ...[...Object.values(SEASON_LINES), NIGHT_LINE].map((l) => l.zh),
   ...marketLines().map((l) => l.zh),
@@ -73,6 +75,14 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
     text: joined(l.zh),
     kind: 'line' as const,
   })),
+  // Every passenger in the taxi can say every line
+  ...PASSENGERS.flatMap((p) =>
+    TAXI_LINES.map((zh) => ({
+      voice: p.voice,
+      text: joined(zh),
+      kind: 'line' as const,
+    })),
+  ),
   ...NUMBER_ITEMS.map((n) => ({
     voice: WORD_VOICE,
     text: n.say,

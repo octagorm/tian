@@ -108,6 +108,12 @@ export const VOICES: Record<string, Voice> = {
     style: 'a chatty young woman, warm and all smiles',
   },
 
+  // A passenger in the taxi (data/taxi.ts); the others are met on the trip
+  Erinome: {
+    base: 'Erinome',
+    style: 'clear and businesslike, giving directions she knows by heart',
+  },
+
   // The starship's captain (data/bridge.ts)
   Captain: {
     base: 'Alnilam',

@@ -691,6 +691,22 @@ const RAW: Array<[string, string, string]> = [
 算了|suàn le|forget it|forget it, never mind
 `,
   ],
+  [
+    'Around town',
+    '城里',
+    `
+银行|yín háng|bank
+公园|gōng yuán|park
+医院|yī yuàn|hospital
+学校|xué xiào|school
+超市|chāo shì|supermarket
+书店|shū diàn|bookshop
+电影院|diàn yǐng yuàn|cinema
+前面|qián miàn|in front|in front (of); ahead
+第二|dì èr|second|the second
+第三|dì sān|third|the third
+`,
+  ],
 ]
 
 export const LESSONS: Array<Lesson> = RAW.map(([title, zh], i) => ({
