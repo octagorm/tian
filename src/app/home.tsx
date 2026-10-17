@@ -11,11 +11,12 @@ import { dayKey, level, recall, streak, unmet } from './lib/bank'
 import { Pix } from './pixel/Pix'
 import { Account } from './account'
 import { GAMES } from './registry'
-import { GardenMini, SealStrip } from './daily'
+import { CourseStrip, GardenMini, SealStrip } from './daily'
 import { Ring } from './daily/Ring'
 import { DAILY_GAMES_HERE, describe } from './daily/steps'
-import { useToday } from './daily/useToday'
+import { usePlay, useToday } from './daily/useToday'
 import { current, finished, plan, share } from './lib/today'
+import { dayOf, partOf, partsDone } from './lib/course'
 import { Mixed, MusicToggle } from './ui'
 import {
   BrushLine,
@@ -36,8 +37,9 @@ import type { Bank } from './lib/bank'
 import type { Period } from './ornament'
 import type { ReactNode } from 'react'
 
-// The home screen: the living scene, the one thing to do next today, the
-// day's goal and the week, then every game by kind
+// The home screen: the living scene, the one thing to do next today (for
+// someone new, the day of the beginner's course), the day's goal and the
+// week, then every game by kind
 
 // Points a day that keep the streak worth having
 const GOAL = 30
@@ -67,7 +69,7 @@ const GROUPS = [
     title: 'Skills',
     zh: '功夫',
     pinyin: 'gōngfu – skill, from time and effort',
-    ids: ['pinyin', 'tones', 'parts', 'write', 'numbers', 'sayings'],
+    ids: ['start', 'pinyin', 'tones', 'parts', 'write', 'numbers', 'sayings'],
   },
   {
     id: 'arcade',
@@ -355,6 +357,8 @@ interface Step {
   text: ReactNode
   go: string
   art: ReactNode
+  // Instead of following the link
+  onGo?: () => void
 }
 
 function Today({
@@ -450,9 +454,64 @@ function Today({
   const minutes = preview.steps
     .filter((s) => !s.done)
     .reduce((m, s) => m + describe(s).minutes, 0)
+  const ring = (glyph: string) => (
+    <span className="flex h-full w-full items-center justify-center">
+      <Ring
+        steps={arcs}
+        part={path && at >= 0 ? share(preview.steps[at]) : 0}
+        size={92}
+        width={10}
+      >
+        <span className="zh text-3xl text-[var(--ink)]">
+          {path && now ? now.glyph : glyph}
+        </span>
+      </Ring>
+    </span>
+  )
+  // For a beginner, the session carries the day of First steps
+  // (lib/today.ts), and leads as that day, the course beneath it
+  // (CourseStrip). A part to do now opens on the course's page at once.
+  const play = usePlay()
+  const parts = preview.steps.filter((s) => s.k === 'course')
+  const part = partOf((parts.find((s) => !s.done) ?? parts.at(0))?.arg)
+  const leading = !sessionDone && !!part
+  const begun = partsDone(bank) > 0
+  const first = Math.max(0, at)
+  const opensPart = preview.steps[first].k === 'course'
+  const courseDay: Step | null = leading
+    ? {
+        href: opensPart ? '#start' : '#today',
+        zh: '入门',
+        pinyin: 'rùmén – in at the gate: to get started',
+        title: begun
+          ? `Day ${dayOf(part).n}: ${dayOf(part).title}`
+          : 'Start here',
+        text:
+          path && now ? (
+            <>
+              Step {at + 1} of {preview.steps.length}:{' '}
+              <span className="font-bold text-[var(--ink)]">{now.title}</span> –{' '}
+              {opensPart ? `about ${now.minutes} minutes` : now.detail}
+            </>
+          ) : !begun ? (
+            `New to Chinese? Seven short days on how it works: characters, tones, pinyin and your first sentences. About ${minutes} minutes today.`
+          ) : (
+            `About ${minutes} minutes: ${preview.steps[0].k === 'review' ? 'a review, then ' : ''}${
+              parts.length === 3
+                ? 'the three parts'
+                : parts.length === 2
+                  ? 'the last two parts'
+                  : 'the last part'
+            } of day ${dayOf(part).n}.`
+          ),
+        go: path ? 'Continue' : begun ? 'Start' : 'Begin',
+        art: ring('入'),
+        ...(opensPart ? { onGo: () => play(path ?? preview, first) } : {}),
+      }
+    : null
   const session: Step | null = sessionDone
     ? null
-    : {
+    : (courseDay ?? {
         href: '#today',
         zh: '每天',
         pinyin: 'měitiān – every day',
@@ -470,31 +529,21 @@ function Today({
               .join(', ')}.`
           ),
         go: path ? 'Continue' : 'Start',
-        art: (
-          <span className="flex h-full w-full items-center justify-center">
-            <Ring
-              steps={arcs}
-              part={path && at >= 0 ? share(preview.steps[at]) : 0}
-              size={92}
-              width={10}
-            >
-              <span className="zh text-3xl text-[var(--ink)]">
-                {path && now ? now.glyph : '今'}
-              </span>
-            </Ring>
-          </span>
-        ),
-      }
+        art: ring('今'),
+      })
   const usual =
     fading >= 6 && !reached
       ? review
       : (trip ?? (toMeet ? learn : fading ? review : free))
   const step = session ?? usual
-  const others = [
-    fading && step !== review ? review : null,
-    trip && step !== trip ? trip : null,
-    toMeet && step !== learn ? learn : null,
-  ].filter((s): s is Step => !!s)
+  // Nothing beside the course's day, for someone new
+  const others = leading
+    ? []
+    : [
+        fading && step !== review ? review : null,
+        trip && step !== trip ? trip : null,
+        toMeet && step !== learn ? learn : null,
+      ].filter((s): s is Step => !!s)
 
   return (
     <section
@@ -521,6 +570,11 @@ function Today({
           </div>
           <a
             href={step.href}
+            onClick={(e) => {
+              if (!step.onGo) return
+              e.preventDefault()
+              step.onGo()
+            }}
             className="group flex flex-col gap-4 rounded-2xl sm:flex-row sm:items-center"
           >
             <span className="relative block h-28 shrink-0 overflow-hidden rounded-xl bg-[var(--paper-2)] shadow-[inset_0_0_0_1px_rgba(34,28,24,0.08)] sm:h-28 sm:w-44">
@@ -529,7 +583,7 @@ function Today({
             <span className="min-w-0">
               <span className="flex items-baseline gap-2">
                 <span
-                  className="zh-display text-2xl text-[var(--red)]"
+                  className="zh-display shrink-0 text-2xl text-[var(--red)]"
                   title={step.pinyin}
                   data-zh-title={step.href.slice(1)}
                 >
@@ -549,6 +603,10 @@ function Today({
               </span>
             </span>
           </a>
+          <CourseStrip
+            leading={leading}
+            className="mt-4 border-t border-[var(--paper-2)] pt-3"
+          />
           {others.length > 0 && (
             <p className="mt-4 flex flex-wrap items-center gap-x-1 gap-y-2 text-sm text-[var(--ink-2)]">
               <span className="mr-1">Or:</span>

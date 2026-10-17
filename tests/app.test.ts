@@ -916,15 +916,22 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
       expect(() => tokens(line.zh, { home: '挪威' }), line.zh).not.toThrow()
   })
 
+  // Someone who knows the basics, with First steps hidden
+  const noCourse = () => {
+    const b = emptyBank()
+    b.scenes['start-hidden'] = NOON - D
+    return b
+  }
+
   test('Today plans the fading words, new ones, the trip or a game, and listening', async () => {
     const { plan, settle, summary, current, finished, markDone } =
       await import('../src/app/lib/today')
     // a first visit: no words yet, so nothing to review
-    const first = plan(emptyBank(), NOON)
+    const first = plan(noCourse(), NOON)
     expect(first.steps.map((s) => s.k)).toEqual(['new', 'trip', 'listen'])
     expect(first.steps[0].ids?.length).toBe(5)
     // words left to fade for weeks are reviewed first
-    const b = emptyBank()
+    const b = noCourse()
     for (const w of WORDS.slice(0, 30))
       b.cards[w.id] = newCard(NOON - 20 * D, 0.5)
     const p = plan(b, NOON)
@@ -955,7 +962,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
   test('Today keeps each answer, so a step can be left and taken up again', async () => {
     const { plan, gain, progressOf, share, allAnswered, partKey, markDone } =
       await import('../src/app/lib/today')
-    const b = emptyBank()
+    const b = noCourse()
     for (const w of WORDS.slice(0, 30))
       b.cards[w.id] = newCard(NOON - 20 * D, 0.5)
     const p = plan(b, NOON)
@@ -986,6 +993,52 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     q = gain(q, last, '你好')
     expect(progressOf(q.steps[last])).toEqual({ done: 1, of: 4 })
     expect(share(markDone(q, last, NOON).steps[last])).toBe(1)
+  })
+
+  test('for a beginner, Today is the day of First steps', async () => {
+    const { STEP, plan, settle, summary, finished, markDone } =
+      await import('../src/app/lib/today')
+    const { PARTS } = await import('../src/app/data/course')
+    const { hideKey, partKey, wordsOf } = await import('../src/app/lib/course')
+    const ks = (p: { steps: Array<{ k: string; arg?: string }> }) =>
+      p.steps.map((s) => (s.k === 'course' ? `course ${s.arg}` : s.k))
+    expect(STEP.course.glyph).toBe('入')
+    // new: the parts of day 1 stand in for new words, the trip and
+    // listening
+    const b = emptyBank()
+    const p = plan(b, NOON)
+    expect(ks(p)).toEqual(['course 1a', 'course 1b', 'course 1c'])
+    // a part done on the course's page counts, wherever it was opened from
+    expect(settle(p, b, NOON)).toBe(p)
+    b.scenes[partKey('1a')] = NOON + H
+    expect(settle(p, b, NOON + H).steps[0].done).toBe(NOON + H)
+    // the words it met are in the summary, as new
+    const met = PARTS.filter((x) => x.id.startsWith('1')).flatMap(wordsOf)
+    expect(met.length).toBeGreaterThan(0)
+    for (const id of met) b.cards[id] = newCard(NOON + H)
+    const words = summary(p, b, NOON + H).words
+    expect(words.map((w) => w.id).sort()).toEqual([...met].sort())
+    expect(words.every((w) => w.before === null)).toBe(true)
+    // day 1 done: a session made later that day is the usual one
+    b.scenes[partKey('1b')] = NOON + H
+    b.scenes[partKey('1c')] = NOON + H
+    expect(ks(plan(b, NOON + 2 * H))).not.toContain('course 2a')
+    // the next day: the words met reviewed, then day 2
+    const next = plan(b, NOON + D)
+    expect(ks(next)).toEqual(['review', 'course 2a', 'course 2b', 'course 2c'])
+    // a day left halfway goes on where it was
+    b.scenes[partKey('2a')] = NOON + D
+    expect(ks(plan(b, NOON + 2 * D)).slice(1)).toEqual([
+      'course 2b',
+      'course 2c',
+    ])
+    // hidden partway through a session: its parts left are skipped
+    let q = markDone(next, 0, NOON + D)
+    b.scenes[hideKey(true)] = NOON + D + H
+    q = settle(q, b, NOON + D + H)
+    expect(q.steps[1].skip).toBeUndefined()
+    expect(q.steps[2].skip).toBe(true)
+    expect(finished(q)).toBe(true)
   })
 
   test('Today takes turns between the trip and the games', async () => {
@@ -1236,5 +1289,121 @@ describe('the shadow theatre', () => {
     expect(stageAt(saiweng, 1).cast.horse).toBeUndefined()
     expect(stageAt(saiweng, 4, 0).by).toBe('man')
     expect(stageAt(saiweng, 4, 1).by).toBe('elder')
+  })
+})
+
+describe('first steps, the beginner course', () => {
+  const NOON = new Date(2026, 9, 16, 12).getTime()
+
+  test('parts have unique ids, and what they name exists', async () => {
+    const { COURSE, PARTS } = await import('../src/app/data/course')
+    const { WORD } = await import('../src/app/data/words')
+    const { TONE_SETS } = await import('../src/app/data/tones')
+    const { CONTRASTS, frames } = await import('../src/app/data/pinyin')
+    const { BUILT } = await import('../src/app/data/parts')
+    const { lineOf } = await import('../src/app/lib/course')
+    expect(COURSE.map((d) => d.n)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(new Set(PARTS.map((p) => p.id)).size).toBe(PARTS.length)
+    for (const p of PARTS)
+      for (const s of p.screens) {
+        const at = `${p.id} ${s.k}`
+        if (s.k === 'meet' || s.k === 'quiz')
+          for (const id of s.ids) expect(WORD[id], `${at}: ${id}`).toBeTruthy()
+        if (s.k === 'build')
+          for (const zh of s.lines) {
+            expect(lineOf(zh), `${at}: ${zh}`).toBeTruthy()
+            // only the end of a line to build is punctuated
+            const marks = tokens(zh, { home: '挪威' }).map((t) => !!t.punct)
+            expect(marks.slice(0, -1), `${at}: ${zh}`).not.toContain(true)
+          }
+        if (s.k === 'ask') {
+          expect(s.options.length, at).toBeGreaterThanOrEqual(2)
+          expect(new Set(s.options).size, at).toBe(s.options.length)
+          if (s.zh)
+            for (const o of s.options)
+              expect(() => tokens(o, { home: '挪威' }), o).not.toThrow()
+        }
+        if (s.k === 'ear') {
+          for (const b of s.tones?.sets ?? [])
+            expect(
+              TONE_SETS.some((t) => t.base === b),
+              `${at}: ${b}`,
+            ).toBe(true)
+          for (const id of s.contrasts ?? []) {
+            const c = CONTRASTS.find((x) => x.id === id)
+            expect(c, `${at}: ${id}`).toBeTruthy()
+            if (c) expect(frames(c).length, id).toBeGreaterThan(0)
+          }
+          for (const n of s.numbers ?? [])
+            expect(n, at).toMatch(/^[一二三四五六七八九十百]+$/)
+        }
+        const show = s.k === 'read' || s.k === 'ask' ? s.show : undefined
+        if (show?.k === 'tones')
+          expect(
+            TONE_SETS.some((t) => t.base === show.base),
+            at,
+          ).toBe(true)
+        if (show?.k === 'built')
+          for (const c of show.c)
+            expect(
+              BUILT.some((b) => b.c === c),
+              `${at}: ${c}`,
+            ).toBe(true)
+      }
+  })
+
+  test('the course’s own lines are made of known words', async () => {
+    const { OWN_LINES } = await import('../src/app/data/course')
+    for (const [zh, en] of Object.entries(OWN_LINES)) {
+      expect(() => tokens(zh, { home: '挪威' }), zh).not.toThrow()
+      expect(en, zh).toMatch(/[.?!]$/)
+    }
+  })
+
+  test('everything the course plays is listed to be recorded', async () => {
+    const { courseSpeech } = await import('../src/app/lib/course')
+    const { speechItems, speechKey } = await import('../src/app/lib/speech')
+    const all = new Set(speechItems().map((it) => speechKey(it.voice, it.text)))
+    const items = courseSpeech()
+    expect(items.length).toBeGreaterThan(100)
+    for (const it of items)
+      expect(all.has(speechKey(it.voice, it.text)), it.text).toBe(true)
+  })
+
+  test('the course goes on in order, a day at a time, and earns its seal', async () => {
+    const { PARTS } = await import('../src/app/data/course')
+    const { nextPart, offered, partKey, restToday, hideKey } =
+      await import('../src/app/lib/course')
+    const { award } = await import('../src/app/lib/achievements')
+    const b = emptyBank()
+    expect(offered(b)).toBe(true)
+    expect(nextPart(b)?.id).toBe('1a')
+    for (const id of ['1a', '1b', '1c']) b.scenes[partKey(id)] = NOON
+    expect(nextPart(b)?.id).toBe('2a')
+    // day 1 done today: day 2 is for tomorrow, though it can be taken now
+    expect(restToday(b, NOON + 3_600_000)?.n).toBe(2)
+    expect(restToday(b, NOON + 86_400_000)).toBeNull()
+    b.scenes[partKey('2a')] = NOON
+    expect(restToday(b, NOON)).toBeNull()
+    // hidden on one device and shown again on another: the later wins
+    b.scenes[hideKey(true)] = NOON
+    expect(offered(b)).toBe(false)
+    expect(offered(merge(b, { scenes: { [hideKey(false)]: NOON + 1 } }))).toBe(
+      true,
+    )
+    expect(award(b, NOON).seals).not.toContain('start')
+    for (const p of PARTS) b.scenes[partKey(p.id)] = NOON
+    expect(nextPart(b)).toBeNull()
+    expect(offered(b)).toBe(false)
+    expect(award(b, NOON).seals).toContain('start')
+  })
+
+  test('someone who knows many words is not offered it unless they ask', async () => {
+    const { offered, hideKey } = await import('../src/app/lib/course')
+    const b = emptyBank()
+    for (const w of WORDS.slice(0, 60)) b.cards[w.id] = newCard(NOON)
+    expect(offered(b)).toBe(false)
+    b.scenes[hideKey(false)] = NOON
+    expect(offered(b)).toBe(true)
   })
 })

@@ -48,7 +48,7 @@ import { Seal } from '../daily/Seal'
 import { thud } from '../daily/SealToaster'
 import { GardenBand, GardenMini } from '../daily/GardenMini'
 import { DAILY_GAMES_HERE, describe, gameOf } from '../daily/steps'
-import { useToday } from '../daily/useToday'
+import { usePlay, useToday } from '../daily/useToday'
 import { Key, PlayButton, useKeys, useSpeaker } from './fx'
 import type { ArcState } from '../daily/Ring'
 import type { Path, PathStep, StepKind } from '../lib/bank'
@@ -57,10 +57,11 @@ import '../daily/daily.css'
 
 // Today: the day's session, about ten minutes in a few steps, around a
 // ring that fills as they are done. Review, new words and listening are
-// played here; the trip and the games on their own pages, and are found
-// done on the way back. The plan is kept in the bank, with each answer as
-// it is given, so the session can be left at any point, even halfway
-// through a step, and taken up again the same day, on any device.
+// played here; the parts of First steps, the trip and the games on their
+// own pages, and are found done on the way back. The plan is kept in the
+// bank, with each answer as it is given, so the session can be left at
+// any point, even halfway through a step, and taken up again the same
+// day, on any device.
 
 // Points for finishing a step played here
 const BONUS: Partial<Record<StepKind, number>> = {
@@ -83,6 +84,7 @@ export default function Today() {
   // The step just done, to stamp on the way back
   const [justDone, setJustDone] = useState<number | null>(null)
   const over = !!path && finished(path)
+  const play = usePlay()
 
   const start = () => {
     const p = plan(bank, Date.now(), DAILY_GAMES_HERE)
@@ -90,9 +92,11 @@ export default function Today() {
     open(p, 0)
   }
 
-  // Steps played here open in the page; the others wait on their card
+  // Steps played here open in the page, and a part of the course on its
+  // own; the trip and the games wait on their card, to be swapped
   const open = (p: Path, i: number) => {
     if (playedHere(p.steps[i])) setActive(i)
+    else if (p.steps[i].k === 'course') return play(p, i)
     window.scrollTo(0, 0)
   }
 
@@ -164,6 +168,7 @@ function Overview({
   onDone: (i: number, skip?: boolean) => void
 }) {
   const { bank, setPath } = useStore()
+  const play = usePlay()
   const now = Date.now()
   const preview = useMemo(
     () => path ?? plan(bank, now, DAILY_GAMES_HERE),
@@ -250,6 +255,7 @@ function Overview({
             now={!!path && i === at}
             stamped={i === justDone}
             onOpen={() => onOpen(i)}
+            onPlay={() => path && play(path, i)}
             onDone={(skip) => onDone(i, skip)}
             onSwap={(step) => setPath((p) => (p ? swap(p, i, step) : p))}
           />
@@ -271,6 +277,7 @@ function StepRow({
   now,
   stamped,
   onOpen,
+  onPlay,
   onDone,
   onSwap,
 }: {
@@ -280,12 +287,15 @@ function StepRow({
   // Done a moment ago: stamped as it comes into view
   stamped: boolean
   onOpen: () => void
+  // Off to its own page
+  onPlay: () => void
   onDone: (skip?: boolean) => void
   onSwap: (step: PathStep) => void
 }) {
-  const { bank, setPath } = useStore()
   const t = describe(step)
-  const elsewhere = !playedHere(step)
+  // The trip and the games wait on a card of their own, to be played,
+  // swapped or skipped; the rest open with a button
+  const elsewhere = step.k === 'trip' || step.k === 'game'
   // Left partway: how far it got
   const part = step.done ? 0 : share(step)
   const scene = step.k === 'trip' ? SCENES.find((s) => s.id === step.arg) : null
@@ -297,19 +307,6 @@ function StepRow({
     return () => clearTimeout(tm)
     // once, as it is shown
   }, [])
-
-  const play = () => {
-    const pts = bank.days[dayKey(Date.now())] ?? 0
-    setPath((p) =>
-      p
-        ? {
-            ...p,
-            steps: p.steps.map((s, j) => (j === n ? { ...s, pts } : s)),
-          }
-        : p,
-    )
-    window.location.hash = step.k === 'trip' ? 'trip' : (step.arg ?? '')
-  }
 
   // Another game than the one planned, or a game instead of the trip
   const another = () => {
@@ -402,7 +399,7 @@ function StepRow({
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Btn onClick={play}>
+              <Btn onClick={onPlay}>
                 <Play size={16} /> Play
               </Btn>
               {step.pts !== undefined && (
@@ -599,7 +596,8 @@ function example(w: Word, home: string): string | null {
   return null
 }
 
-function MeetCard({
+// Also the course's way to meet a word (games/course.tsx)
+export function MeetCard({
   w,
   n,
   of,

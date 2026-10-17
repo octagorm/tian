@@ -1,5 +1,6 @@
 // The daily habit's pieces for the rest of the page: the home screen's
-// call to action (TodayCard), the garden small (GardenMini) or as a band
+// call to action (TodayCard) and the beginner's course at the foot of
+// Today's card (CourseStrip), the garden small (GardenMini) or as a band
 // (GardenBand), the seals (SealStrip), and two to mount once at the root,
 // inside the BankProvider: the toaster that stamps new seals
 // (SealToaster) and the way back to Today from a step played elsewhere
@@ -7,6 +8,7 @@
 // and games/garden.tsx.
 
 export { TodayCard } from './TodayCard'
+export { CourseStrip } from './CourseStrip'
 export { GardenBand, GardenMini } from './GardenMini'
 export { SealStrip } from './SealStrip'
 export { SealToaster } from './SealToaster'

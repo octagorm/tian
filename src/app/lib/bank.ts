@@ -65,16 +65,16 @@ export interface Path {
   s0: Record<string, number | undefined>
 }
 
-export type StepKind = 'review' | 'new' | 'trip' | 'game' | 'listen'
+export type StepKind = 'review' | 'new' | 'course' | 'trip' | 'game' | 'listen'
 
 export interface PathStep {
   k: StepKind
   // The words it is about (review, new)
   ids?: Array<string>
-  // A scene of the trip, or a game, by id
+  // A part of First steps, a scene of the trip, or a game, by id
   arg?: string
-  // The day's points when it was opened, to tell when a scene or a game
-  // played on its own page has been played
+  // The day's points when it was opened on its own page, to tell when a
+  // scene or a game has been played there
   pts?: number
   // What a step played in Today itself has had answered so far, so it
   // can be left at any point and taken up again (lib/today.ts)

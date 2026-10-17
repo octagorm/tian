@@ -1,8 +1,10 @@
 import { LESSONS, WORDS } from '../data/words.ts'
 import { CITIES, SCENES } from '../data/trip.ts'
 import { QUEST } from '../data/quest.ts'
+import { PARTS } from '../data/course.ts'
 import { SEALS } from '../data/seals.ts'
 import { dayKey, level, streak } from './bank.ts'
+import { partKey } from './course.ts'
 import { gardenSize, newGrowth } from './garden.ts'
 import type { Bank } from './bank.ts'
 
@@ -76,6 +78,11 @@ const city = (id: string) => (f: Facts) => {
 }
 
 const CHECKS: Record<string, ((f: Facts) => Progress) | undefined> = {
+  start: (f) =>
+    count(
+      PARTS.filter((p) => f.bank.scenes[partKey(p.id)]).length,
+      PARTS.length,
+    ),
   first: (f) => count(f.met, 1),
   known10: (f) => count(f.known, 10),
   known50: (f) => count(f.known, 50),

@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Check } from 'lucide-react'
 import { current } from '../lib/today'
 import { Ring } from './Ring'
+import { pageOf } from './steps'
 import { useToday } from './useToday'
 import type { ArcState } from './Ring'
 
 // A small way back to Today, while one of its steps is played on its own
-// page (the trip, or a game): it shows on that page only, and turns gold
-// once the step counts as played. Mount it once, beside the SealToaster.
+// page (a part of the course, the trip, or a game): it shows on that page
+// only, and turns gold once the step counts as played. Mount it once,
+// beside the SealToaster.
 
 const hashNow = () =>
   typeof window === 'undefined' ? '' : window.location.hash.slice(1)
@@ -23,15 +25,16 @@ export function TodayDock() {
   const path = useToday()
   if (!path) return null
   const now = Date.now()
-  // The step opened from Today for this page: still to play, or played in
-  // the last half hour
-  const at = path.steps.findIndex(
-    (s) =>
-      s.pts !== undefined &&
-      !s.skip &&
-      (s.k === 'trip' ? 'trip' : s.k === 'game' ? s.arg : null) === hash &&
-      (!s.done || now - s.done < 30 * 60_000),
+  // The step opened from Today for this page: still to play, or else
+  // played in the last half hour (the course has a step for each part)
+  const opened = path.steps.map(
+    (s) => s.pts !== undefined && !s.skip && pageOf(s) === hash,
   )
+  const toPlay = path.steps.findIndex((s, i) => opened[i] && !s.done)
+  const lately = path.steps.flatMap((s, i) =>
+    opened[i] && s.done && now - s.done < 30 * 60_000 ? [i] : [],
+  )
+  const at = toPlay >= 0 ? toPlay : (lately.at(-1) ?? -1)
   if (at < 0) return null
   const played = !!path.steps[at].done
   const next = current(path)

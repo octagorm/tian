@@ -1,3 +1,4 @@
+import { courseSpeech } from '../lib/course.ts'
 import { TONE_SETS } from './tones.ts'
 import { CAPTAIN_LINES, CAPTAIN_VOICE, MISSIONS, ORDERS } from './bridge.ts'
 import { SHOP_ORDERS } from './shop.ts'
@@ -96,6 +97,8 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
   ),
   ...QUEST_SPEECH,
   { ...SPEED_SAMPLE, kind: 'line' as const },
+  // First steps, the beginner's course: all of it heard elsewhere too
+  ...courseSpeech(),
   // The pinyin chart, every sound read from its pinyin
   ...pinyinSpeech().map((s) => ({
     voice: WORD_VOICE,

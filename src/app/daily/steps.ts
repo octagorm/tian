@@ -1,5 +1,6 @@
 import { SCENES } from '../data/trip'
 import { DAILY_GAMES, STEP, partKey, progressOf } from '../lib/today'
+import { dayOf, partOf } from '../lib/course'
 import { GAMES } from '../registry'
 import { touchOnly } from '../lib/device'
 import type { PathStep } from '../lib/bank'
@@ -24,8 +25,20 @@ export const DAILY_GAMES_HERE = DAILY_GAMES.filter((id) => {
   return g && !(touchOnly() && 'keyboard' in g)
 })
 
+// The page a step played elsewhere is on, by its hash
+export const pageOf = (step: PathStep): string | undefined =>
+  step.k === 'course'
+    ? 'start'
+    : step.k === 'trip'
+      ? 'trip'
+      : step.k === 'game'
+        ? step.arg
+        : undefined
+
 export function describe(step: PathStep): StepText {
   const base = STEP[step.k]
+  const part = step.k === 'course' ? partOf(step.arg) : undefined
+  const day = part && dayOf(part)
   const ids = step.ids ?? []
   const n = ids.length
   const words = `${n} ${n === 1 ? 'word' : 'words'}`
@@ -47,12 +60,21 @@ export function describe(step: PathStep): StepText {
           : done === met
             ? `Met ${met} of ${n}, then a short quiz`
             : `A short quiz on them: ${of - done} of ${2 * n} left`
-        : step.k === 'trip'
-          ? (SCENES.find((s) => s.id === step.arg)?.title ?? 'The next scene')
-          : step.k === 'game'
-            ? (gameOf(step.arg)?.title ?? 'A game')
-            : started
-              ? `${of - done} of ${of} still to hear`
-              : 'Hear it, and pick what it means'
-  return { ...base, detail }
+        : step.k === 'course'
+          ? part && day
+            ? `First steps, day ${day.n} · part ${day.parts.indexOf(part) + 1} of ${day.parts.length}`
+            : 'The next part'
+          : step.k === 'trip'
+            ? (SCENES.find((s) => s.id === step.arg)?.title ?? 'The next scene')
+            : step.k === 'game'
+              ? (gameOf(step.arg)?.title ?? 'A game')
+              : started
+                ? `${of - done} of ${of} still to hear`
+                : 'Hear it, and pick what it means'
+  // A part of the course goes by its own title
+  return {
+    ...base,
+    ...(part ? { title: part.title, minutes: part.minutes } : {}),
+    detail,
+  }
 }

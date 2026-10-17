@@ -1,13 +1,16 @@
 import { WORD, WORDS } from '../data/words.ts'
 import { SCENES } from '../data/trip.ts'
 import { dayKey, due, level, recall, streak, unmet } from './bank.ts'
+import { isDone, offered, partOf, partsToday, wordsOf } from './course.ts'
 import type { Bank, Path, PathStep, StepKind } from './bank.ts'
 
 // Today: a session of about ten minutes, made once a day from the bank
 // and kept in it (bank.path), so it can be taken up again where it was
 // left, on any device, even halfway through a step. In order: the words
 // that are fading, a few new ones, the next scene of the trip or a game
-// picked for variety, and a little listening; then a summary.
+// picked for variety, and a little listening; then a summary. For a
+// beginner taking First steps (lib/course.ts), the parts of the course's
+// day stand in for all but the review, so the course is the session.
 
 export const STEP: Record<
   StepKind,
@@ -15,6 +18,8 @@ export const STEP: Record<
 > = {
   review: { title: 'Review', zh: '复习', minutes: 3, glyph: '复' },
   new: { title: 'New words', zh: '新词', minutes: 2, glyph: '新' },
+  // A part's own minutes are in data/course.ts
+  course: { title: 'First steps', zh: '入门', minutes: 4, glyph: '入' },
   trip: { title: 'The trip', zh: '旅行', minutes: 4, glyph: '旅' },
   game: { title: 'A game', zh: '游戏', minutes: 3, glyph: '玩' },
   listen: { title: 'Listening', zh: '听力', minutes: 1, glyph: '听' },
@@ -75,6 +80,11 @@ export function plan(
           ? 3
           : 4
   const fresh = unmet(bank).slice(0, newCount)
+  // While the course is offered, what is left of its day takes the place
+  // of new words, the trip or a game, and listening: its parts meet words
+  // of their own, and play them. Once a day of it is done, the next is for
+  // tomorrow, and a session made later that day is the usual one.
+  const course = partsToday(bank, now)
   const n = dayNumber(now)
   const next = SCENES.find((s) => !bank.scenes[s.id])
   // The trip two days in three while it lasts, and every day while fewer
@@ -90,13 +100,23 @@ export function plan(
       // none fading: a warm-up with the words seen longest ago
       ...(fading.length >= 4 ? {} : { arg: 'warm' }),
     })
-  if (fresh.length) steps.push({ k: 'new', ids: fresh.map((w) => w.id) })
-  if (trip) steps.push({ k: 'trip', arg: next.id })
-  else if (game) steps.push({ k: 'game', arg: game })
-  steps.push({ k: 'listen' })
+  if (course.length)
+    for (const part of course) steps.push({ k: 'course', arg: part.id })
+  else {
+    if (fresh.length) steps.push({ k: 'new', ids: fresh.map((w) => w.id) })
+    if (trip) steps.push({ k: 'trip', arg: next.id })
+    else if (game) steps.push({ k: 'game', arg: game })
+    steps.push({ k: 'listen' })
+  }
 
+  // How long the words reviewed, and those the course meets that are met
+  // already, lasted before
   const s0: Record<string, number> = {}
   for (const w of review) s0[w.id] = bank.cards[w.id]?.s ?? 0
+  for (const id of course.flatMap(wordsOf)) {
+    const c = bank.cards[id]
+    if (c) s0[id] = c.s
+  }
   const { met, known } = counts(bank, now)
   return { d: dayKey(now), t: now, steps, met, known, s0 }
 }
@@ -122,11 +142,14 @@ export const current = (p: Path) => p.steps.findIndex((s) => !s.done)
 
 export const finished = (p: Path) => p.steps.every((s) => s.done)
 
-// A scene or a game is played on its own page: it counts as done once the
-// scene has stars, or once the day's points have grown enough since it
-// was opened
+// A part of the course, a scene or a game is played on its own page. A
+// part counts as done once the course has it done, wherever it was opened
+// from; a scene once it has stars, and a scene or a game once the day's
+// points have grown enough since it was opened from here.
 export function playedYet(step: PathStep, bank: Bank, now: number): boolean {
-  if (step.done || step.pts === undefined) return false
+  if (step.done) return false
+  if (step.k === 'course') return !!step.arg && isDone(bank, step.arg)
+  if (step.pts === undefined) return false
   if (step.k === 'trip' && step.arg && bank.scenes[step.arg]) return true
   const gained = (bank.days[dayKey(now)] ?? 0) - step.pts
   if (step.k === 'trip') return gained >= PLAYED_TRIP
@@ -134,14 +157,26 @@ export function playedYet(step: PathStep, bank: Bank, now: number): boolean {
   return false
 }
 
+// A part of the course still to do once the course is hidden is skipped
+const dropped = (step: PathStep, bank: Bank) =>
+  step.k === 'course' &&
+  !step.done &&
+  !isDone(bank, step.arg ?? '') &&
+  !offered(bank)
+
 // The plan with the steps played elsewhere marked done; the same object
 // when nothing changed
 export function settle(p: Path, bank: Bank, now: number): Path {
-  if (!p.steps.some((s) => playedYet(s, bank, now))) return p
+  if (!p.steps.some((s) => playedYet(s, bank, now) || dropped(s, bank)))
+    return p
   return {
     ...p,
     steps: p.steps.map((s) =>
-      playedYet(s, bank, now) ? { ...s, done: now } : s,
+      playedYet(s, bank, now)
+        ? { ...s, done: now }
+        : dropped(s, bank)
+          ? { ...s, done: now, skip: true }
+          : s,
     ),
   }
 }
@@ -229,11 +264,15 @@ export interface Summary {
 }
 
 export function summary(p: Path, bank: Bank, now: number): Summary {
-  const ids = [
+  const ids = new Set([
     ...(p.steps.find((s) => s.k === 'review')?.ids ?? []),
     ...(p.steps.find((s) => s.k === 'new')?.ids ?? []),
-  ]
-  const words = ids.flatMap((id) => {
+    ...p.steps.flatMap((s) => {
+      const part = s.k === 'course' && !s.skip ? partOf(s.arg) : undefined
+      return part ? wordsOf(part) : []
+    }),
+  ])
+  const words = [...ids].flatMap((id) => {
     const c = bank.cards[id]
     if (!c) return []
     const before = id in p.s0 ? (p.s0[id] ?? null) : null

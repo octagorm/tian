@@ -42,6 +42,16 @@ export const SEAL_GROUPS: Array<{ id: SealGroup; title: string; zh: string }> =
 export const SEALS: Array<SealDef> = [
   // --- Words
   {
+    id: 'start',
+    zh: '门',
+    py: 'mén',
+    means: 'gate, door',
+    title: 'Through the gate',
+    how: 'Finish the seven days of First steps.',
+    group: 'words',
+    note: '入门 rùmén, to come in at the gate, is to make a start. A beginner\'s book is called an 入门.',
+  },
+  {
     id: 'first',
     zh: '学',
     py: 'xué',

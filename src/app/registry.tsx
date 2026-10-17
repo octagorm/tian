@@ -35,6 +35,15 @@ export const GAMES = [
     Page: page(() => import('./games/review')),
   },
   {
+    id: 'start',
+    title: 'First steps',
+    zh: '入门',
+    sprite: 'door',
+    blurb:
+      'New to Chinese? Seven short days on characters, tones, pinyin and first sentences.',
+    Page: page(() => import('./games/course')),
+  },
+  {
     id: 'pinyin',
     title: 'Pinyin',
     zh: '拼音',
