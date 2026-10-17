@@ -3,11 +3,11 @@ import { ArrowLeft } from 'lucide-react'
 import { NUMBER_ITEMS } from '../data/numbers'
 import { WORD } from '../data/words'
 import { numberPinyin, value } from '../lib/numbers'
-import { join } from '../lib/pinyin'
+import { join, sandhi, toneOf } from '../lib/pinyin'
 import { blip } from '../lib/audio'
 import { WORD_VOICE } from '../lib/speech'
 import { useStore } from '../lib/store'
-import { Btn, Frame, sample } from '../ui'
+import { Btn, Frame, shuffle } from '../ui'
 import { Pix } from '../pixel/Pix'
 import {
   Combo,
@@ -23,7 +23,8 @@ import type { NumberItem, NumberKind } from '../data/numbers'
 
 // Numbers by ear: hear a price, a time, a phone number or a big number,
 // and type it in digits. The answer is then taken apart: each number with
-// its pinyin and what it adds up to, a clock for a time.
+// its pinyin and what it adds up to, a clock for a time. They are dealt
+// like a shuffled deck, so none comes again until all have been heard.
 
 const KINDS: Array<{
   id: NumberKind
@@ -36,14 +37,14 @@ const KINDS: Array<{
     id: 'price',
     title: 'Prices',
     sprite: 'coin',
-    hint: 'Type the price: 12 or 12.5 (十二块五 is 12.5 – the 毛 is left unsaid).',
+    hint: 'Type the price: 12 or 12.5. 十二块五 and 十二块五毛 are both 12.5: 毛 is a tenth of a kuai, often left unsaid.',
     example: '十二块五',
   },
   {
     id: 'time',
     title: 'Times',
     sprite: 'clock',
-    hint: 'Type the time: 3:30, or just 330 – the colon puts itself in. 点 is o’clock, 半 is half past, 分 minutes.',
+    hint: 'Type the time: 3:30, or just 330 – the colon puts itself in. 点 is o’clock, 半 half past, 一刻 a quarter, 分 minutes. Stations use the 24-hour clock: 十四点 is 14:00.',
     example: '三点半',
   },
   {
@@ -132,7 +133,13 @@ export default function Numbers() {
 function Drill({ kind, onExit }: { kind: NumberKind; onExit: () => void }) {
   const { record, levelOf, points, setBest } = useStore()
   const items = NUMBER_ITEMS.filter((x) => x.kind === kind)
-  const [q, setQ] = useState<NumberItem>(() => sample(items))
+  const deck = useRef<Array<NumberItem>>([])
+  const deal = (last?: NumberItem) => {
+    if (!deck.current.length)
+      deck.current = shuffle(items.filter((x) => x !== last))
+    return deck.current.pop()!
+  }
+  const [q, setQ] = useState<NumberItem>(() => deal())
   const [text, setText] = useState('')
   const [result, setResult] = useState<{ ok: boolean; t: number } | null>(null)
   const [streak, setStreak] = useState(0)
@@ -172,7 +179,7 @@ function Drill({ kind, onExit }: { kind: NumberKind; onExit: () => void }) {
       setLeaving(false)
       setText('')
       setResult(null)
-      setQ(sample(items.filter((x) => x !== q)))
+      setQ(deal(q))
     }
     if (reducedMotion()) return go()
     setLeaving(true)
@@ -307,9 +314,14 @@ function Drill({ kind, onExit }: { kind: NumberKind; onExit: () => void }) {
 const UNIT: Record<string, { p: string; m: string } | undefined> = {
   点: { p: 'diǎn', m: 'o’clock' },
   半: { p: 'bàn', m: 'half past' },
+  刻: { p: 'kè', m: 'quarter hour' },
   分: { p: 'fēn', m: 'minutes' },
   块: { p: 'kuài', m: 'yuan' },
+  毛: { p: 'máo', m: 'tenths' },
 }
+// The units a number counts, as 一 does in 一刻 and 一毛 (not 一点, one
+// o'clock, read yī)
+const COUNTED = new Set(['刻', '块', '毛'])
 
 // A big number's terms: 两万三千 → 两万, 三千
 function terms(run: string): Array<string> {
@@ -352,7 +364,11 @@ function Breakdown({ q }: { q: NumberItem }) {
       const jiao = q.kind === 'price' && runs[i - 1] === '块'
       chips.push({
         h: part,
-        p: join(numberPinyin(part)),
+        // 一 counting a measure word changes its tone: yí kè, yì máo
+        p:
+          part === '一' && COUNTED.has(runs[i + 1])
+            ? sandhi('一', 'yī', toneOf(UNIT[runs[i + 1]]!.p))
+            : join(numberPinyin(part)),
         m: part === '零' ? 'a gap' : jiao ? `0.${v}` : v.toLocaleString('en'),
       })
     }
