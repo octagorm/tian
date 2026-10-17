@@ -31,6 +31,7 @@ export const DAILY_GAMES = [
   'mahjong',
   'rain',
   'shop',
+  'market',
   'tones',
   'numbers',
   'order',

@@ -29,6 +29,7 @@ export function StageView({
   className = '',
   label,
   onClick,
+  crop = 0,
   children,
 }: {
   id: string
@@ -40,6 +41,8 @@ export function StageView({
   // what the picture shows, for screen readers
   label?: string
   onClick?: () => void
+  // rows of the picture left out at the bottom, for a shorter view
+  crop?: number
   children?: (view: View) => ReactNode
 }) {
   const art = sceneArt(id)
@@ -80,11 +83,12 @@ export function StageView({
   const vw = narrow ? Math.round((art.h * 4) / 3) : art.w
   const focus = art.focus ?? art.w / 2
   const x0 = Math.max(0, Math.min(art.w - vw, Math.round(focus - vw / 2)))
+  const h = art.h - crop
   const view: View = {
-    at: (x, y) => ({ left: ((x - x0) / vw) * 100, top: (y / art.h) * 100 }),
+    at: (x, y) => ({ left: ((x - x0) / vw) * 100, top: (y / h) * 100 }),
     x0,
     w: vw,
-    h: art.h,
+    h,
     scale: width / vw,
     narrow,
   }
@@ -93,7 +97,7 @@ export function StageView({
       ref={box}
       className={`relative overflow-hidden select-none ${className}`}
       style={{
-        aspectRatio: `${vw} / ${art.h}`,
+        aspectRatio: `${vw} / ${h}`,
         background: art.night ? '#141026' : '#2a2430',
       }}
       onClick={onClick}
@@ -104,9 +108,10 @@ export function StageView({
         height={art.h}
         role="img"
         aria-label={label}
-        className="absolute top-0 block h-full"
+        className="absolute top-0 block"
         style={{
           imageRendering: 'pixelated',
+          height: `${(art.h / h) * 100}%`,
           width: `${(art.w / vw) * 100}%`,
           left: `${(-x0 / vw) * 100}%`,
         }}

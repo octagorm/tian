@@ -112,6 +112,14 @@ export const GAMES = [
     Page: page(() => import('./games/shop')),
   },
   {
+    id: 'market',
+    title: 'The market',
+    zh: '讨价还价',
+    sprite: 'fan',
+    blurb: 'Stall-keepers name their prices out loud. Haggle them down.',
+    Page: page(() => import('./games/market')),
+  },
+  {
     id: 'parts',
     title: 'Character parts',
     zh: '部首',

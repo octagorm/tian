@@ -558,6 +558,112 @@ describe('the learning games: art and feedback', () => {
   })
 })
 
+describe('the market', () => {
+  test('every line, ware and measure word is in the bank', async () => {
+    const { ASK, STALLS, marketLines } = await import('../src/app/data/market')
+    const lines = [
+      ...marketLines().map((l) => l.zh),
+      ...STALLS.flatMap((s) => s.wrong.map((mw) => ASK(s, mw))),
+    ]
+    for (const zh of lines)
+      expect(() => tokens(zh, { home: '挪威' }), zh).not.toThrow()
+    const ids = new Set(WORDS.map((w) => w.id))
+    for (const s of STALLS)
+      for (const id of [s.ware, s.mw, ...s.wrong])
+        expect(ids.has(id), `${s.id}: ${id}`).toBe(true)
+  })
+
+  test('each stall has its keeper’s voice, a sprite and a picture', async () => {
+    const { STALLS } = await import('../src/app/data/market')
+    const { VOICES } = await import('../src/app/data/voices')
+    const { SPRITES } = await import('../src/app/pixel/sprites')
+    const { MARKET_ART } = await import('../src/app/pixel/art')
+    const { existsSync } = await import('node:fs')
+    for (const s of STALLS) {
+      expect(VOICES[s.voice], s.voice).toBeTruthy()
+      expect(SPRITES[s.sprite], s.sprite).toBeTruthy()
+      expect(MARKET_ART[`market-${s.id}`]?.spots.keeper, s.id).toBeTruthy()
+      expect(existsSync(`public/art/market/${s.id}.png`), s.id).toBe(true)
+    }
+  })
+
+  test('prices come down from over a fair one to under it', async () => {
+    const { HAGGLES, STALL } = await import('../src/app/data/market')
+    for (const h of HAGGLES) {
+      const fair = STALL[h.stall]!.fair
+      expect(h.ladder[0], h.stall).toBeGreaterThan(fair)
+      expect(h.ladder.at(-1), h.stall).toBeLessThan(fair)
+      for (let i = 1; i < h.ladder.length; i++)
+        expect(h.ladder[i], h.stall).toBeLessThan(h.ladder[i - 1])
+    }
+  })
+
+  test('keepers answer as they should', async () => {
+    const { HAGGLES, REPLY, STALL } = await import('../src/app/data/market')
+    const { respond, startState } = await import('../src/app/lib/market')
+    const h = HAGGLES.find((x) => x.stall === 'fan' && x.mood === 1)!
+    const s = STALL.fan!
+    const [first, second] = h.ladder
+    const low = h.ladder.at(-1)!
+    const st = startState(s)
+    expect(respond(s, h, st, { k: 'buy' }).paid).toBe(first)
+    const down = respond(s, h, st, { k: 'cheaper' })
+    expect(down.state.i).toBe(1)
+    expect(down.state.left).toBe(s.patience - 1)
+    expect(down.zh).toContain(toHanzi(second))
+    // an offer over what is asked is taken; one far too low is an insult
+    expect(respond(s, h, st, { k: 'offer', n: first + 10 }).paid).toBe(
+      first + 10,
+    )
+    expect(respond(s, h, st, { k: 'offer', n: 10 }).zh).toBe(REPLY.insult)
+    // at the lowest, it is not dear, and they will go no lower
+    const atLow = { ...st, i: h.ladder.length - 1 }
+    expect(respond(s, h, atLow, { k: 'dear' }).zh).toBe(REPLY.notDear)
+    expect(respond(s, h, atLow, { k: 'cheaper' }).zh).toBe(REPLY.noLower)
+    expect(respond(s, h, atLow, { k: 'offer', n: low }).paid).toBe(low)
+    // with no patience left, a push ends it
+    const spent = { ...st, left: 0 }
+    expect(respond(s, h, spent, { k: 'cheaper' }).gone).toBe('enough')
+    // walking away: called back at the lowest price, or let go
+    expect(respond(s, h, down.state, { k: 'leave' }, () => 0).state.i).toBe(
+      h.ladder.length - 1,
+    )
+    expect(respond(s, h, st, { k: 'leave' }, () => 0.99).gone).toBe('bye')
+  })
+
+  test('whatever is done, every answer has a recording to come', async () => {
+    const { HAGGLES, STALL, marketLines, offers } =
+      await import('../src/app/data/market')
+    const { respond, startState } = await import('../src/app/lib/market')
+    const said = new Set(marketLines().map((l) => `${l.voice}|${l.zh}`))
+    for (const h of HAGGLES) {
+      const s = STALL[h.stall]!
+      const moves = [
+        { k: 'dear' as const },
+        { k: 'cheaper' as const },
+        { k: 'buy' as const },
+        { k: 'leave' as const },
+        ...offers(s).map((n) => ({ k: 'offer' as const, n })),
+      ]
+      // every state the haggling can reach, and every answer from each
+      const seen = new Set<string>()
+      const todo = [startState(s)]
+      while (todo.length) {
+        const st = todo.pop()!
+        const key = JSON.stringify(st)
+        if (seen.has(key)) continue
+        seen.add(key)
+        for (const m of moves)
+          for (const r of [0, 0.99]) {
+            const reply = respond(s, h, st, m, () => r)
+            expect(said.has(`${s.voice}|${reply.zh}`), reply.zh).toBe(true)
+            if (reply.paid === undefined && !reply.gone) todo.push(reply.state)
+          }
+      }
+    }
+  })
+})
+
 describe('starship', () => {
   test('everything the captain says is made of known words', async () => {
     const { CAPTAIN_LINES, ORDERS, VOYAGE } =

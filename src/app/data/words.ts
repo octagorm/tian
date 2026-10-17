@@ -677,6 +677,20 @@ const RAW: Array<[string, string, string]> = [
 长生不老|cháng shēng bù lǎo|live forever|to live forever and never grow old
 `,
   ],
+  [
+    'The market',
+    '讨价还价',
+    `
+讨价还价|tǎo jià huán jià|haggle|to haggle, to bargain
+把|bǎ|(handle)|measure word for things held by a handle: fans, umbrellas, knives|mw
+扇子|shàn zi|fan|fan (folding or round)
+茶壶|chá hú|teapot
+丝巾|sī jīn|silk scarf
+中国结|Zhōng guó jié|Chinese knot|Chinese knot, tied in red cord for luck
+成交|chéng jiāo|deal|it's a deal; to strike a bargain
+算了|suàn le|forget it|forget it, never mind
+`,
+  ],
 ]
 
 export const LESSONS: Array<Lesson> = RAW.map(([title, zh], i) => ({

@@ -872,3 +872,83 @@ export const TRIP_ART: Record<string, SceneArt | undefined> = {
     front: [callButtons({ x: 44, y: 22, w: 60, h: 84 })],
   },
 }
+
+// The market's stalls (games/market.tsx), seen across the counter: the
+// keeper stands behind it close up, cut off at its back edge (`counter`),
+// and the stall's lanterns flicker
+function stall(
+  id: string,
+  counter: number,
+  glows: Array<[number, number]>,
+): SceneArt {
+  return {
+    w: 320,
+    h: 180,
+    src: `/art/market/${id}.png`,
+    focus: 160,
+    night: true,
+    spots: {
+      keeper: { x: 156, y: counter + 52, clip: counter, zoom: 2, face: 1 },
+    },
+    light: {
+      tint: '#ffcf9a',
+      tintAmount: 0.12,
+      side: -1,
+      rim: '#ffb860',
+      rimAmount: 0.45,
+    },
+    back: [lights({ at: glows, r: 9, strength: 0.22 })],
+  }
+}
+
+export const MARKET_ART: Record<string, SceneArt | undefined> = {
+  'market-lantern': stall('lantern', 125, [
+    [60, 29],
+    [212, 42],
+    [278, 61],
+    [190, 29],
+    [38, 47],
+  ]),
+  'market-kite': stall('kite', 123, [
+    [27, 28],
+    [292, 28],
+    [58, 55],
+    [262, 55],
+  ]),
+  'market-chopsticks': stall('chopsticks', 129, [
+    [279, 29],
+    [50, 29],
+    [79, 43],
+    [251, 38],
+  ]),
+  'market-fan': stall('fan', 124, [
+    [295, 33],
+    [52, 28],
+    [263, 28],
+    [215, 37],
+    [102, 37],
+  ]),
+  'market-seal': stall('seal', 127, [
+    [37, 25],
+    [282, 25],
+  ]),
+  'market-scarf': stall('scarf', 115, [
+    [274, 24],
+    [48, 24],
+    [302, 43],
+    [88, 41],
+    [15, 28],
+  ]),
+  'market-teapot': stall('teapot', 121, [
+    [271, 29],
+    [48, 29],
+    [100, 39],
+    [217, 39],
+  ]),
+  'market-knot': stall('knot', 120, [
+    [273, 35],
+    [46, 35],
+    [303, 24],
+    [18, 26],
+  ]),
+}

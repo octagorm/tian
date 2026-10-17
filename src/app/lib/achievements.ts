@@ -153,6 +153,7 @@ const CHECKS: Record<string, ((f: Facts) => Progress) | undefined> = {
 
   rain: (f) => count(f.best('rain'), 100),
   shop: (f) => count(f.best('shop'), 100),
+  market: (f) => count(f.best('market'), 10),
   bridge: (f) => count(f.best('bridge'), 100),
   pairs: (f) => count(f.best('mahjong-clean'), 1),
   write: (f) => count(f.best('write'), 10),

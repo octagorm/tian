@@ -447,6 +447,16 @@ export const SEALS: Array<SealDef> = [
     style: 'red',
   },
   {
+    id: 'market',
+    zh: '价',
+    py: 'jià',
+    means: 'price',
+    title: 'The haggler',
+    how: 'Earn ten stars in one day at the market.',
+    group: 'games',
+    note: '讨价还价 tǎojià huánjià: to ask a price, and to answer it with another – to haggle.',
+  },
+  {
     id: 'bridge',
     zh: '舰',
     py: 'jiàn',

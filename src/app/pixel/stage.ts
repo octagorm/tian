@@ -252,8 +252,9 @@ export class Stage {
       if (!a || (t > m.until && !this.still)) continue
       // beside the face, clear of the speech above the head
       const [x, y] = this.place(a, t)
-      const top = a.window ? a.window[1] + 12 : y - 42
-      mark(g, m.kind, x + (a.face ?? 1) * 13, top, t)
+      const z = a.window ? 1 : (a.zoom ?? 1)
+      const top = a.window ? a.window[1] + 12 : y - 42 * z
+      mark(g, m.kind, x + (a.face ?? 1) * 13 * z, top, t)
     }
     // the end of the scene: fireworks and sky lanterns by night, paper
     // confetti by day

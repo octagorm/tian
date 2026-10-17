@@ -77,6 +77,37 @@ export const VOICES: Record<string, Voice> = {
   Zephyr: { base: 'Zephyr', style: 'bright and lively' },
   Sadachbia: { base: 'Sadachbia', style: 'lively and excited' },
 
+  // The market's stall-keepers (data/market.ts), each haggling their own way
+  'Lantern seller': {
+    base: 'Pulcherrima',
+    style: 'a brisk market woman, quick and businesslike',
+  },
+  'Kite seller': {
+    base: 'Zubenelgenubi',
+    style: 'a cheerful young hawker, fast and teasing',
+  },
+  'Chopsticks seller': {
+    base: 'Gacrux',
+    style: 'a sweet old grandmother who bargains hard',
+  },
+  'Fan seller': {
+    base: 'Algieba',
+    style: 'a smooth, flattering salesman, a little sly',
+  },
+  'Seal carver': {
+    base: 'Schedar',
+    style: 'a proud old craftsman, slow and stubborn',
+  },
+  'Scarf seller': { base: 'Despina', style: 'elegant and polite, but firm' },
+  'Tea merchant': {
+    base: 'Algenib',
+    style: 'a gruff old tea merchant, groaning theatrically as he gives way',
+  },
+  'Knot seller': {
+    base: 'Laomedeia',
+    style: 'a chatty young woman, warm and all smiles',
+  },
+
   // The starship's captain (data/bridge.ts)
   Captain: {
     base: 'Alnilam',

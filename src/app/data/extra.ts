@@ -10,6 +10,7 @@ import { SEALS } from './seals.ts'
 import { GARDEN_ITEMS, NIGHT_LINE, SEASON_LINES } from './garden.ts'
 import { QUEST, QUEST_SPEECH } from './quest.ts'
 import { pinyinSpeech } from './pinyin.ts'
+import { marketLines } from './market.ts'
 
 // Speech for the games beyond the word bank and the trip, gathered for
 // lib/speech.ts. Lines are written word by word as in the trip; here
@@ -44,6 +45,7 @@ export const EXTRA_LINES: Array<string> = [
   ),
   ...QUEST.flatMap((c) => (c.demon.line ? [c.demon.line.zh] : [])),
   ...[...Object.values(SEASON_LINES), NIGHT_LINE].map((l) => l.zh),
+  ...marketLines().map((l) => l.zh),
 ]
 
 export const EXTRA_SPEECH: Array<ExtraSpeech> = [
@@ -63,6 +65,12 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
   ...SHOP_ORDERS.map((o) => ({
     voice: o.voice,
     text: joined(o.zh),
+    kind: 'line' as const,
+  })),
+  // The market: the keepers' prices and the player's haggling
+  ...marketLines().map((l) => ({
+    voice: l.voice,
+    text: joined(l.zh),
     kind: 'line' as const,
   })),
   ...NUMBER_ITEMS.map((n) => ({
