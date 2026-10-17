@@ -151,7 +151,7 @@ export function Account({ glass = false }: { glass?: boolean }) {
         <div
           role="dialog"
           aria-label="Account"
-          className="zh-card zh-rise absolute top-full right-0 z-30 mt-2 w-[min(19rem,calc(100vw-2rem))] overflow-hidden text-sm text-[var(--ink)]"
+          className="zh-card zh-rise zh-on-paper absolute top-full right-0 z-30 mt-2 w-[min(19rem,calc(100vw-2rem))] overflow-hidden text-sm text-[var(--ink)]"
         >
           <Fret className="h-[6px] text-[var(--red)] opacity-60" />
           <div className="flex flex-col gap-3 p-4">

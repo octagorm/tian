@@ -1,9 +1,12 @@
 /* Tian: the paper, the ink and a brush-like face for hanzi */
 
 /* The colours, on the body too (src/pages/index.astro), so that what is
-   laid over the page outside it, such as the word sheet, has them */
+   laid over the page outside it, such as the word sheet, has them, and on
+   paper laid over the sky (the account's card), which the header's light
+   ink would otherwise make unreadable */
 .zh-body,
-.zh-page {
+.zh-page,
+.zh-on-paper {
   --paper: #f7f0e3;
   --paper-2: #efe4cf;
   --paper-3: #e3d3b5;
