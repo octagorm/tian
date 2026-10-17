@@ -28,6 +28,17 @@ created with `gh` as `octagorm/tian` (private).
   `goal`, `stamped`, `bridge`, `signin`. Only the bank matters, and it is on
   the account.
 
+## Status, 2026-10-17
+
+Done: steps 1–3.3 except signing in. The repo is `octagorm/tian`; Convex
+`tian` (dev `dutiful-hummingbird-800`, prod `valuable-akita-141`); the
+Worker `tian` with tian.ymse.land. Google sign-in uses Ymseland's own
+client and verified brand (project `gorms-homepage-442022`, client
+«Hjemmeside», redirect URI added), not a brand of its own: Google's page
+says «Ymseland», and ymse.land/personvern already covers the word bank.
+`bank:adopt` is deployed for the word bank's move (step 3.4); remove it
+once used.
+
 ## 1. The repo, locally
 
 1. `~/dev/tian`: Astro + React + Tailwind like `~/dev/gorm`, a Worker `tian`
