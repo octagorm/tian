@@ -214,6 +214,15 @@ export default function Home() {
               – sign in to keep it on your account.
             </span>
           </p>
+          <p className="mt-2">
+            <a href="/about" className="underline underline-offset-4">
+              About
+            </a>
+            {' · '}
+            <a href="/privacy" className="underline underline-offset-4">
+              Privacy
+            </a>
+          </p>
         </footer>
       </main>
     </div>

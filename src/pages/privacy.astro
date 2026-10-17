@@ -1,0 +1,68 @@
+---
+import Base from '~/layouts/Base.astro'
+import Prose from '~/components/Prose.astro'
+
+// The privacy policy on Google's consent screen. Keep it in step with what
+// convex/schema.ts stores.
+---
+
+<Base title="Privacy" description="What Tian stores, and where">
+  <Prose>
+    <h1>Privacy in Tian</h1>
+    <p>
+      Tian is a set of games for learning Mandarin, made by Gorm Rødder for
+      family and friends. It has no advertising, no tracking and no analytics.
+    </p>
+
+    <h2>Without signing in</h2>
+    <p>
+      Your word bank, scores and settings are kept only in the browser on the
+      device you use. None of it is sent to us.
+    </p>
+
+    <h2>When you sign in with Google</h2>
+    <p>We then store:</p>
+    <ul>
+      <li>
+        your name, email address and profile picture from Google, to know who
+        is signed in;
+      </li>
+      <li>
+        whether you are a member, and your request for access with the message
+        you may have written;
+      </li>
+      <li>
+        as a member, your word bank: the words you have met, your scores and
+        progress.
+      </li>
+    </ul>
+    <p>
+      We use this only to give access and to show you your progress on the
+      devices where you are signed in. Gorm sees the names and email addresses
+      of those who ask for access or are members. We share nothing with anyone
+      and use it for nothing else.
+    </p>
+
+    <h2>Where it is stored</h2>
+    <p>
+      With <a href="https://www.convex.dev">Convex</a>, which runs the
+      database for us on servers in Northern Virginia, USA. The sign-in itself
+      goes through Google. The page loads its fonts from Google Fonts and the
+      stroke order of characters from jsDelivr, which, like any website, see
+      your IP address.
+    </p>
+
+    <h2>Deletion</h2>
+    <p>
+      If you want your account and everything that belongs to it deleted,
+      write to <a href="mailto:gorm@ymse.land">gorm@ymse.land</a>, and we will
+      delete it.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions about privacy: <a href="mailto:gorm@ymse.land">gorm@ymse.land</a>.
+    </p>
+    <p><a href="/about">About Tian</a></p>
+  </Prose>
+</Base>

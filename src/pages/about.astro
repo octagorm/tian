@@ -1,0 +1,40 @@
+---
+import Base from '~/layouts/Base.astro'
+import Prose from '~/components/Prose.astro'
+
+// What Tian is: the app's home page on Google's consent screen. It must
+// name the app as its heading and link the exact privacy policy URL given
+// there (see AGENTS.md).
+---
+
+<Base title="About" description="What Tian is, and who makes it">
+  <Prose>
+    <h1>Tian</h1>
+    <p>
+      Tian (天, <i>tiān</i>: day, sky) is a set of games for learning Mandarin
+      Chinese, around one word bank: a trip from Beijing to Shanghai in text
+      that turns Chinese as you learn, Journey to the West as a role-playing
+      game, shadow-puppet stories, tones, pinyin, characters and their
+      strokes, and about ten minutes of practice a day. It is made by Gorm
+      Rødder, for his family and friends, as part of
+      <a href="https://ymse.land">Ymseland</a>.
+    </p>
+    <p class="text-lg font-semibold"><a href="/">Play Tian</a></p>
+
+    <h2>Signing in</h2>
+    <p>
+      Everything can be played without signing in. Progress is then kept in
+      the browser only. Signed in with Google, a member keeps the word bank on
+      their account, so it follows them to every device. Signing in alone
+      gives no access: those who want it ask for it, or use an invitation link
+      from Gorm. What is stored, and where, is in the
+      <a href="https://tian.ymse.land/privacy">privacy policy</a>.
+    </p>
+
+    <h2>No ads, no tracking</h2>
+    <p>Tian has no advertising, no tracking and no analytics.</p>
+
+    <h2>Contact</h2>
+    <p><a href="mailto:gorm@ymse.land">gorm@ymse.land</a></p>
+  </Prose>
+</Base>
