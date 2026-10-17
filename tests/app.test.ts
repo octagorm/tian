@@ -1349,6 +1349,15 @@ describe('first steps, the beginner course', () => {
               BUILT.some((b) => b.c === c),
               `${at}: ${c}`,
             ).toBe(true)
+        if (show?.k === 'sum') expect(WORD[show.whole], at).toBeTruthy()
+        // a simplified form is a word of the bank, its traditional one
+        // another character
+        if (show?.k === 'forms')
+          for (const pair of show.pairs) {
+            expect(WORD[pair.s], `${at}: ${pair.s}`).toBeTruthy()
+            expect(pair.t, at).not.toBe(pair.s)
+            expect(pair.strokes[1], at).toBeGreaterThan(pair.strokes[0])
+          }
       }
   })
 

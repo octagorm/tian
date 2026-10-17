@@ -1,6 +1,6 @@
 import { numberPinyin, value } from '../lib/numbers.ts'
 import { WORD } from './words.ts'
-import { PICTURES } from './parts.ts'
+import { PICTURES, pictureArt } from './parts.ts'
 
 // First steps (入门, rùmén, "in at the gate"): a course for someone new to
 // Chinese, seven days of three short parts, to take a day at a time. It
@@ -25,14 +25,23 @@ export interface Glyph {
   m: string
   // How it is made ("middle + country")
   note?: string
-  // A pictograph's picture
-  sprite?: string
+  // A pictograph's painting (data/parts.ts)
+  art?: string
   // What is played, in the word voice
   say: string
 }
 
 export type Show =
   | { k: 'glyphs'; items: Array<Glyph>; small?: boolean }
+  // A word taken apart: each character with its meaning, joined by +,
+  // and the word (a word of the bank) with its meaning left to guess
+  | { k: 'sum'; parts: Array<Glyph>; whole: string }
+  // Words of the bank in simplified and traditional characters, with the
+  // strokes of each
+  | {
+      k: 'forms'
+      pairs: Array<{ s: string; t: string; strokes: [number, number] }>
+    }
   // The four tones of a tone drill (data/tones.ts), by its base
   | { k: 'tones'; base: string }
   // Syllables in pinyin, each to hear: a row for each set to compare
@@ -111,7 +120,7 @@ const w = (id: string, m?: string, note?: string): Glyph => {
 const pic = (c: string, m?: string): Glyph => {
   const p = PICTURES.find((x) => x.c === c)
   if (!p) throw new Error(`Not a picture: ${c}`)
-  return { h: c, p: p.p, m: m ?? p.m, sprite: p.sprite, say: c }
+  return { h: c, p: p.p, m: m ?? p.m, art: pictureArt(p), say: c }
 }
 
 const num = (h: string, note?: string): Glyph => ({
@@ -165,19 +174,34 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'Words of two or three',
-            text: 'Most words are one or two characters, and the parts often explain the whole. 中 _zhōng_ is middle and 国 _guó_ is country, so 中国 is China, the Middle Kingdom.',
+            text: 'Most words are one or two characters, and the parts often explain the whole. 中 _zhōng_ is middle and 国 _guó_ is country, so 中国 is China, the Middle Kingdom. Add 人, person, and 中国人 is a Chinese person.',
             show: {
               k: 'glyphs',
               items: [
                 w('中国', 'China', 'middle + country'),
                 w('中文', 'Chinese', 'middle + writing'),
-                w('外国人', 'foreigner', 'outside + country + person'),
+                {
+                  h: '中国人',
+                  p: 'Zhōng guó rén',
+                  m: 'Chinese person',
+                  note: 'middle + country + person',
+                  say: '中国人',
+                },
               ],
             },
           },
           {
             k: 'ask',
-            q: '外国人 is 外 outside, 国 country and 人 person. What is a 外国人?',
+            q: 'A word taken apart, character by character. Put the meanings together: what is a 外国人?',
+            show: {
+              k: 'sum',
+              whole: '外国人',
+              parts: [
+                { h: '外', p: 'wài', m: 'outside', say: '外' },
+                w('国', 'country'),
+                w('人', 'person'),
+              ],
+            },
             options: [
               'A foreigner',
               'A country house',
@@ -189,12 +213,18 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'Simplified characters',
-            text: 'Tian teaches simplified characters (简体字), the ones used in mainland China and Singapore. Taiwan, Hong Kong and Macau write the traditional forms, many of them with more strokes. 国 is 國 there.',
+            text: 'Tian teaches simplified characters (简体字), the ones used in mainland China and Singapore. Taiwan, Hong Kong and Macau write the traditional forms (繁体字), often with many more strokes. The sound and the meaning are the same.\n\nMany characters, such as 人, 中 and 山, are written the same in both.',
             show: {
-              k: 'glyphs',
-              items: [
-                { ...w('国', 'simplified'), note: '8 strokes' },
-                { ...w('国', 'traditional'), h: '國', note: '11 strokes' },
+              k: 'forms',
+              pairs: [
+                { s: '国', t: '國', strokes: [8, 11] },
+                { s: '学', t: '學', strokes: [8, 16] },
+                { s: '说', t: '說', strokes: [9, 14] },
+                { s: '马', t: '馬', strokes: [3, 10] },
+                { s: '门', t: '門', strokes: [3, 8] },
+                { s: '车', t: '車', strokes: [4, 7] },
+                { s: '书', t: '書', strokes: [4, 10] },
+                { s: '龙', t: '龍', strokes: [5, 16] },
               ],
             },
           },

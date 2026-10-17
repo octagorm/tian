@@ -150,9 +150,14 @@ export function courseSpeech(): Array<{
   }
   const show = (sh: Show | undefined) => {
     if (!sh) return
-    if (sh.k === 'glyphs')
-      for (const g of sh.items)
+    if (sh.k === 'glyphs' || sh.k === 'sum')
+      for (const g of sh.k === 'sum' ? sh.parts : sh.items)
         out.push({ voice: WORD_VOICE, text: g.say, kind: 'word' })
+    if (sh.k === 'sum')
+      out.push({ voice: WORD_VOICE, text: sh.whole, kind: 'word' })
+    if (sh.k === 'forms')
+      for (const p of sh.pairs)
+        out.push({ voice: WORD_VOICE, text: p.s, kind: 'word' })
     if (sh.k === 'sounds')
       for (const s of sh.rows.flat())
         out.push({

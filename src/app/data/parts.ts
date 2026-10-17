@@ -301,6 +301,10 @@ export interface Picture {
   sprite: string
 }
 
+// A pictograph painted in ink, in the manner of a freehand brush painting
+// (scripts/pictures.mjs), named as its sprite
+export const pictureArt = (p: Picture) => `/art/pictures/${p.sprite}.webp`
+
 export const PICTURES: Array<Picture> = [
   { c: '人', p: 'rén', m: 'person', sprite: 'person' },
   { c: '口', p: 'kǒu', m: 'mouth', sprite: 'mouth' },

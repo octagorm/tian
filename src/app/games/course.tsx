@@ -51,6 +51,7 @@ import {
   useKeys,
   useSpeaker,
 } from './fx'
+import type { ReactNode } from 'react'
 import type { Day, Glyph, Part, Screen, Show } from '../data/course'
 import type { Question } from '../quiz'
 import type { Level } from '../lib/bank'
@@ -584,24 +585,30 @@ function Inline({ text }: { text: string }) {
               {part.slice(1, -1)}
             </span>
           )
-        return part.split(HAN).map((run, j) => {
-          if (!run) return null
+        // A mark right after hanzi stays on their line
+        const runs = part.split(HAN)
+        return runs.map((run, j) => {
           const key = `${i}.${j}`
-          if (!HAN.test(run)) return <Fragment key={key}>{run}</Fragment>
-          if (WORD[run])
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => peek(run)}
-                className="zh rounded px-0.5 text-[1.2em] leading-none underline decoration-[var(--gold)] decoration-dotted underline-offset-4 hover:bg-[var(--paper-2)]"
-              >
-                {run}
-              </button>
-            )
-          return (
-            <span key={key} className="zh px-0.5 text-[1.2em] leading-none">
+          if (!HAN.test(run)) {
+            const rest = j > 0 ? run.replace(/^[,.;:!?)]+/, '') : run
+            return rest ? <Fragment key={key}>{rest}</Fragment> : null
+          }
+          const mark = /^[,.;:!?)]+/.exec(runs[j + 1] ?? '')?.[0] ?? ''
+          const han = WORD[run] ? (
+            <button
+              type="button"
+              onClick={() => peek(run)}
+              className="zh rounded px-0.5 text-[1.2em] leading-none underline decoration-[var(--gold)] decoration-dotted underline-offset-4 hover:bg-[var(--paper-2)]"
+            >
               {run}
+            </button>
+          ) : (
+            <span className="zh px-0.5 text-[1.2em] leading-none">{run}</span>
+          )
+          return (
+            <span key={key} className="whitespace-nowrap">
+              {han}
+              {mark}
             </span>
           )
         })
@@ -620,16 +627,133 @@ function ShowView({ show }: { show: Show }) {
   if (show.k === 'lines') return <Lines zh={show.zh} />
   if (show.k === 'levels') return <Levels zh={show.zh} />
   if (show.k === 'built') return <Built c={show.c} />
+  if (show.k === 'sum') return <Sum parts={show.parts} whole={show.whole} />
+  if (show.k === 'forms') return <Forms pairs={show.pairs} />
   return <Memory />
+}
+
+// Simplified and traditional side by side: the same word, said the same
+function Forms({ pairs }: { pairs: Extract<Show, { k: 'forms' }>['pairs'] }) {
+  const { speaking, play } = useSpeaker()
+  const [on, setOn] = useState<string | null>(null)
+  return (
+    <div>
+      <p className="mb-2 flex justify-center gap-6 text-xs font-bold text-[var(--ink-2)] uppercase">
+        <span>Simplified</span>
+        <span aria-hidden>·</span>
+        <span>Traditional</span>
+      </p>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-2.5">
+        {pairs.map(({ s, t, strokes }) => {
+          const w = WORD[s]
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                setOn(s)
+                void play(s)
+              }}
+              aria-label={`${s}, traditional ${t}: ${w?.p ?? ''}, ${w?.g ?? ''}`}
+              className={`flex flex-col items-center rounded-2xl border-2 px-2 pt-2 pb-2 transition hover:-translate-y-0.5 hover:border-[var(--gold)] ${on === s && speaking ? 'border-[var(--jade)] bg-[#e3f0ea]' : 'border-transparent bg-[var(--paper)]'}`}
+            >
+              <span className="text-sm text-[var(--jade)]">{w?.p}</span>
+              <span className="flex items-end gap-3">
+                {[s, t].map((c, i) => (
+                  <span key={c} className="flex flex-col items-center">
+                    <span
+                      className={`zh text-4xl ${i ? 'text-[var(--ink-2)]' : ''}`}
+                    >
+                      {c}
+                    </span>
+                    <span className="text-[11px] text-[var(--ink-2)] tabular-nums">
+                      {strokes[i]}
+                    </span>
+                  </span>
+                ))}
+              </span>
+              <span className="mt-0.5 text-sm font-bold">{w?.g}</span>
+            </button>
+          )
+        })}
+      </div>
+      <p className="mt-2 text-center text-xs text-[var(--ink-2)]">
+        The numbers are the strokes in each.
+      </p>
+    </div>
+  )
+}
+
+// A word taken apart: its characters, each with its meaning, joined by +,
+// and the word itself, its meaning a question mark
+function Sum({ parts, whole }: { parts: Array<Glyph>; whole: string }) {
+  const { speaking, play } = useSpeaker()
+  const [on, setOn] = useState<string | null>(null)
+  const w = WORD[whole]
+  const card = (key: string, onClick: () => void, children: ReactNode) => (
+    <button
+      key={key}
+      type="button"
+      onClick={onClick}
+      className={`flex min-w-20 flex-col items-center rounded-2xl border-2 px-3 pt-2.5 pb-2 transition hover:-translate-y-0.5 hover:border-[var(--gold)] ${on === key && speaking ? 'border-[var(--jade)] bg-[#e3f0ea]' : 'border-transparent bg-[var(--paper)]'}`}
+    >
+      {children}
+    </button>
+  )
+  const hear = (key: string, text: string) => () => {
+    setOn(key)
+    void play(text)
+  }
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3">
+      {parts.map((g, i) => (
+        <Fragment key={g.h}>
+          {i > 0 && (
+            <span className="text-2xl font-bold text-[var(--ink-2)]">+</span>
+          )}
+          {card(
+            g.h,
+            hear(g.h, g.say),
+            <>
+              {g.p ? (
+                <Ruby h={g.h} p={g.p} className="text-4xl" />
+              ) : (
+                <span className="zh text-4xl">{g.h}</span>
+              )}
+              <span className="mt-1 text-sm font-bold">{g.m}</span>
+            </>,
+          )}
+        </Fragment>
+      ))}
+      <span className="text-2xl font-bold text-[var(--ink-2)]">=</span>
+      {card(
+        whole,
+        hear(whole, whole),
+        <>
+          {w ? (
+            <Ruby h={whole} p={w.p} className="text-4xl" />
+          ) : (
+            <span className="zh text-4xl">{whole}</span>
+          )}
+          <span className="mt-1 text-sm font-black text-[var(--red)]">?</span>
+        </>,
+      )}
+    </div>
+  )
 }
 
 function Glyphs({ items, small }: { items: Array<Glyph>; small?: boolean }) {
   const { speaking, play } = useSpeaker()
   const [on, setOn] = useState<string | null>(null)
+  // Rows that come out even, on a phone and wider
   const cols = small
     ? items.length > 6
       ? 'grid-cols-5'
-      : 'grid-cols-3 sm:grid-cols-5'
+      : items.length === 6
+        ? 'grid-cols-3 sm:grid-cols-6'
+        : items.length === 4
+          ? 'grid-cols-2 sm:grid-cols-4'
+          : 'grid-cols-3 sm:grid-cols-5'
     : items.length === 4
       ? 'grid-cols-2 sm:grid-cols-4'
       : items.length === 2
@@ -648,8 +772,12 @@ function Glyphs({ items, small }: { items: Array<Glyph>; small?: boolean }) {
             : 'text-5xl'
         const face = (
           <>
-            {g.sprite && (
-              <Pix name={g.sprite} size={small ? 28 : 40} className="mb-1" />
+            {g.art && (
+              <img
+                src={g.art}
+                alt=""
+                className={`mb-1 object-contain ${small ? 'h-14 w-14 sm:h-16 sm:w-16' : 'h-24 w-24'}`}
+              />
             )}
             {g.p ? (
               <Ruby h={g.h} p={g.p} className={big} />
