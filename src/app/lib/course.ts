@@ -127,6 +127,23 @@ export const takeWanted = () => {
   return id
 }
 
+// The part open on the course's page, if any, for the way back to Today
+// (daily/TodayDock.tsx) to know which of the day's parts it is on
+let open: string | null = null
+const watching = new Set<() => void>()
+export const setOpenPart = (id: string | null) => {
+  if (id === open) return
+  open = id
+  for (const f of watching) f()
+}
+export const openPart = () => open
+export const watchOpenPart = (f: () => void) => {
+  watching.add(f)
+  return () => {
+    watching.delete(f)
+  }
+}
+
 // A line the course plays, with who says it and what it means: a line of
 // the trip, in its speaker's voice (a reply in the player's), or one of
 // the course's own, in the teacher's

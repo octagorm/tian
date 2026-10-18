@@ -1,9 +1,8 @@
 import { useEffect, useMemo } from 'react'
 import { useStore } from '../lib/store'
-import { finished, settle, todays } from '../lib/today'
+import { finished, pageOf, settle, todays } from '../lib/today'
 import { dayKey } from '../lib/bank'
 import { want } from '../lib/course'
-import { pageOf } from './steps'
 import type { Path } from '../lib/bank'
 
 // Today's plan as it stands, for whatever shows it (the page, the card,

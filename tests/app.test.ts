@@ -1147,6 +1147,32 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(finished(q)).toBe(true)
   })
 
+  test('the way back to Today is for the part open, not one done before', async () => {
+    const { dockStep, markDone, plan } = await import('../src/app/lib/today')
+    const b = emptyBank()
+    for (const id of ['1a', '1b', '1c', '2a', '2b', '2c', '3a', '3b', '3c'])
+      b.scenes[`start:${id}`] = NOON - D
+    let p = plan(b, NOON)
+    const at = (id: string) =>
+      p.steps.findIndex((s) => s.k === 'course' && s.arg === id)
+    expect([at('4a'), at('4b'), at('4c')].every((i) => i >= 0)).toBe(true)
+    // 4a and 4b opened from Today and done; 4c opened from 4b's end
+    for (const id of ['4a', '4b']) {
+      p = {
+        ...p,
+        steps: p.steps.map((s, i) => (i === at(id) ? { ...s, pts: 0 } : s)),
+      }
+      p = markDone(p, at(id), NOON + H)
+    }
+    expect(dockStep(p, 'start', '4c', NOON + H)).toBe(at('4c'))
+    // the course's overview, and the end of 4b, are still 4b's
+    expect(dockStep(p, 'start', null, NOON + H)).toBe(at('4b'))
+    expect(dockStep(p, 'start', '4b', NOON + H)).toBe(at('4b'))
+    // a part that is not today's has no way back
+    expect(dockStep(p, 'start', '5a', NOON + H)).toBe(-1)
+    expect(dockStep(p, 'trip', null, NOON + H)).toBe(-1)
+  })
+
   test('Today takes turns between the trip and the games', async () => {
     const { plan } = await import('../src/app/lib/today')
     const b = emptyBank()

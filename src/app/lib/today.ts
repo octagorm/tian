@@ -141,6 +141,42 @@ export const todays = (bank: Bank, now: number): Path | null =>
 // The step to do next, or -1 when all are done
 export const current = (p: Path) => p.steps.findIndex((s) => !s.done)
 
+// The page a step played elsewhere is on, by its hash
+export const pageOf = (step: PathStep): string | undefined =>
+  step.k === 'course'
+    ? 'start'
+    : step.k === 'trip'
+      ? 'trip'
+      : step.k === 'game'
+        ? step.arg
+        : undefined
+
+// The step of the session that the page open is for, as the way back to
+// Today shows it (daily/TodayDock.tsx): one still to play, or else one
+// played in the last half hour; -1 for none. Every part of the course is
+// on one page, so with a part open only its own step is: that step
+// whether it was opened from Today or not, and no other part done
+// before it.
+export function dockStep(
+  p: Path,
+  page: string,
+  part: string | null,
+  now: number,
+): number {
+  const here = p.steps.map(
+    (s) =>
+      !s.skip &&
+      pageOf(s) === page &&
+      (s.k === 'course' && part ? s.arg === part : s.pts !== undefined),
+  )
+  const toPlay = p.steps.findIndex((s, i) => here[i] && !s.done)
+  if (toPlay >= 0) return toPlay
+  const lately = p.steps.flatMap((s, i) =>
+    here[i] && s.done && now - s.done < 30 * 60_000 ? [i] : [],
+  )
+  return lately.at(-1) ?? -1
+}
+
 export const finished = (p: Path) => p.steps.every((s) => s.done)
 
 // A part of the course, a scene or a game is played on its own page. A

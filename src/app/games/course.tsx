@@ -34,6 +34,7 @@ import {
   partKey,
   partsDone,
   restToday,
+  setOpenPart,
   takeWanted,
 } from '../lib/course'
 import { todays } from '../lib/today'
@@ -86,6 +87,9 @@ export default function Course() {
     },
   )
   const part = open && PARTS.find((p) => p.id === open.part)
+  // The part open, for the way back to Today; none once the page is left
+  useEffect(() => setOpenPart(part ? part.id : null), [part])
+  useEffect(() => () => setOpenPart(null), [])
   const show = (id: string | null) => {
     setOpen(id ? { part: id, screen: 0 } : null)
     window.scrollTo(0, 0)

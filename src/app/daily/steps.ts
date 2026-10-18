@@ -25,16 +25,6 @@ export const DAILY_GAMES_HERE = DAILY_GAMES.filter((id) => {
   return g && !(touchOnly() && 'keyboard' in g)
 })
 
-// The page a step played elsewhere is on, by its hash
-export const pageOf = (step: PathStep): string | undefined =>
-  step.k === 'course'
-    ? 'start'
-    : step.k === 'trip'
-      ? 'trip'
-      : step.k === 'game'
-        ? step.arg
-        : undefined
-
 export function describe(step: PathStep): StepText {
   const base = STEP[step.k]
   const part = step.k === 'course' ? partOf(step.arg) : undefined
