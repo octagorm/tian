@@ -17,6 +17,8 @@ import type { Look } from '../pixel/portraits'
 //   ! fight 3                        what happens (below)
 //   ? ally > label                   on to label if a friend was made
 //                                    earlier in the voyage
+//   ? met pirates > label            on to label if that encounter came
+//                                    earlier in the voyage
 //   > label                          on to label
 //   @ Fought off a pirate ship.      the captain's log, for this ending
 //
@@ -43,7 +45,19 @@ export type Effect =
 
 // The ship on screen during an encounter (games/bridge/visitors.ts)
 export type Visitor =
-  'pod' | 'crystal' | 'pirate' | 'cube' | 'junk' | 'dragon' | 'wreck' | 'none'
+  | 'pod'
+  | 'crystal'
+  | 'pirate'
+  | 'cube'
+  | 'junk'
+  | 'dragon'
+  | 'wreck'
+  | 'box'
+  | 'jelly'
+  | 'swarm'
+  | 'brain'
+  | 'stone'
+  | 'none'
 
 // What it does: a second ship comes (the young alien's mother, the
 // friends made on the way), a present flies from it to the ship, it flies
@@ -80,7 +94,7 @@ export interface Reply {
 export type Step =
   | Said
   | { kind: 'do'; effect: Effect }
-  | { kind: 'if'; ally: true; next: string }
+  | { kind: 'if'; ally?: true; met?: string; next: string }
 
 export interface Part {
   id: string
@@ -110,7 +124,7 @@ export interface Encounter {
   parts: Record<string, Part>
 }
 
-export type Foe = 'pirate' | 'robot' | 'dragon'
+export type Foe = 'pirate' | 'robot' | 'dragon' | 'swarm'
 
 // Who can speak: the crew on the bridge, drawn as people, and the aliens,
 // drawn by kind (games/bridge/aliens.ts)
@@ -171,6 +185,16 @@ export const SPEAKERS: Record<string, Speaker> = {
     voice: 'Alien pilot',
     alien: 'pilot',
   },
+  box: { name: 'The box', zh: '盒子', voice: 'Box', alien: 'box' },
+  jelly: {
+    name: 'Space creature',
+    zh: '东西',
+    voice: 'Space creature',
+    alien: 'jelly',
+  },
+  swarm: { name: 'The swarm', zh: '我们', voice: 'Swarm', alien: 'swarm' },
+  brain: { name: 'The mind', zh: '外星人', voice: 'Mind', alien: 'brain' },
+  stone: { name: 'Stone face', zh: '脸', voice: 'Stone face', alien: 'stone' },
 }
 
 // Who that is, if anyone
@@ -201,8 +225,12 @@ function parse(script: string): { start: string; parts: Record<string, Part> } {
     if (sign === '@') part.log = body
     else if (sign === '>') part.next = body
     else if (sign === '?') {
-      const [, next] = body.split('>').map((s) => s.trim())
-      part.steps.push({ kind: 'if', ally: true, next })
+      const [cond, next] = body.split('>').map((t) => t.trim())
+      const [what, id] = cond.split(/\s+/)
+      if (what === 'ally') part.steps.push({ kind: 'if', ally: true, next })
+      else if (what === 'met' && id)
+        part.steps.push({ kind: 'if', met: id, next })
+      else throw new Error(`No such condition: ${cond}`)
     } else if (sign === '!') {
       const [kind, arg] = body.split(/\s+/)
       part.steps.push({ kind: 'do', effect: effect(kind, arg) })
@@ -576,6 +604,193 @@ export const ENCOUNTERS: Array<Encounter> = [
   }),
 
   encounter({
+    id: 'box',
+    title: 'The box',
+    visitor: 'box',
+    cast: ['box'],
+    words: ['盒子'],
+    script: `
+      = start
+      Engineer: 船长 ， 前面 有 一 个 很 大 的 盒子 ！ | Captain, there's a huge box ahead!
+      box: 你好 。 你们 可以 问 我 一 个 问题 。 | Greetings. You may ask me one question.
+      Captain: 问 什么 ？ | What do we ask?
+      * 你 是 谁 ？ | Who are you? > who
+      * 你 多大 了 ？ | How old are you? > age
+      * 你 里面 有 什么 ？ | What's inside you? > inside
+
+      = who
+      box: 我 是 一 个 盒子 。 一 个 很 大 的 盒子 。 | I am a box. A very big box.
+      Captain: 好 … 谢谢 。 | Right... thank you.
+      ! score 20
+      @ Asked a vast box floating in space who it was. It was a box.
+
+      = age
+      box: 我 一万 岁 了 。 你们 很 小 。 | I am ten thousand years old. You are very small.
+      ! score 20
+      @ Asked a vast box floating in space how old it was: ten thousand years.
+
+      = inside
+      box: 你们 想 看 吗 ？ | Would you like to see?
+      * 想 ！ | We would! > look
+      * 不 想 ， 谢谢 。 | No, thank you. > nolook
+
+      = look
+      box: 好 。 请 看 。 | Very well. Look.
+      ! ship gift
+      ! hull 30
+      Engineer: 船长 ！ 飞船 修 好 了 ！ | Captain! The ship is repaired!
+      ! score 30
+      @ Looked inside a vast box floating in space. Light poured out of it, and the ship was repaired.
+
+      = nolook
+      box: 好 。 再见 ， 小 飞船 。 | Very well. Goodbye, little ship.
+      @ Asked what was inside a vast box floating in space, but did not dare to look.
+    `,
+  }),
+
+  encounter({
+    id: 'jelly',
+    title: 'The hungry creature',
+    visitor: 'jelly',
+    cast: ['jelly'],
+    from: 1,
+    words: ['东西', '能量'],
+    script: `
+      = start
+      Engineer: 船长 ！ 前面 有 一 个 很 大 的 东西 ！ | Captain! There's something huge ahead!
+      Captain: 那 是 什么 ？ | What is that?
+      jelly: 我 饿 … 我 很 饿 … | Hungry... I am so hungry...
+      Captain: 它 饿 了 。 怎么办 ？ | It's hungry. What shall we do?
+      * 给 它 一点 能量 。 | Give it a little energy. > feed
+      * 我们 快 走 吧 ！ | Let's get away, quick! > flee
+
+      = feed
+      ! hull -10
+      jelly: 谢谢 … 好吃 … 你们 是 我 的 朋友 。 | Thank you... delicious... you are my friends.
+      ! ally
+      ! score 40
+      ! ship leave
+      @ Fed a hungry space creature as big as the ship some of our energy, and made a friend.
+
+      = flee
+      Captain: 全速 前进=ahead ！ | Full speed ahead!
+      ! run 2
+      jelly: 别 走 … | Don't go...
+      ! ship stay
+      @ Fled from a hungry space creature as big as the ship.
+    `,
+  }),
+
+  encounter({
+    id: 'swarm',
+    title: 'The swarm',
+    visitor: 'swarm',
+    cast: ['swarm'],
+    foe: 'swarm',
+    from: 1,
+    words: ['一起'],
+    script: `
+      = start
+      Engineer: 船长 ， 前面 有 很 多 很 多 小 东西 ！ | Captain, there are lots and lots of little things ahead!
+      swarm: 我们 很 多 。 我们 一起 想 ， 一起 说 。 | We are many. We think together, we speak together.
+      swarm: 你们 也 来 。 和 我们 一起 。 | You will come too. Join us.
+      Captain: 怎么办 ？ | What shall we do?
+      * 不 ， 谢谢 。 | No, thank you. > no
+      * 我们 可以 做 朋友 吗 ？ | Could we be friends instead? > friends
+      * 好 ， 我们 来 。 | All right, we'll come. > yes
+
+      = no
+      swarm: 不 行 。 你们 来 ！ | That is not allowed. You will come!
+      ! fight 2
+      swarm: 好 吧 。 你们 走 。 | Very well. Go.
+      ! score 40
+      ! ship gone
+      @ Refused to join a hive of floating shapes, and fought free of it.
+
+      = friends
+      swarm: 朋友 ？ … 好 。 我们 是 朋友 。 | Friends? ... Very well. We are friends.
+      ! ally
+      ! score 40
+      ! ship leave
+      @ Asked a hive of floating shapes to be friends instead of joining it, and it agreed.
+
+      = yes
+      swarm: 很 好 。 现在 你们 是 我们 。 | Good. Now you are us.
+      Captain: 不 ！ 快 跑 ！ | No! Run for it!
+      ! hull -20
+      ! run 2
+      @ Nearly became part of a hive of floating shapes, and ran for it.
+    `,
+  }),
+
+  encounter({
+    id: 'brain',
+    title: 'The mind',
+    visitor: 'brain',
+    cast: ['brain'],
+    words: ['第二'],
+    script: `
+      = start
+      Engineer: 船长 ， 有 信号 ！ | Captain, there's a signal!
+      brain: 你好 ， 地球 人 。 我 想 知道 你们 聪明 不 聪明 。 | Greetings, Earthlings. I wish to know whether you are clever.
+      brain: 请 听 ： 月亮 ， 火星 ， 太阳 。 | Listen: the moon, Mars, the sun.
+      brain: 第二 个 是 什么 ？ | What was the second?
+      + 火星 。 | Mars. > right
+      - 月亮 。 | The moon. > wrong
+      - 太阳 。 | The sun. > wrong
+
+      = right
+      brain: 对 ！ 你们 很 聪明 。 这 是 礼物 。 | Correct! You are clever. Here is a present.
+      ! ship gift
+      ! hull 30
+      ! score 50
+      @ Remembered the second of three words for a being with an enormous brain, and was given a present.
+
+      = wrong
+      brain: 不 对 。 是 火星 。 地球 人 … 还 可以 。 | Wrong. It was Mars. Earthlings... not bad, I suppose.
+      @ Forgot the second of three words for a being with an enormous brain.
+    `,
+  }),
+
+  encounter({
+    id: 'stone',
+    title: 'The stone face',
+    visitor: 'stone',
+    cast: ['stone'],
+    from: 1,
+    words: ['脸', '睡觉'],
+    script: `
+      = start
+      Engineer: 船长 ， 那个 小行星 … 有 脸 ！ | Captain, that asteroid... it has a face!
+      stone: 谁 ？ 谁 在 这里 ？ 我 在 睡觉 ！ | Who? Who is there? I am asleep!
+      Captain: 怎么办 ？ | What shall we do?
+      * 对不起 ， 我们 马上 走 。 | Sorry, we'll leave at once. > sorry
+      * 你 睡 了 多少 年 ？ | How many years have you been asleep? > years
+      * 你好 ！ 我们 想 和 你 说 一下 ！ | Hello! We'd like a word with you! > loud
+
+      = sorry
+      stone: 好 。 晚安 。 | Good. Good night.
+      ! score 20
+      ! ship stay
+      @ Apologised for waking an asteroid with a face, and let it sleep.
+
+      = years
+      stone: 一万 年 。 我 还 想 睡 。 晚安 。 | Ten thousand years. And I still want to sleep. Good night.
+      ! score 30
+      ! ship stay
+      @ Learned that an asteroid with a face had slept for ten thousand years.
+
+      = loud
+      stone: 你们 太 吵 了 ！ | You are too noisy!
+      Captain: 小心 ！ 小行星 ！ | Look out! Asteroids!
+      ! rocks 3
+      stone: 晚安 ！ | Good night!
+      ! ship stay
+      @ Woke an asteroid with a face, and it threw rocks at us.
+    `,
+  }),
+
+  encounter({
     id: 'boss',
     title: 'The pirates’ boss',
     visitor: 'pirate',
@@ -585,8 +800,18 @@ export const ENCOUNTERS: Array<Encounter> = [
     words: ['老大', '让'],
     script: `
       = start
+      ? met pirates > again
       Engineer: 船长 ！ 有 很 多 海盗 ！ | Captain! There are lots of pirates!
       boss: 哈哈 ！ 我 是 海盗 的 老大 ！ 你们 别 想 回 家 ！ | Ha ha! I'm the pirates' boss! Don't even think of going home!
+      > choose
+
+      = again
+      Engineer: 船长 ！ 海盗 ！ 很 多 海盗 ！ | Captain! Pirates! Lots of pirates!
+      boss: 我 的 海盗 认识 你们 ！ 我 是 他们 的 老大 ！ | My pirates know you! I am their boss!
+      boss: 你们 别 想 回 家 ！ | Don't even think of going home!
+      > choose
+
+      = choose
       Captain: 怎么办 ？ | What shall we do?
       * 我们 不 怕 ！ 开火 ！ | We're not afraid! Fire! > fight
       * 请 让 我们 回 家 。 | Please let us go home. > ask

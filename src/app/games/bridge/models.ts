@@ -61,10 +61,12 @@ export class Builder {
   }
 }
 
+// Turned round the y axis; with twice the segments asked for, so it is
+// round when smoothly shaded
 export const lathe = (pts: Array<[number, number]>, segments: number) =>
   new THREE.LatheGeometry(
     pts.map(([x, y]) => new THREE.Vector2(x, y)),
-    segments,
+    segments * 2,
   )
 
 // Panels: alternate faces a shade apart by their angle round the y axis
@@ -81,7 +83,7 @@ export function panels(a: string, b: string, n: number) {
 
 export interface ShipModel {
   group: THREE.Group
-  paint: THREE.MeshLambertMaterial
+  paint: THREE.MeshPhongMaterial
   // Engine glows at the back, scaled by the speed
   engines: Array<THREE.Sprite>
   impulse: THREE.Sprite
@@ -135,7 +137,7 @@ export function makeShip(kit: Kit): ShipModel {
   )
   // Bridge
   b.add(
-    new THREE.CylinderGeometry(0.2, 0.27, 0.1, 10),
+    new THREE.CylinderGeometry(0.2, 0.27, 0.1, 24),
     '#cfd2d9',
     at(0, 0.67, -1.12),
   )
@@ -150,7 +152,7 @@ export function makeShip(kit: Kit): ShipModel {
   b.add(new THREE.BoxGeometry(0.26, 0.62, 0.7), hull2, at(0, 0.02, 0.05, -0.55))
   // Engineering hull, with a dark shuttle bay at the back
   b.add(
-    new THREE.CylinderGeometry(0.24, 0.31, 2.1, 10),
+    new THREE.CylinderGeometry(0.24, 0.31, 2.1, 24),
     panels(hull, hull2, 10),
     at(0, -0.26, 0.75, Math.PI / 2),
   )
@@ -164,7 +166,7 @@ export function makeShip(kit: Kit): ShipModel {
     )
     // Nacelle body, a gold collar at the front
     b.add(
-      new THREE.CylinderGeometry(0.15, 0.17, 2.3, 8),
+      new THREE.CylinderGeometry(0.15, 0.17, 2.3, 20),
       (c) =>
         c.y > 0.95 ? gold : c.y < -1.05 ? '#5d616b' : panels(hull, hull2, 8)(c),
       at(s * 1.0, 0.6, 0.85, -Math.PI / 2),
@@ -172,10 +174,11 @@ export function makeShip(kit: Kit): ShipModel {
   }
   // Its own material, to flash red when hit
   const paintMat = kit.keep(
-    new THREE.MeshLambertMaterial({
+    new THREE.MeshPhongMaterial({
       color: '#ffffff',
       vertexColors: true,
-      flatShading: true,
+      shininess: 34,
+      specular: '#4a4a4a',
     }),
   )
   group.add(new THREE.Mesh(b.build(), paintMat))
@@ -183,7 +186,7 @@ export function makeShip(kit: Kit): ShipModel {
   // Lights: the window band round the saucer, the impulse engines, the
   // nacelles' strips and collectors, the deflector dish
   const windows = new THREE.Mesh(
-    shared(new THREE.TorusGeometry(1.262, 0.016, 3, 44), kit),
+    shared(new THREE.TorusGeometry(1.262, 0.016, 4, 88), kit),
     kit.bright('#ffe6a8'),
   )
   windows.rotation.x = Math.PI / 2
@@ -285,7 +288,7 @@ export function makeSaucer(kit: Kit): SaucerModel {
   group.add(body)
   const domeGeo = kit.memo('saucer-dome', () =>
     shared(
-      new THREE.SphereGeometry(0.38, 10, 4, 0, Math.PI * 2, 0, Math.PI / 2),
+      new THREE.SphereGeometry(0.38, 24, 8, 0, Math.PI * 2, 0, Math.PI / 2),
       kit,
     ),
   )
@@ -404,10 +407,21 @@ export function rockShapes(kit: Kit, n = 6): Array<THREE.BufferGeometry> {
   return Array.from({ length: n }, (_, i) => {
     const r = rng(101 + i * 31)
     const base = new THREE.Color(ROCK_COLORS[i % ROCK_COLORS.length])
-    const geo = lumpy(new THREE.IcosahedronGeometry(1, 1), 0.3, r)
+    // Smooth lumps from noise, so a rock looks sculpted, not cut
+    const geo = new THREE.IcosahedronGeometry(1, 3)
+    const pos = geo.getAttribute('position')
+    const v = new THREE.Vector3()
+    for (let k = 0; k < pos.count; k++) {
+      v.fromBufferAttribute(pos, k)
+      const f =
+        0.78 +
+        noise3(v.x * 1.3 + i * 3, v.y * 1.3, v.z * 1.3, 7 + i) * 0.38 +
+        noise3(v.x * 3.1, v.y * 3.1, v.z * 3.1 + i, 11) * 0.12
+      pos.setXYZ(k, v.x * f, v.y * f, v.z * f)
+    }
     const painted = paint(geo, (c) => {
       const crater = noise3(c.x * 2.3, c.y * 2.3, c.z * 2.3, i) > 0.62
-      const k = 0.82 + r() * 0.3 - (crater ? 0.22 : 0)
+      const k = 0.86 + r() * 0.12 - (crater ? 0.2 : 0)
       return base.clone().multiplyScalar(k)
     })
     return shared(painted, kit)
@@ -461,12 +475,12 @@ export function makeMissile(kit: Kit): THREE.Group {
   const geo = kit.memo('missile', () => {
     const b = new Builder()
     b.add(
-      new THREE.CylinderGeometry(0.14, 0.14, 1.3, 8),
+      new THREE.CylinderGeometry(0.14, 0.14, 1.3, 16),
       '#e8e6e0',
       at(0, 0, 0, Math.PI / 2),
     )
     b.add(
-      new THREE.ConeGeometry(0.14, 0.42, 8),
+      new THREE.ConeGeometry(0.14, 0.42, 16),
       '#c8372d',
       at(0, 0, 0.86, Math.PI / 2),
     )
@@ -627,7 +641,7 @@ export interface StationModel {
 export function makeStation(kit: Kit): StationModel {
   const group = new THREE.Group()
   const ringB = new Builder()
-  ringB.add(new THREE.TorusGeometry(5.2, 0.6, 6, 22), (c) => {
+  ringB.add(new THREE.TorusGeometry(5.2, 0.6, 12, 44), (c) => {
     const ang = Math.atan2(c.y, c.x) + Math.PI
     const seg = Math.floor((ang / (Math.PI * 2)) * 22)
     const outer = Math.hypot(c.x, c.y) > 5.2
@@ -647,12 +661,12 @@ export function makeStation(kit: Kit): StationModel {
   group.add(ring)
   const hubB = new Builder()
   hubB.add(
-    new THREE.CylinderGeometry(1.15, 1.15, 2.6, 10),
+    new THREE.CylinderGeometry(1.15, 1.15, 2.6, 30),
     panels('#d6d3cc', '#c2bfb8', 10),
     at(0, 0, 0, Math.PI / 2),
   )
   hubB.add(
-    new THREE.CylinderGeometry(0.75, 1.15, 0.6, 10),
+    new THREE.CylinderGeometry(0.75, 1.15, 0.6, 30),
     '#a9a69f',
     at(0, 0, 1.6, Math.PI / 2),
   )
@@ -693,7 +707,7 @@ export function makeStation(kit: Kit): StationModel {
   const port = kit.keep(new THREE.MeshBasicMaterial({ color: '#ff5a3a' }))
   const portRing = new THREE.Mesh(
     kit.memo('port', () =>
-      shared(new THREE.TorusGeometry(0.72, 0.09, 4, 16), kit),
+      shared(new THREE.TorusGeometry(0.72, 0.09, 8, 32), kit),
     ),
     port,
   )
@@ -773,33 +787,30 @@ function atmosphere(
   )
 }
 
-// Keeps only the faces of a ball where `keep` holds: clouds
-function patches(
-  detail: number,
-  radius: number,
-  keep: (c: THREE.Vector3) => boolean,
+// A smooth ball of radius 1, coloured vertex by vertex so that its colours
+// blend like paint: `segments` round the equator; `alpha` makes it partly
+// clear (clouds)
+function colourBall(
+  segments: number,
+  pick: (c: THREE.Vector3) => THREE.Color | string,
+  alpha?: (c: THREE.Vector3) => number,
 ): THREE.BufferGeometry {
-  const ball = new THREE.IcosahedronGeometry(radius, detail)
-  const pos = ball.getAttribute('position')
-  const out: Array<number> = []
-  const a = new THREE.Vector3()
-  const b = new THREE.Vector3()
-  const c = new THREE.Vector3()
-  for (let i = 0; i + 2 < pos.count; i += 3) {
-    a.fromBufferAttribute(pos, i)
-    b.fromBufferAttribute(pos, i + 1)
-    c.fromBufferAttribute(pos, i + 2)
-    const m = a.clone().add(b).add(c).divideScalar(3)
-    if (keep(m.normalize()))
-      out.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z)
+  const g = new THREE.SphereGeometry(1, segments, Math.round(segments / 2))
+  g.deleteAttribute('uv')
+  const pos = g.getAttribute('position')
+  const n = alpha ? 4 : 3
+  const out = new Float32Array(pos.count * n)
+  const v = new THREE.Vector3()
+  const col = new THREE.Color()
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).normalize()
+    col.set(pick(v))
+    out[i * n] = col.r
+    out[i * n + 1] = col.g
+    out[i * n + 2] = col.b
+    if (alpha) out[i * n + 3] = alpha(v)
   }
-  ball.dispose()
-  const g = new THREE.BufferGeometry()
-  g.setAttribute(
-    'position',
-    new THREE.BufferAttribute(new Float32Array(out), 3),
-  )
-  g.computeVertexNormals()
+  g.setAttribute('color', new THREE.BufferAttribute(out, n))
   return g
 }
 
@@ -807,7 +818,7 @@ function smallMoon(kit: Kit, radius: number, color: string, seed: number) {
   const r = rng(seed)
   const base = new THREE.Color(color)
   const geo = paint(
-    lumpy(new THREE.IcosahedronGeometry(radius, 1), 0.18, r),
+    lumpy(new THREE.IcosahedronGeometry(radius, 2), 0.14, r),
     () => base.clone().multiplyScalar(0.8 + r() * 0.35),
   )
   return new THREE.Mesh(geo, kit.lit('#ffffff', { vertexColors: true }))
@@ -824,8 +835,9 @@ export function makePlanet(
   const body = new THREE.Group()
   group.add(body)
   const moons: PlanetModel['moons'] = []
-  const ball = () => new THREE.IcosahedronGeometry(1, detail)
-  const lit = kit.lit('#ffffff', { vertexColors: true })
+  // Segments round the equator, from the detail asked for
+  const seg = detail * 6
+  const lit = kit.lit('#ffffff', { vertexColors: true, shine: 0 })
   const addMoon = (
     mesh: THREE.Mesh,
     dist: number,
@@ -850,7 +862,7 @@ export function makePlanet(
     const out = new THREE.Color()
     body.add(
       new THREE.Mesh(
-        paint(ball(), (c) => {
+        colourBall(seg, (c) => {
           const n = fbm(c.x * 1.7 + 4, c.y * 1.7, c.z * 1.7, 5, 11)
           const lat = Math.abs(c.y)
           if (lat > 0.84 + (n - 0.5) * 0.2) return ice
@@ -864,20 +876,26 @@ export function makePlanet(
         lit,
       ),
     )
-    const clouds = patches(
-      Math.max(1, detail - 1),
-      1.01,
-      (c) => fbm(c.x * 2.6, c.y * 2.6 + 3, c.z * 2.6, 4, 23) > 0.6,
+    const clouds = colourBall(
+      seg,
+      () => '#ffffff',
+      (c) =>
+        clamp(
+          (fbm(c.x * 2.6, c.y * 2.6 + 3, c.z * 2.6, 4, 23) - 0.55) * 7,
+          0,
+          0.9,
+        ),
     )
     const cloudMat = kit.keep(
       new THREE.MeshLambertMaterial({
         color: '#ffffff',
-        flatShading: true,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.85,
+        depthWrite: false,
       }),
     )
     const cloudMesh = new THREE.Mesh(clouds, cloudMat)
+    cloudMesh.scale.setScalar(1.012)
     body.add(cloudMesh)
     group.add(
       new THREE.Mesh(
@@ -896,7 +914,7 @@ export function makePlanet(
     const out = new THREE.Color()
     body.add(
       new THREE.Mesh(
-        paint(ball(), (c) => {
+        colourBall(seg, (c) => {
           const n = fbm(c.x * 2, c.y * 2, c.z * 2, 4, 3)
           let t = n > 0.56 ? 0.1 : 0.45 + (n - 0.5) * 1.5
           for (const k of craters) {
@@ -921,7 +939,7 @@ export function makePlanet(
     const canyon = new THREE.Vector3(0.2, -0.15, 1).normalize()
     body.add(
       new THREE.Mesh(
-        paint(ball(), (c) => {
+        colourBall(seg, (c) => {
           const n = fbm(c.x * 1.9 + 2, c.y * 1.9, c.z * 1.9, 5, 7)
           if (Math.abs(c.y) > 0.88 + (n - 0.5) * 0.15) return '#f4eee8'
           // A great canyon along the equator on one side
@@ -953,7 +971,7 @@ export function makePlanet(
     const out = new THREE.Color()
     body.add(
       new THREE.Mesh(
-        paint(ball(), (c) => {
+        colourBall(seg, (c) => {
           const warp = fbm(c.x * 3, c.y * 3, c.z * 3, 3, 13) - 0.5
           const lat = c.y + warp * 0.12
           // The great red spot, an oval south of the equator
@@ -984,7 +1002,7 @@ export function makePlanet(
     const out = new THREE.Color()
     body.add(
       new THREE.Mesh(
-        paint(ball(), (c) => {
+        colourBall(seg, (c) => {
           const warp = fbm(c.x * 3, c.y * 3, c.z * 3, 3, 17) - 0.5
           const t = Math.sin((c.y + warp * 0.06) * 11) * 0.5 + 0.5
           return ramp(bands, t * 0.9 + Math.abs(c.y) * 0.1, out)
@@ -1031,49 +1049,57 @@ export function makePlanet(
   return { group, body, moons }
 }
 
-// --- The sky: a ball of coloured faces, a nebula in low polygons ---
+// --- The sky: a painted starfield on the inside of a far ball ---
 
-export function makeSky(
-  kit: Kit,
-  detail: number,
-  sun: THREE.Vector3,
-): THREE.Mesh {
-  const deep = colors('#03030a', '#07071a', '#0d0b2a', '#16103c')
-  const violet = colors('#1e1046', '#3a1660', '#6a1f6e', '#a8306e', '#e0567a')
-  const teal = colors('#0b2a40', '#11506a', '#1f7f8f', '#5fc7c0')
-  const band = new THREE.Vector3(0.25, 1, 0.35).normalize()
-  const out = new THREE.Color()
-  const v = new THREE.Color()
-  const t = new THREE.Color()
-  const geo = paint(new THREE.IcosahedronGeometry(1, detail), (c) => {
-    const d = c.clone().normalize()
-    const n1 = fbm(d.x * 1.4 + 7, d.y * 1.4, d.z * 1.4, 5, 1)
-    const n2 = fbm(d.x * 3.1 + 3, d.y * 3.1, d.z * 3.1, 4, 2)
-    const n3 = fbm(d.x * 1.9 - 5, d.y * 1.9, d.z * 1.9, 4, 3)
-    const across = d.dot(band)
-    const milky = Math.exp(-(across * across) / 0.035)
-    ramp(deep, clamp(n1 * 0.9 + milky * 0.45 - 0.2, 0, 1), out)
-    const cloud = clamp((n1 * 0.75 + n2 * 0.45 - 0.62) * 3.2, 0, 1)
-    if (cloud > 0) out.lerp(ramp(violet, cloud, v), Math.min(1, cloud * 1.15))
-    const tealAmt =
-      clamp((n3 * 0.9 + n2 * 0.25 - 0.66) * 3.5, 0, 1) * (1 - cloud * 0.7)
-    if (tealAmt > 0) out.lerp(ramp(teal, tealAmt, t), tealAmt * 0.9)
-    const sunward = Math.pow(Math.max(0, d.dot(sun)), 22)
-    if (sunward > 0) out.lerp(v.set('#ff9a52'), sunward * 0.7)
-    return out
-  })
+// The paintings (public/art/space/), 2:1 and wrapping round seamlessly: a
+// band of nebula like a galaxy, and nebulae apart in dark space
+export const SKIES = ['/art/space/sky-1.webp', '/art/space/sky-2.webp']
+
+export function makeSky(kit: Kit): {
+  mesh: THREE.Mesh
+  show: (n: number) => void
+} {
   const mat = kit.keep(
     new THREE.MeshBasicMaterial({
-      vertexColors: true,
+      color: '#000000',
       side: THREE.BackSide,
       depthWrite: false,
       fog: false,
     }),
   )
-  const sky = new THREE.Mesh(geo, mat)
-  sky.scale.setScalar(4000)
-  sky.renderOrder = -10
-  return sky
+  const mesh = new THREE.Mesh(
+    shared(new THREE.SphereGeometry(1, 64, 32), kit),
+    mat,
+  )
+  mesh.scale.setScalar(4000)
+  // The band across the sky at a slant
+  mesh.rotation.set(0.12, 0, 0.32)
+  mesh.renderOrder = -10
+  const loader = new THREE.TextureLoader()
+  const maps: Array<THREE.Texture | null> = SKIES.map(() => null)
+  const loading = SKIES.map(() => false)
+  let want = 0
+  // Shows painting n, loading it first if need be (black until then)
+  const show = (n: number) => {
+    want = n % SKIES.length
+    const map = maps[want]
+    if (map) {
+      mat.map = map
+      mat.color.set('#ffffff')
+      mat.needsUpdate = true
+      return
+    }
+    if (loading[want]) return
+    loading[want] = true
+    const i = want
+    loader.load(SKIES[i], (t) => {
+      t.colorSpace = THREE.SRGBColorSpace
+      t.anisotropy = 4
+      maps[i] = kit.keep(t)
+      if (want === i) show(i)
+    })
+  }
+  return { mesh, show }
 }
 
 // Stars on a far ball, more of them along the band of the galaxy

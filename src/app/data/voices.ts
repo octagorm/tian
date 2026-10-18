@@ -158,6 +158,27 @@ export const VOICES: Record<string, Voice> = {
     style:
       'an ancient, enormous dragon: slow, deep and majestic, a little amused',
   },
+  Box: {
+    base: 'Charon',
+    style: 'a vast ancient box: slow, flat and booming, every word weighed',
+  },
+  'Space creature': {
+    base: 'Callirrhoe',
+    style: 'a vast gentle creature, dreamy and slow, almost singing',
+  },
+  Swarm: {
+    base: 'Schedar',
+    style: 'many minds speaking as one: calm, even and strangely cold',
+  },
+  Mind: {
+    base: 'Rasalgethi',
+    style: 'a vast calm mind, precise, superior and a little amused',
+  },
+  'Stone face': {
+    base: 'Algenib',
+    style:
+      'an ancient stone giant woken from sleep: very slow, deep and grumpy',
+  },
   'Alien pilot': {
     base: 'Enceladus',
     style: 'a frightened pilot, breathless and pleading, then relieved',

@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { Film } from './film'
 import { Dust, Fx, Shield } from './fx'
 import { Kit, clamp, disposeTree, easeIn, easeInOut, easeOut, mix } from './kit'
 import {
@@ -21,13 +22,23 @@ import type { Cue, Encounter } from '../../data/encounters'
 
 // The starship's scene in three.js: the ship seen from behind and a little
 // above, flying into the screen (−z) past dust and dangers; behind it all a
-// low-poly nebula, stars, a nearby sun and the planet the ship is bound for.
-// Two passes: the far sky and planets with their own light and depth range,
-// then everything near. The loop pauses while the page is hidden.
+// painted starfield, a nearby sun and the planet the ship is bound for. Two
+// passes, as if on film (film.ts): the far sky and planets with their own
+// light and depth range, then everything near. The loop pauses while the
+// page is hidden.
 
 const CRUISE = 26
 // Where the nearby star is seen (the planets are lit from PLANET_LIGHT)
 const SUN = new THREE.Vector3(-0.62, 0.24, -0.75).normalize()
+// The painting behind each leg (models.ts, SKIES): the voyage passes from
+// one part of the sky to another and back
+const SKY_OF: Record<PlanetId, number> = {
+  moon: 0,
+  mars: 0,
+  jupiter: 1,
+  saturn: 1,
+  earth: 0,
+}
 // Where the planet ahead is
 const AHEAD = new THREE.Vector3(0.42, 0.13, -1).normalize()
 const PLANET_DIST = 3000
@@ -58,6 +69,8 @@ export interface SpaceOptions {
 
 export class Space {
   private renderer: THREE.WebGLRenderer
+  private film: Film
+  private sky: ReturnType<typeof makeSky>
   private kit = new Kit()
   private fg = new THREE.Scene()
   private bg = new THREE.Scene()
@@ -138,6 +151,12 @@ export class Space {
     }
     this.renderer = renderer
     renderer.autoClear = false
+    this.film = new Film(
+      renderer,
+      { scene: this.bg, camera: this.bgCamera },
+      { scene: this.fg, camera: this.camera },
+      { glow: !opts.mobile },
+    )
     renderer.setClearColor('#04030a')
     const canvas = renderer.domElement
     canvas.style.display = 'block'
@@ -149,10 +168,13 @@ export class Space {
     const { kit } = this
     const mobile = opts.mobile
 
-    // The far scene: sky, stars, the sun, and planets in their own light
-    this.bg.add(makeSky(kit, mobile ? 18 : 28, SUN))
-    this.bg.add(makeStars(kit, mobile ? 900 : 1700, 1))
-    this.bg.add(makeStars(kit, mobile ? 120 : 240, 3))
+    // The far scene: the painted sky, a few sharp stars over it, the sun,
+    // and planets in their own light
+    this.sky = makeSky(kit)
+    this.sky.show(0)
+    this.bg.add(this.sky.mesh)
+    this.bg.add(makeStars(kit, mobile ? 260 : 520, 1))
+    this.bg.add(makeStars(kit, mobile ? 60 : 120, 3))
     const sun = kit.sprite('#fff3d6', 520, { map: kit.sparkle })
     sun.position.copy(SUN).multiplyScalar(3400)
     const halo = kit.sprite('#ff9a5a', 2600, { opacity: 0.35 })
@@ -190,6 +212,7 @@ export class Space {
       ship: () => this.ship.group.position.clone(),
       flow: () => this.flow(),
       reduced: opts.reduced,
+      narrow: opts.mobile,
     })
     this.fg.add(this.visitors.group)
 
@@ -214,6 +237,8 @@ export class Space {
     }
 
     this.orbit()
+    // Placed before the first picture, which is drawn before the loop runs
+    this.stepCamera(0)
     this.observer = new ResizeObserver(() => this.resize())
     this.observer.observe(host)
     this.resize()
@@ -273,6 +298,7 @@ export class Space {
     )
     this.renderer.setPixelRatio(dpr)
     this.renderer.setSize(w, h)
+    this.film.setSize(w, h, dpr)
     const aspect = w / h
     this.camera.aspect = aspect
     this.bgCamera.aspect = aspect
@@ -467,11 +493,7 @@ export class Space {
   }
 
   private render() {
-    const r = this.renderer
-    r.clear()
-    r.render(this.bg, this.bgCamera)
-    r.clearDepth()
-    r.render(this.fg, this.camera)
+    this.film.render(this.time, this.opts.reduced)
   }
 
   private after(seconds: number, fn: () => void) {
@@ -483,6 +505,7 @@ export class Space {
   // In orbit over the Earth, the moon beyond: where every voyage starts
   orbit() {
     this.clearOrbit()
+    this.sky.show(0)
     const mobile = this.opts.mobile
     const earth = makePlanet(this.kit, 'earth', mobile ? 22 : 34, 0.3)
     // Below and ahead: its rim curves across the lower part of the view
@@ -585,7 +608,10 @@ export class Space {
         this.jumped = true
         this.clearThreat()
         this.clearOrbit()
-        if (this.warpLeg) this.setPlanet(this.warpLeg.id)
+        if (this.warpLeg) {
+          this.setPlanet(this.warpLeg.id)
+          this.sky.show(SKY_OF[this.warpLeg.id])
+        }
         this.fx.flash(
           this.ship.group.position.clone().add(new THREE.Vector3(0, 0.3, -3)),
           '#dff6ff',
@@ -726,12 +752,12 @@ export class Space {
     return this.visitors.meet(e.visitor)
   }
 
-  cue(c: Cue): number {
+  cue(c: Cue, allies: Array<string> = []): number {
     this.clearThreat()
     this.lane = { x: 0, y: 0 }
     if (c === 'gift') this.after(1.0, () => this.save())
     if (c === 'open' || c === 'gone' || c === 'leave') this.speedTarget = 1
-    return this.visitors.cue(c)
+    return this.visitors.cue(c, allies)
   }
 
   part() {
@@ -826,6 +852,7 @@ export class Space {
     disposeTree(this.fg, this.kit)
     disposeTree(this.bg, this.kit)
     this.kit.dispose()
+    this.film.dispose()
     this.renderer.dispose()
     this.renderer.forceContextLoss()
     this.renderer.domElement.remove()

@@ -109,6 +109,11 @@ const FACE_AT: Record<string, [number, number]> = {
   trader: [72, 43],
   dragon: [72, 41],
   pilot: [70, 36],
+  box: [72, 43],
+  jelly: [63, 28],
+  swarm: [72, 48],
+  brain: [69, 36],
+  stone: [73, 43],
 }
 const FACE_W = 52
 
@@ -379,13 +384,13 @@ export default function Bridge() {
                   <Shield size={16} className="text-[var(--sb-f)]" />
                 </span>
               )}
-              {(hud?.allies ?? 0) > 0 && (
+              {(hud?.allies.length ?? 0) > 0 && (
                 <span
                   className="flex items-center gap-1 text-xs font-bold text-[var(--sb-g)]"
                   title="Friends made on the way"
                 >
                   <Users size={15} />
-                  {hud?.allies}
+                  {hud?.allies.length}
                 </span>
               )}
               <span className="ml-auto flex min-w-0 items-center gap-2">

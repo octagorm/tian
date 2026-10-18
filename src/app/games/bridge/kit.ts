@@ -1,10 +1,13 @@
 import * as THREE from 'three'
-import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js'
+import {
+  mergeVertices,
+  toCreasedNormals,
+} from 'three/examples/jsm/utils/BufferGeometryUtils.js'
 
 // The small things every part of the starship's scene shares: seeded
-// randomness and noise, flat-shaded geometry with a colour per face, glow
-// textures, and a kit that makes materials once and disposes of everything
-// it made when the game is left.
+// randomness and noise, geometry with a colour per face, glow textures, and
+// a kit that makes materials once and disposes of everything it made when
+// the game is left.
 
 // --- Randomness and noise ---
 
@@ -98,8 +101,13 @@ export const colors = (...hex: Array<string>) =>
 
 // --- Geometry ---
 
+// Faces that meet at less than this are shaded as one smooth surface; at
+// more, as an edge: round hulls look round, and boxes keep their corners
+const CREASE = 0.62
+
 // Gives each face of a geometry without an index one colour, chosen from
-// its centre (and its index), as vertex colours. Flat shading does the rest.
+// its centre (and its index), as vertex colours, and normals that are
+// smooth across gentle curves and sharp at edges (CREASE).
 export function paint(
   geo: THREE.BufferGeometry,
   pick: (centre: THREE.Vector3, face: number) => THREE.Color | string,
@@ -124,7 +132,7 @@ export function paint(
     }
   }
   g.setAttribute('color', new THREE.BufferAttribute(out, 3))
-  return g
+  return toCreasedNormals(g, CREASE)
 }
 
 // Moves each corner of a mesh in or out from its centre by up to `amount`,
@@ -352,21 +360,29 @@ export class Kit {
     if (this.bin.delete(thing)) thing.dispose()
   }
 
-  // A flat-shaded surface lit by the scene; `vertexColors` takes the colour
-  // per face from paint()
+  // A surface lit by the scene, with a little sheen like the paint on a
+  // studio model (none for a planet: `shine` 0); `vertexColors` takes the
+  // colour per face from paint()
   lit(
     color: string,
-    opts: { emissive?: string; vertexColors?: boolean; side?: THREE.Side } = {},
-  ): THREE.MeshLambertMaterial {
-    const key = `lit|${color}|${opts.emissive ?? ''}|${opts.vertexColors ?? false}|${opts.side ?? 0}`
+    opts: {
+      emissive?: string
+      vertexColors?: boolean
+      side?: THREE.Side
+      shine?: number
+    } = {},
+  ): THREE.MeshPhongMaterial {
+    const shine = opts.shine ?? 26
+    const key = `lit|${color}|${opts.emissive ?? ''}|${opts.vertexColors ?? false}|${opts.side ?? 0}|${shine}`
     const hit = this.mats.get(key)
-    if (hit) return hit as THREE.MeshLambertMaterial
-    const m = new THREE.MeshLambertMaterial({
+    if (hit) return hit as THREE.MeshPhongMaterial
+    const m = new THREE.MeshPhongMaterial({
       color,
-      flatShading: true,
       vertexColors: opts.vertexColors ?? false,
       emissive: opts.emissive ?? '#000000',
       side: opts.side ?? THREE.FrontSide,
+      shininess: shine,
+      specular: shine ? '#3a3a3a' : '#000000',
     })
     this.mats.set(key, m)
     return this.keep(m)

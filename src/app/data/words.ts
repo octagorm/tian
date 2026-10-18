@@ -738,6 +738,15 @@ const RAW: Array<[string, string, string]> = [
 绕路|rào lù|go round|to go the long way round
 安全|ān quán|safe|safe; safety
 吃饭|chī fàn|eat|to eat, to have a meal
+它|tā|it
+东西|dōng xi|thing|thing, stuff
+盒子|hé zi|box
+能量|néng liàng|energy
+脸|liǎn|face
+睡觉|shuì jiào|sleep|to sleep, to go to bed
+吵|chǎo|noisy|noisy, loud
+马上|mǎ shàng|at once|at once, right away
+晚安|wǎn ān|good night
 `,
   ],
 ]

@@ -59,7 +59,9 @@ export interface Stage {
   // An encounter's ship comes on screen, does what it is told, and goes;
   // each returns how long it takes
   meet: (e: Encounter) => number
-  cue: (c: Cue) => number
+  // The friends made on the way come with 'friends': the encounters they
+  // were made in
+  cue: (c: Cue, allies: Array<string>) => number
   part: () => void
   // The shield given as a present takes a blow
   save: () => void
@@ -106,7 +108,8 @@ export interface Hud {
   picked: number | null
   // A shield given as a present, waiting for a blow
   shield: boolean
-  allies: number
+  // The encounters where friends were made
+  allies: Array<string>
   log: Array<LogEntry>
   // Home at the end of the voyage
   home: boolean
@@ -227,7 +230,7 @@ export class Flight {
       tried: [],
       picked: null,
       shield: false,
-      allies: 0,
+      allies: [],
       log: [],
       home: false,
     }
@@ -481,7 +484,10 @@ export class Flight {
           const question = s === asked && part.replies.length > 0
           await this.say({ zh: s.zh, en: s.en }, 0.45, s.by, question)
         } else if (s.kind === 'if') {
-          if (this.hud.allies > 0) {
+          const yes = s.ally
+            ? this.hud.allies.length > 0
+            : !!s.met && this.met.has(s.met)
+          if (yes) {
             next = s.next
             jumped = true
             break
@@ -498,7 +504,7 @@ export class Flight {
       }
       part = next ? e.parts[next] : undefined
     }
-    if (!cued) await this.wait(this.stage.cue('stay'))
+    if (!cued) await this.wait(this.stage.cue('stay', this.hud.allies))
     this.stage.part()
     this.emit({
       phase: 'meet',
@@ -594,14 +600,14 @@ export class Flight {
         this.emit({ shield: true })
         break
       case 'ally':
-        this.emit({ allies: this.hud.allies + 1 })
+        this.emit({ allies: [...this.hud.allies, e.id] })
         break
       case 'music':
         this.emit({ line: null })
         await this.wait(this.stage.music())
         break
       case 'ship':
-        await this.wait(this.stage.cue(f.cue))
+        await this.wait(this.stage.cue(f.cue, this.hud.allies))
         break
     }
     this.emit({ phase: 'meet', order: null, result: null })

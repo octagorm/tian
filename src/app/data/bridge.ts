@@ -168,6 +168,12 @@ export const ORDERS: Array<Order> = [
     foe: 'pirate',
   },
   {
+    zh: '很 多 小 东西 ！ 加速 ！',
+    en: 'Lots of little things! Speed up!',
+    do: ['fast'],
+    foe: 'swarm',
+  },
+  {
     zh: '龙 ！ 护盾 ！',
     en: 'The dragon! Shields!',
     do: ['shield'],
@@ -212,6 +218,13 @@ export const POOLS: Record<Foe | 'run' | 'rocks', Array<Order>> = {
     ...ORDERS.filter((o) => o.foe === 'dragon'),
     byZh('小心 ！'),
     byZh('快 ， 往 下 ！'),
+  ],
+  swarm: [
+    ...ORDERS.filter((o) => o.foe === 'swarm'),
+    byZh('护盾 ！'),
+    byZh('小心 ！'),
+    byZh('快 ， 往 右 ！'),
+    byZh('往 左 拐 ！'),
   ],
   run: [
     byZh('加速 ！'),
