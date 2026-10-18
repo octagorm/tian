@@ -11,7 +11,10 @@
 import type * as access from "../access.js";
 import type * as auth from "../auth.js";
 import type * as bank from "../bank.js";
+import type * as crons from "../crons.js";
 import type * as http from "../http.js";
+import type * as push from "../push.js";
+import type * as reminders from "../reminders.js";
 
 import type {
   ApiFromModules,
@@ -23,7 +26,10 @@ declare const fullApi: ApiFromModules<{
   access: typeof access;
   auth: typeof auth;
   bank: typeof bank;
+  crons: typeof crons;
   http: typeof http;
+  push: typeof push;
+  reminders: typeof reminders;
 }>;
 
 /**

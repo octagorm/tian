@@ -4,7 +4,7 @@ import { BankProvider } from './lib/store'
 import { Frame, PeekProvider } from './ui'
 import Home from './home'
 import { GAMES } from './registry'
-import { SealToaster, TodayDock } from './daily'
+import { Reminders, SealToaster, TodayDock } from './daily'
 import type { GameId } from './registry'
 import { WithConvexAuth } from '~/lib/convex'
 import './tian.css'
@@ -26,10 +26,12 @@ export default function Chinese() {
       <BankProvider>
         <PeekProvider>
           <Router />
-          {/* A seal earned anywhere is stamped here, and a step of Today
-              played on its own page has a way back */}
+          {/* A seal earned anywhere is stamped here, a step of Today
+              played on its own page has a way back, and the daily reminder
+              hears of the day done */}
           <SealToaster />
           <TodayDock />
+          <Reminders />
         </PeekProvider>
       </BankProvider>
     </WithConvexAuth>

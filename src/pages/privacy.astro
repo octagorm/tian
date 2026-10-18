@@ -17,7 +17,35 @@ import Prose from '~/components/Prose.astro'
     <h2>Without signing in</h2>
     <p>
       Your word bank, scores and settings are kept only in the browser on the
-      device you use. None of it is sent to us.
+      device you use. None of it is sent to us, unless you turn on the daily
+      reminder.
+    </p>
+
+    <h2>The daily reminder</h2>
+    <p>
+      If you turn on the reminder in Settings, we store, for that browser or
+      phone:
+    </p>
+    <ul>
+      <li>
+        the address and keys its push service (Apple's, Google's or
+        Mozilla's) gave it for notifications from Tian;
+      </li>
+      <li>the time you chose, and your time zone;</li>
+      <li>
+        the last day you finished Today's session, so that no reminder comes
+        on a day you have done it;
+      </li>
+      <li>
+        if you are signed in, which account it belongs to, so that a session
+        finished on another of your devices counts too.
+      </li>
+    </ul>
+    <p>
+      We use this only to send the reminder, through that push service.
+      Turning the reminder off deletes it. If you turn off notifications from
+      Tian on the device instead, the push service tells us the address is no
+      longer in use, and we delete it then.
     </p>
 
     <h2>When you sign in with Google</h2>

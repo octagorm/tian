@@ -53,4 +53,26 @@ export default defineSchema({
     data: v.string(),
     updatedAt: v.number(),
   }).index('by_user', ['userId']),
+
+  // A daily reminder to do Today's session, pushed to one browser
+  // (convex/reminders.ts), with or without an account: its push
+  // subscription, the time of day and time zone it is for, and the last day
+  // the session was done there. Linked to the account of whoever was signed
+  // in, so that a session done on another device counts too.
+  reminders: defineTable({
+    endpoint: v.string(),
+    p256dh: v.string(),
+    auth: v.string(),
+    // 'HH:MM', on the clock of `zone` (IANA)
+    time: v.string(),
+    zone: v.string(),
+    // When the next one is due
+    next: v.number(),
+    // The last day the session was done, 'YYYY-MM-DD' in `zone`
+    done: v.optional(v.string()),
+    userId: v.optional(v.id('users')),
+  })
+    .index('by_endpoint', ['endpoint'])
+    .index('by_next', ['next'])
+    .index('by_user', ['userId']),
 })

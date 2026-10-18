@@ -6,7 +6,7 @@ Tian (天, _tiān_: day, sky; 天天向上, a little further every day) is a set
 
 - Astro with one React island (`client:only`), Tailwind v4, built to static files.
 - The game is `src/app/`; paths below without a folder are in it. The page is `src/pages/index.astro`; `/admin` and `/invite` are for access.
-- Convex (project `tian`) keeps the word bank of members (`convex/bank.ts`) and who they are (`convex/access.ts`): anyone can sign in with Google, but only the admin (Gorm) and members keep their bank on the account. The admin lets people in at `/admin`, by answering requests or with invitation links (`/invite?code=…`).
+- Convex (project `tian`) keeps the word bank of members (`convex/bank.ts`), who they are (`convex/access.ts`) and the daily reminders (`convex/reminders.ts`, below): anyone can sign in with Google, but only the admin (Gorm) and members keep their bank on the account. The admin lets people in at `/admin`, by answering requests or with invitation links (`/invite?code=…`).
 - Hosting: the Cloudflare Worker `tian`, built by Workers Builds on push to `main` (other branches get preview URLs). The files are static assets; `worker/index.ts` runs only for `/api/auth/*`, passing Google's sign-in on to Convex so that Google's page names tian.ymse.land (Convex's `CUSTOM_AUTH_SITE_URL`). Headers are in `public/_headers`.
 - Google sign-in has a Cloud project, client and brand of its own: project «Tian» (`tian-511918`, owned by gormroedder@gmail.com), client «Tian», with `https://tian.ymse.land/api/auth/callback/google` as its only redirect URI, so Google's page says «Tian». The brand is verified and the app published (External), with `/about` as its home page, `/privacy` as its privacy policy and `ymse.land` as its authorized domain (verified in Google Search Console by a TXT record in the zone, which must stay). Keep `/privacy` in step with `convex/schema.ts`. Changing the app's name, home page or privacy link means verifying the brand again, and a logo means a full app review. Production's Convex is `valuable-akita-141`, with `SITE_URL` and `CUSTOM_AUTH_SITE_URL` https://tian.ymse.land; development's (`dutiful-hummingbird-800`) has no Google sign-in.
 
@@ -15,7 +15,7 @@ Commands:
 - `npm run dev` – Convex and Astro (the user runs it; don't)
 - `npm run build` – type check and build to `dist/`
 - `npm run preview` – build and serve `dist/` with Wrangler, as Cloudflare will
-- `npm test` – Vitest: the game's data (`tests/app.test.ts`), access, the Worker
+- `npm test` – Vitest: the game's data (`tests/app.test.ts`), access, reminders, the Worker
 - `npm run lint`, `npm run format`
 
 Changes in `convex/` go to production with `npx convex deploy`, separately from the site. When removing a function, push the frontend that stops calling it first.
@@ -45,6 +45,7 @@ A word's card decides how it is shown everywhere (`Mixed`, `Sprinkled` and `Ruby
 - Today (`lib/today.ts`, `games/today.tsx`): a session of about ten minutes, made once a day from the bank and kept in it (`bank.path`), so it can be taken up again on any device: fading words, a few new ones, a trip scene or a game, some listening, then a summary. The steps played in Today keep each answer as it is given (`got` on the step: a word reviewed, a new word met and asked its meaning and by ear, a line heard), so a step can be left anywhere and goes on from there; it is done with its last answer. For a beginner the session is the day of First steps instead (below). It is the home screen's main card; `daily/TodayDock.tsx` leads back to it from a step played on its own page.
 - Seals (`data/seals.ts`, `lib/achievements.ts`, `games/seals.tsx`): achievements as red seal stamps, each carved with a character it teaches. What earns one is read from the bank alone, so it is earned in whichever game does it; `daily/SealToaster.tsx` stamps new ones anywhere on the page.
 - The garden (`data/garden.ts`, `lib/garden.ts`, `garden/`, `games/garden.tsx`): a courtyard where each lesson grows one thing, started when its words are under way and grown when they are known. It never shrinks.
+- The reminder: a notification each day at a time chosen in Settings (18:00 to begin with), unless Today's session is done. A page cannot schedule a notification by itself, so the browser subscribes to Web Push (`lib/reminder.ts`) and Convex keeps the subscription, keyed by its endpoint and needing no account, with the time and time zone (`convex/reminders.ts`). A cron each minute (`convex/crons.ts`) has `convex/push.ts` (a Node action with `web-push`) send those due, skipping a day the page has reported done (`daily/Reminders.tsx`, from any device of a signed-in account), and deletes a subscription the push service says is gone. `public/sw.js` shows it and opens `/#today`; it caches nothing. On an iPhone it works only in the app added to the home screen (iOS 16.4 and later). The keys pushes are signed with are Convex environment variables on both deployments (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`); new ones make each browser subscribe again on its next visit.
 
 ## First steps
 

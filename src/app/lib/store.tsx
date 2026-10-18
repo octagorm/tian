@@ -33,6 +33,9 @@ export interface Settings {
   rate: number
   // New words brought into Chinese in each scene of the trip
   perScene: number
+  // A daily reminder to do Today's session (lib/reminder.ts), at 'HH:MM'
+  remind: boolean
+  remindAt: string
 }
 
 const DEFAULTS: Settings = {
@@ -41,6 +44,8 @@ const DEFAULTS: Settings = {
   autoplay: true,
   rate: 1,
   perScene: 3,
+  remind: false,
+  remindAt: '18:00',
 }
 
 const BANK_KEY = 'tian:bank:v1'
