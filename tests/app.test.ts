@@ -829,7 +829,7 @@ describe('starship', () => {
       // People are drawn from a look, aliens from a picture
       expect(!!s.look !== !!s.alien, s.name).toBe(true)
       if (s.alien)
-        expect(existsSync(`public/art/aliens/${s.alien}.png`), s.alien).toBe(
+        expect(existsSync(`public/art/aliens/${s.alien}.webp`), s.alien).toBe(
           true,
         )
     }

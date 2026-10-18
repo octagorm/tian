@@ -97,17 +97,23 @@ function SpeakerFace({
   return <Face look={s.look ?? PLAYER} size={size} talking={talking} />
 }
 
-// The pictures are 144 × 96 (public/art/aliens/); a face is cut from
-// around this point, 52 pixels wide
+// The pictures (public/art/aliens/, 600 × 400) are measured here as 144 ×
+// 96; a face is cut from around this point, 52 wide
 const FACE_AT: Record<string, [number, number]> = {
-  robot: [72, 28],
-  trader: [64, 40],
-  pilot: [72, 38],
+  kid: [59, 41],
+  mum: [69, 36],
+  crystal: [72, 34],
+  pirate: [72, 39],
+  boss: [72, 34],
+  robot: [70, 29],
+  trader: [72, 43],
+  dragon: [72, 41],
+  pilot: [70, 36],
 }
 const FACE_W = 52
 
 function AlienFace({ id, size }: { id: string; size: number }) {
-  const [x, y] = FACE_AT[id] ?? [70, 34]
+  const [x, y] = FACE_AT[id] ?? [72, 38]
   const k = size / FACE_W
   const h = (size * 28) / 24
   return (
@@ -117,10 +123,9 @@ function AlienFace({ id, size }: { id: string; size: number }) {
       style={{
         width: size,
         height: h,
-        backgroundImage: `url(/art/aliens/${id}.png)`,
+        backgroundImage: `url(/art/aliens/${id}.webp)`,
         backgroundSize: `${144 * k}px ${96 * k}px`,
         backgroundPosition: `${size / 2 - x * k}px ${h / 2 - y * k}px`,
-        imageRendering: 'pixelated',
       }}
     />
   )
@@ -632,8 +637,8 @@ function Listen() {
   )
 }
 
-// The alien hailing the ship, framed on the viewscreen: a painted picture
-// of it where it is (public/art/aliens/, 144 × 96, shown pixelated)
+// The alien hailing the ship, framed on the viewscreen: a picture of it
+// where it is, a stop-motion puppet as if from the original series
 function Hail({
   who,
   talking,
@@ -645,7 +650,7 @@ function Hail({
 }) {
   const s = speakerOf(who)
   if (!s?.alien) return null
-  const scale = wide ? 2 : 1
+  const width = wide ? 300 : 168
   return (
     <div key={who} className="sb-hail" data-talking={talking ? '1' : '0'}>
       <div className="sb-hail-bar">
@@ -661,12 +666,12 @@ function Hail({
       </div>
       <div className="sb-hail-face">
         <img
-          src={`/art/aliens/${s.alien}.png`}
+          src={`/art/aliens/${s.alien}.webp`}
           alt=""
-          width={144 * scale}
-          height={96 * scale}
+          width={width}
+          height={(width * 2) / 3}
           draggable={false}
-          style={{ imageRendering: 'pixelated', display: 'block' }}
+          className="block"
         />
       </div>
     </div>
