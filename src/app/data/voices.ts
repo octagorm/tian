@@ -130,7 +130,7 @@ export const VOICES: Record<string, Voice> = {
   },
   'Alien mother': {
     base: 'Vindemiatrix',
-    style: 'a warm alien mother, overjoyed and grateful',
+    style: 'a mysterious seer, calm and warm, overjoyed to have her child back',
   },
   'Crystal being': {
     base: 'Achernar',

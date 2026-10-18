@@ -101,10 +101,10 @@ function SpeakerFace({
 // 96; a face is cut from around this point, 52 wide
 const FACE_AT: Record<string, [number, number]> = {
   kid: [59, 41],
-  mum: [69, 36],
+  mum: [60, 38],
   crystal: [72, 34],
   pirate: [72, 39],
-  boss: [72, 34],
+  boss: [77, 42],
   robot: [70, 29],
   trader: [72, 43],
   dragon: [72, 41],

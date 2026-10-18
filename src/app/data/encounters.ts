@@ -305,6 +305,7 @@ export const ENCOUNTERS: Array<Encounter> = [
       ! ship mum
       mum: 孩子 ！ 我 的 孩子 ！ | My child! My child!
       kid: 妈妈 ！ | Mum!
+      mum: 我 知道 你们 会=would 来 。 | I knew you would come.
       mum: 谢谢 你们 ！ 这 是 礼物 ： 一 个 新 护盾 。 | Thank you! Here is a present: a new shield.
       ! ship gift
       ! shield
