@@ -12,10 +12,12 @@ import {
   rockShapes,
 } from './models'
 import { LANE, Threat } from './threats'
+import { Visitors } from './visitors'
 import type { Ctx, Lane, Strike } from './threats'
 import type { PlanetModel, ShipModel } from './models'
 import type { Sfx } from './sound'
 import type { Action, Leg, Order, PlanetId } from '../../data/bridge'
+import type { Cue, Encounter } from '../../data/encounters'
 
 // The starship's scene in three.js: the ship seen from behind and a little
 // above, flying into the screen (−z) past dust and dangers; behind it all a
@@ -90,6 +92,10 @@ export class Space {
   private threat: Threat | null = null
   private p = 0
   private ctx: Ctx
+  private visitors: Visitors
+  // Orders given, so a visitor steps back only after the last of a fight
+  private orders = 0
+  private meeting = false
 
   private planet: { model: PlanetModel; id: PlanetId } | null = null
   private planetSize = SIZE.start
@@ -177,6 +183,15 @@ export class Space {
     this.fg.add(this.dust.lines)
     this.fx = new Fx(kit, this.camera, opts.reduced)
     this.fg.add(this.fx.group)
+    this.visitors = new Visitors({
+      kit,
+      fx: this.fx,
+      sfx: opts.sfx,
+      ship: () => this.ship.group.position.clone(),
+      flow: () => this.flow(),
+      reduced: opts.reduced,
+    })
+    this.fg.add(this.visitors.group)
 
     this.ctx = {
       kit,
@@ -293,6 +308,7 @@ export class Space {
 
     this.stepShip(dt)
     this.threat?.update(dt, this.p)
+    this.visitors.update(dt)
     this.fx.update(dt, flow)
     this.dust.update(dt, flow, clamp(0.3 + flow / 300, 0.3, 1))
     this.shield.update(dt)
@@ -517,6 +533,8 @@ export class Space {
 
   private reset() {
     this.clearThreat()
+    this.visitors.clear()
+    this.meeting = false
     this.fx.clear()
     this.wrecked = false
     this.ship.group.visible = true
@@ -601,9 +619,15 @@ export class Space {
     this.shield.cap(0)
     this.lane = { x: 0, y: 0 }
     this.p = 0
+    this.orders++
     this.threat = new Threat(this.ctx, o)
     this.fg.add(this.threat.group)
     this.opts.sfx.chirp()
+    // In a fight the ship flies on; the one met waits out of the way
+    if (this.meeting) {
+      this.visitors.aside()
+      this.speedTarget = 1
+    }
   }
 
   progress(p: number) {
@@ -676,7 +700,61 @@ export class Space {
 
   resolve(ok: boolean): number {
     this.shield.cap(1.1)
-    return this.threat?.resolve(ok) ?? 1
+    const length = this.threat?.resolve(ok) ?? 1
+    // Back to talking, unless another order comes first
+    if (this.meeting) {
+      const n = this.orders
+      this.after(length + 0.3, () => {
+        if (this.orders !== n || !this.meeting) return
+        this.visitors.back()
+        this.lane = { x: 0, y: 0 }
+        this.speedTarget = 0.3
+      })
+    }
+    return length
+  }
+
+  // --- Encounters ---
+
+  // The ship slows to meet whoever it is; returns how long they take to come
+  meet(e: Encounter): number {
+    this.meeting = true
+    this.lane = { x: 0, y: 0 }
+    this.speedTarget = 0.3
+    this.speedHold = 0
+    if (e.visitor !== 'none') this.opts.sfx.hail()
+    return this.visitors.meet(e.visitor)
+  }
+
+  cue(c: Cue): number {
+    this.clearThreat()
+    this.lane = { x: 0, y: 0 }
+    if (c === 'gift') this.after(1.0, () => this.save())
+    if (c === 'open' || c === 'gone' || c === 'leave') this.speedTarget = 1
+    return this.visitors.cue(c)
+  }
+
+  part() {
+    this.meeting = false
+    this.visitors.part()
+    this.speedTarget = 1
+    this.speedHold = 0
+  }
+
+  // The gift of a shield, glowing gold for a moment
+  save() {
+    this.shield.raise(1.4)
+    this.fx.flash(
+      this.ship.group.position.clone().add(new THREE.Vector3(0, 0.4, 0)),
+      '#ffe9a8',
+      7,
+      0.7,
+    )
+    this.opts.sfx.shield()
+  }
+
+  music(): number {
+    return this.visitors.music()
   }
 
   arrive(_leg: Leg) {

@@ -1,6 +1,7 @@
 import { courseSpeech } from '../lib/course.ts'
 import { TONE_SETS } from './tones.ts'
 import { CAPTAIN_LINES, CAPTAIN_VOICE, MISSIONS, ORDERS } from './bridge.ts'
+import { encounterSpeech } from './encounters.ts'
 import { SHOP_ORDERS } from './shop.ts'
 import { PASSENGERS, TAXI_LINES } from './taxi.ts'
 import { NUMBER_ITEMS } from './numbers.ts'
@@ -45,6 +46,7 @@ export const EXTRA_LINES: Array<string> = [
     (o) => o.zh,
   ),
   ...TAXI_LINES,
+  ...encounterSpeech().map((l) => l.zh),
   ...QUEST.flatMap((c) => (c.demon.line ? [c.demon.line.zh] : [])),
   ...[...Object.values(SEASON_LINES), NIGHT_LINE].map((l) => l.zh),
   ...marketLines().map((l) => l.zh),
@@ -103,6 +105,12 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
   ...CAPTAIN_LINES.map((o) => ({
     voice: CAPTAIN_VOICE,
     text: joined(o.zh),
+    kind: 'line' as const,
+  })),
+  // The starship's encounters: the crew, the aliens and the player's replies
+  ...encounterSpeech().map((l) => ({
+    voice: l.voice,
+    text: joined(l.zh),
     kind: 'line' as const,
   })),
   // The characters on the seals, the garden's things, the garden's lines

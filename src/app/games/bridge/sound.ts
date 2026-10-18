@@ -1,3 +1,5 @@
+import { MUTED } from '../../lib/audio'
+
 // The starship's sounds, made on the spot with Web Audio: lasers, blasts,
 // the shield, warp, thrusters, a hum from the engines and the chirp of the
 // captain's channel. Quiet under the captain's voice; muted with M, and the
@@ -6,6 +8,7 @@
 const KEY = 'tian:bridge:v1'
 
 function loadMuted(): boolean {
+  if (MUTED) return true
   try {
     const raw = localStorage.getItem(KEY)
     return raw ? !!(JSON.parse(raw) as { muted?: boolean }).muted : false
@@ -183,6 +186,27 @@ export class Sfx {
   chirp() {
     this.tone('sine', 1180, 1190, 0.07, 0.05)
     this.tone('sine', 1580, 1600, 0.09, 0.05, 0.08)
+  }
+
+  // Someone hails the ship: the channel opens with a rising pair of notes
+  hail() {
+    this.tone('sine', 880, 890, 0.1, 0.05)
+    this.tone('sine', 1320, 1330, 0.12, 0.05, 0.11)
+    this.tone('sine', 1760, 1770, 0.2, 0.04, 0.22)
+  }
+
+  // The crystal beings' song: chimes in the five-note scale, a phrase that
+  // rises and falls, with a soft echo of each note
+  song() {
+    const scale = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66]
+    const tune = [0, 2, 4, 5, 4, 6, 5, 3, 4, 2, 1, 0]
+    tune.forEach((n, i) => {
+      const f = scale[n]
+      const t = i * 0.27
+      this.tone('sine', f, f, 0.9, 0.07, t, i % 2 ? 0.3 : -0.3)
+      this.tone('triangle', f * 2, f * 2, 0.5, 0.02, t + 0.01)
+      this.tone('sine', f, f, 0.7, 0.025, t + 0.4, i % 2 ? -0.3 : 0.3)
+    })
   }
 
   win() {

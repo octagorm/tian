@@ -7,6 +7,13 @@ import { WORD_VOICE, speechKey } from './speech'
 
 const FILES = MANIFEST as Record<string, string | undefined>
 
+// ?mute keeps the page silent, for testing: speech still takes its time, so
+// a game keeps its pace, but nothing is heard, and there are no sound
+// effects or music
+export const MUTED =
+  typeof location !== 'undefined' &&
+  new URLSearchParams(location.search).has('mute')
+
 let current: HTMLAudioElement | null = null
 let rate = 1
 
@@ -76,6 +83,7 @@ function play(text: string, voice: string): Promise<void> {
   if (url) {
     const a = new Audio(url)
     a.playbackRate = rate
+    a.muted = MUTED
     current = a
     return new Promise((resolve) => {
       a.onended = () => resolve()
@@ -95,6 +103,7 @@ function speakWithBrowser(text: string): Promise<void> {
     const v = browserVoice()
     if (v) u.voice = v
     u.rate = 0.85 * rate
+    if (MUTED) u.volume = 0
     u.onend = () => resolve()
     u.onerror = () => resolve()
     speechSynthesis.speak(u)
@@ -116,6 +125,7 @@ let effectsVolume = 1
 // The page's one audio context, made (and woken) on first use. Browsers
 // only let it play after the player has touched the page.
 export function audioContext(): AudioContext | null {
+  if (MUTED) return null
   try {
     if (!ctx) {
       const AC = window.AudioContext as typeof AudioContext | undefined

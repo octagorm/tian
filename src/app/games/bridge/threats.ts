@@ -10,10 +10,12 @@ import {
   makeSaucer,
   makeStation,
 } from './models'
+import { makeFighter } from './visitors'
 import type { Fx } from './fx'
 import type { Kit } from './kit'
 import type { SaucerModel } from './models'
 import type { Action, Order } from '../../data/bridge'
+import type { Foe } from '../../data/encounters'
 
 // What comes at the ship for each order. The danger appears far ahead and
 // closes in as the order's time runs out (`p`, 0 to 1), so that it arrives
@@ -91,7 +93,9 @@ const lanePos = (l: Lane, z = 0) =>
 const sameLane = (a: Lane, b: Lane) =>
   Math.round(a.x) === b.x && Math.round(a.y) === b.y
 
-// --- The asteroid field (and its kin: mines, rockets) ---
+// --- The asteroid field (and its kin: mines, rockets, a dragon's fire) ---
+
+type FieldKind = 'rocks' | 'mines' | 'missiles' | 'flames'
 
 interface Rock {
   obj: THREE.Object3D
@@ -114,7 +118,7 @@ class Field implements Part {
   constructor(
     private ctx: Ctx,
     gap: Lane,
-    private kind: 'rocks' | 'mines' | 'missiles',
+    private kind: FieldKind,
   ) {
     for (let cx = -1; cx <= 1; cx++)
       for (let cy = -1; cy <= 1; cy++) {
@@ -132,7 +136,7 @@ class Field implements Part {
       }
     // More around the edges, so the field has no clear outline
     if (kind !== 'missiles') {
-      const n = kind === 'mines' ? 8 : 14
+      const n = kind === 'mines' || kind === 'flames' ? 8 : 14
       for (let i = 0; i < n; i++) {
         const side = Math.random() < 0.5 ? -1 : 1
         const pos =
@@ -163,6 +167,15 @@ class Field implements Part {
     } else if (this.kind === 'missiles') {
       obj = makeMissile(this.ctx.kit)
       obj.scale.setScalar(1.7)
+    } else if (this.kind === 'flames') {
+      // A ball of the dragon's fire: a white-hot core in an orange glow
+      const g = new THREE.Group()
+      g.add(
+        this.ctx.kit.sprite('#ff6a1a', 4.2 * size, { opacity: 0.9 }),
+        this.ctx.kit.sprite('#ffd27a', 2.2 * size),
+        this.ctx.kit.sprite('#fff6e0', 0.9 * size),
+      )
+      obj = g
     } else {
       const geo =
         this.ctx.rocks[Math.floor(Math.random() * this.ctx.rocks.length)]
@@ -211,7 +224,9 @@ class Field implements Part {
             ? ['#3a3f4a', '#9aa0ab']
             : this.kind === 'missiles'
               ? ['#e8e6e0', '#c8372d']
-              : ['#7d6e64', '#5f5b66', '#8a6a4e'],
+              : this.kind === 'flames'
+                ? ['#ffb347', '#ff5a2a']
+                : ['#7d6e64', '#5f5b66', '#8a6a4e'],
           10,
           1.4,
         )
@@ -265,6 +280,8 @@ class Field implements Part {
 class Saucer implements Part {
   object: THREE.Object3D
   private model: SaucerModel
+  // A pirate fighter flies nose first instead of spinning
+  private fighter: boolean
   private doomed = false
   private gone = false
   private mode: 'wait' | 'lunge' | 'attack' | 'leave' = 'wait'
@@ -277,8 +294,10 @@ class Saucer implements Part {
     public step: number,
     private lane: Lane,
     private behind: number,
+    foe?: Foe,
   ) {
-    this.model = makeSaucer(ctx.kit)
+    this.fighter = foe === 'pirate'
+    this.model = this.fighter ? makeFighter(ctx.kit) : makeSaucer(ctx.kit)
     this.object = this.model.group
     this.object.scale.setScalar(1.15)
   }
@@ -342,8 +361,11 @@ class Saucer implements Part {
       this.model.under.material.opacity *= 1 - dt * 3
     }
     this.object.position.copy(this.pos)
-    this.object.rotation.y += dt * 2.4
-    this.object.rotation.z = Math.sin(time * 1.7) * 0.12
+    if (this.fighter) {
+      this.object.rotation.y = Math.sin(time * 1.1) * 0.2
+      this.object.rotation.z = Math.sin(time * 1.7) * 0.3
+    } else this.object.rotation.y += dt * 2.4
+    if (!this.fighter) this.object.rotation.z = Math.sin(time * 1.7) * 0.12
   }
 
   act(a: Action) {
@@ -376,12 +398,17 @@ class Saucer implements Part {
     if (this.gone) return
     this.gone = true
     this.object.visible = false
-    this.ctx.fx.explode(this.object.position.clone(), {
-      size: 1.3,
-      debris: ['#6c4bb0', '#3a2a66', '#7dffc0', '#ffe066'],
-      n: 16,
-      fire: ['#e8fff0', '#7dffc0', '#3fbf7a'],
-    })
+    this.ctx.fx.explode(
+      this.object.position.clone(),
+      this.fighter
+        ? { size: 1.3, debris: ['#4a4252', '#221e2a', '#8a3a22'], n: 16 }
+        : {
+            size: 1.3,
+            debris: ['#6c4bb0', '#3a2a66', '#7dffc0', '#ffe066'],
+            n: 16,
+            fire: ['#e8fff0', '#7dffc0', '#3fbf7a'],
+          },
+    )
     this.ctx.fx.explode(this.object.position.clone(), { size: 0.9 })
   }
 
@@ -421,13 +448,23 @@ class Torpedoes implements Part {
   private t = 0
   private speeds: Array<number> = []
   private struck = false
+  private glow: string
 
   constructor(
     private ctx: Ctx,
     public step: number,
     private lane: Lane,
     n: number,
+    foe?: Foe,
   ) {
+    // Pink plasma, or a pirate's red, or a dragon's fire
+    const [hot, glow] =
+      foe === 'dragon'
+        ? ['#fff2c4', '#ff7a2a']
+        : foe === 'pirate'
+          ? ['#ffd0c0', '#ff3a2a']
+          : ['#ffd6f6', '#ff4fd8']
+    this.glow = glow
     for (let i = 0; i < n; i++) {
       const a = (i / n) * Math.PI * 2 + Math.random() * 0.6
       const r = 9 + Math.random() * 5
@@ -442,11 +479,11 @@ class Torpedoes implements Part {
         0,
       ).multiplyScalar(4 + Math.random() * 4)
       const obj = new THREE.Group()
-      const core = ctx.kit.sprite('#ffd6f6', 1.3)
-      const halo = ctx.kit.sprite('#ff4fd8', 4, { opacity: 0.85 })
+      const core = ctx.kit.sprite(hot, 1.3)
+      const halo = ctx.kit.sprite(glow, 4, { opacity: 0.85 })
       obj.add(halo, core)
       const trail = [0.7, 0.45, 0.25].map((o) => {
-        const s = ctx.kit.sprite('#ff4fd8', 2.4, { opacity: o })
+        const s = ctx.kit.sprite(glow, 2.4, { opacity: o })
         this.object.add(s)
         return s
       })
@@ -502,12 +539,12 @@ class Torpedoes implements Part {
           tp.alive = false
           if (this.mode === 'burst') {
             this.ctx.shieldHit(tp.pos.clone())
-            this.ctx.fx.flash(tp.pos.clone(), '#ff8af0', 3, 0.35)
-            this.ctx.fx.sparks(tp.pos.clone(), '#ffb0f0', 10, 5, 0.35)
+            this.ctx.fx.flash(tp.pos.clone(), this.glow, 3, 0.35)
+            this.ctx.fx.sparks(tp.pos.clone(), this.glow, 10, 5, 0.35)
           } else if (!this.struck) {
             this.struck = true
             this.ctx.hit(tp.pos.clone(), 'blast')
-          } else this.ctx.fx.flash(tp.pos.clone(), '#ff8af0', 3, 0.35)
+          } else this.ctx.fx.flash(tp.pos.clone(), this.glow, 3, 0.35)
         }
       }
       tp.obj.position.copy(tp.pos)
@@ -1045,8 +1082,8 @@ function partFor(
   behind: number,
 ): Part {
   const many = order.zh.includes('很 多')
-  if (a === 'fire') return new Saucer(ctx, step, lane, behind)
-  if (a === 'shield') return new Torpedoes(ctx, step, lane, 4)
+  if (a === 'fire') return new Saucer(ctx, step, lane, behind, order.foe)
+  if (a === 'shield') return new Torpedoes(ctx, step, lane, 4, order.foe)
   if (a === 'fast') return new Swarm(ctx, step, lane, many ? 5 : 3)
   if (a === 'slow')
     return order.zh.includes('引擎')
@@ -1075,11 +1112,14 @@ export class Threat {
     const first = order.do[0]
     if (order.not || order.do.length === 0) this.parts.push(new Friend(ctx))
     else if (STEER.includes(first)) {
-      const kind = order.zh.includes('火箭')
-        ? 'missiles'
-        : order.zh.includes('危险')
-          ? 'mines'
-          : 'rocks'
+      const kind: FieldKind =
+        order.foe === 'dragon'
+          ? 'flames'
+          : order.zh.includes('火箭')
+            ? 'missiles'
+            : order.zh.includes('危险')
+              ? 'mines'
+              : 'rocks'
       this.parts.push(new Field(ctx, DIR[first], kind))
       if (order.do.length > 1)
         this.parts.push(partFor(ctx, order.do[1], 1, DIR[first], order, 3))

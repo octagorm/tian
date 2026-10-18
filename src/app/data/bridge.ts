@@ -1,6 +1,9 @@
+import type { Foe } from './encounters.ts'
+
 // Starship: the captain's orders, in Chinese, and what each asks of the
 // helm; and the voyage, planet by planet, with what the captain says on the
-// way. Written word by word like the trip (lib/text.ts).
+// way. Written word by word like the trip (lib/text.ts). What happens on
+// the way between the orders is in data/encounters.ts.
 
 export type Action =
   | 'left'
@@ -23,6 +26,9 @@ export interface Order {
   not?: Action
   // Given on arrival at a planet only, never on the way
   arrival?: boolean
+  // Given only in a fight against this foe (data/encounters.ts), whose
+  // ships it brings
+  foe?: Foe
 }
 
 export const CAPTAIN_VOICE = 'Captain'
@@ -146,8 +152,83 @@ export const ORDERS: Array<Order> = [
     do: [],
     not: 'fire',
   },
+  // In fights (data/encounters.ts)
+  { zh: '海盗 ！ 开火 ！', en: 'Pirates! Fire!', do: ['fire'], foe: 'pirate' },
+  {
+    zh: '他们 开火 了 ！ 护盾 ！',
+    en: "They're firing! Shields!",
+    do: ['shield'],
+    foe: 'pirate',
+  },
+  { zh: '火箭 ！ 往 左 ！', en: 'Rockets! Left!', do: ['left'], foe: 'pirate' },
+  {
+    zh: '海盗 ！ 往 上 ， 开火 ！',
+    en: 'Pirates! Up, and fire!',
+    do: ['up', 'fire'],
+    foe: 'pirate',
+  },
+  {
+    zh: '龙 ！ 护盾 ！',
+    en: 'The dragon! Shields!',
+    do: ['shield'],
+    foe: 'dragon',
+  },
+  {
+    zh: '龙 ！ 往 下 ！',
+    en: 'The dragon! Down!',
+    do: ['down'],
+    foe: 'dragon',
+  },
+  {
+    zh: '龙 ！ 往 右 ！',
+    en: 'The dragon! Right!',
+    do: ['right'],
+    foe: 'dragon',
+  },
   ...Object.values(ARRIVE),
 ]
+
+const byZh = (zh: string) => {
+  const o = ORDERS.find((x) => x.zh === zh)
+  if (!o) throw new Error(`No such order: ${zh}`)
+  return o
+}
+
+// The orders of a fight against each foe, of a chase and of an asteroid
+// field (data/encounters.ts: fight, run, rocks)
+export const POOLS: Record<Foe | 'run' | 'rocks', Array<Order>> = {
+  pirate: [
+    ...ORDERS.filter((o) => o.foe === 'pirate'),
+    byZh('火箭 ！ 往 右 ！'),
+    byZh('往 右 ， 开火 ！'),
+  ],
+  robot: [
+    byZh('危险 ！ 往 左 ！'),
+    byZh('危险 ！ 往 上 ！'),
+    byZh('危险 ！ 停 ！'),
+    byZh('护盾 ！'),
+  ],
+  dragon: [
+    ...ORDERS.filter((o) => o.foe === 'dragon'),
+    byZh('小心 ！'),
+    byZh('快 ， 往 下 ！'),
+  ],
+  run: [
+    byZh('加速 ！'),
+    byZh('全速 前进=ahead ！'),
+    byZh('往 左 拐 ！'),
+    byZh('往 右 拐 ！'),
+    byZh('快 ， 往 下 ！'),
+    byZh('往 右 ， 加速 ！'),
+  ],
+  rocks: [
+    byZh('小行星 ！ 往 上 ！'),
+    byZh('小行星 ！ 往 下 ！'),
+    byZh('往 左 ！'),
+    byZh('往 右 ！'),
+    byZh('快 ， 往 右 ！'),
+  ],
+}
 
 export interface Line {
   zh: string
@@ -234,6 +315,11 @@ export const MISSIONS = VOYAGE.filter(
 export const SET_OFF: Line = { zh: '出发 ！', en: 'Off we go!' }
 export const WELL_DONE: Line = { zh: '太 好 了 ！', en: 'Great!' }
 export const WRECKED: Line = { zh: '飞船 坏 了 ！', en: 'The ship is wrecked!' }
+// Home again at the end of the voyage
+export const HOME: Line = {
+  zh: '我们 回来 了 ！ 谢谢 你 ， 朋友 ！',
+  en: "We're back! Thank you, my friend!",
+}
 
 // Everything the captain says beyond the orders, for the speech list
 // (data/extra.ts)
@@ -242,4 +328,5 @@ export const CAPTAIN_LINES: Array<Line> = [
   SET_OFF,
   WELL_DONE,
   WRECKED,
+  HOME,
 ]

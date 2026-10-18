@@ -3,19 +3,24 @@ import {
   CircleCheck,
   CircleX,
   Headphones,
+  House,
   Pause,
   Play,
+  Shield,
+  Users,
   Volume2,
   VolumeX,
   Wrench,
 } from 'lucide-react'
 import { ACTIONS, CAPTAIN_VOICE, VOYAGE } from '../data/bridge'
+import { SPEAKERS, speakerOf } from '../data/encounters'
+import { PLAYER_LOOK } from '../data/trip'
 import { plain, tokens } from '../lib/text'
 import { blip, stop as hush, say } from '../lib/audio'
 import { useStore } from '../lib/store'
 import { Frame, Mixed, tokenLevel } from '../ui'
 import { Face } from '../pixel/Pix'
-import { Flight, PER_LEG } from './bridge/flight'
+import { Flight, MEET_AT, PER_LEG } from './bridge/flight'
 import { Course, Helm, Hull, PlanetIcon } from './bridge/hud'
 import { NoWebGL, Space } from './bridge/space'
 import { Sfx } from './bridge/sound'
@@ -27,16 +32,22 @@ import type { Level } from '../lib/bank'
 
 // Starship: you are at the helm, the captain (船长) gives orders in
 // Chinese, and the controls are pictures only. Do what you are told before
-// the danger arrives. Cadets see the order written (in mixed text);
-// officers only hear it, for double points. The voyage goes from Earth to
-// the moon, Mars, Jupiter and Saturn and home, a few orders a planet; the
-// scene is low-poly 3D (games/bridge/), the rules are in bridge/flight.ts.
-
-// The captain, in a red tunic
-const CAPTAIN: Look = { style: 'bun', coat: '#c8372d' }
+// the danger arrives. On each leg something happens between the orders
+// (data/encounters.ts): someone hails the ship, or the crew bring a
+// choice, and you answer in Chinese. Cadets see what is said (in mixed
+// text); officers only hear it, for double points. The voyage goes from
+// Earth to the moon, Mars, Jupiter and Saturn and home; the scene is
+// low-poly 3D (games/bridge/), the rules are in bridge/flight.ts.
 
 // Words first met here, so the first orders show in Chinese
 const FIRST_WORDS = ['往', '左', '右', '上', '下', '开火']
+
+// The player at the helm, as on the trip
+const PLAYER: Look = {
+  style: PLAYER_LOOK.style,
+  hair: PLAYER_LOOK.hair,
+  coat: PLAYER_LOOK.coat,
+}
 
 const RAIL = [
   'var(--sb-c)',
@@ -59,11 +70,60 @@ function useWide() {
   return wide
 }
 
-// The words of an order the player has met: these are the ones it tests
-function orderWords(o: Order, home: string, levelOf: (id: string) => Level) {
-  return tokens(o.zh, { home })
+// The words of a line the player has met: these are the ones it tests
+function shownWords(zh: string, home: string, levelOf: (id: string) => Level) {
+  return tokens(zh, { home })
     .filter((t) => !t.punct && tokenLevel(t, levelOf) > 0)
     .flatMap((t) => (t.id ? [t.id] : []))
+}
+
+const orderWords = (o: Order, home: string, levelOf: (id: string) => Level) =>
+  shownWords(o.zh, home, levelOf)
+
+// Whoever is speaking: the player and the crew drawn as people, an alien
+// as its face cut from its picture on the viewscreen
+function SpeakerFace({
+  who,
+  size,
+  talking,
+}: {
+  who: string
+  size: number
+  talking: boolean
+}) {
+  if (who === 'you') return <Face look={PLAYER} size={size} talking={talking} />
+  const s = SPEAKERS[who] ?? SPEAKERS.Captain
+  if (s.alien) return <AlienFace id={s.alien} size={size} />
+  return <Face look={s.look ?? PLAYER} size={size} talking={talking} />
+}
+
+// The pictures are 144 × 96 (public/art/aliens/); a face is cut from
+// around this point, 52 pixels wide
+const FACE_AT: Record<string, [number, number]> = {
+  robot: [72, 28],
+  trader: [64, 40],
+  pilot: [72, 38],
+}
+const FACE_W = 52
+
+function AlienFace({ id, size }: { id: string; size: number }) {
+  const [x, y] = FACE_AT[id] ?? [70, 34]
+  const k = size / FACE_W
+  const h = (size * 28) / 24
+  return (
+    <span
+      aria-hidden
+      className="inline-block shrink-0"
+      style={{
+        width: size,
+        height: h,
+        backgroundImage: `url(/art/aliens/${id}.png)`,
+        backgroundSize: `${144 * k}px ${96 * k}px`,
+        backgroundPosition: `${size / 2 - x * k}px ${h / 2 - y * k}px`,
+        imageRendering: 'pixelated',
+      }}
+    />
+  )
 }
 
 export default function Bridge() {
@@ -86,6 +146,8 @@ export default function Bridge() {
   const [talking, setTalking] = useState(false)
   const [hits, setHits] = useState(0)
   const [flashes, setFlashes] = useState(0)
+  // The alien on the viewscreen during an encounter: the last who spoke
+  const [onScreen, setOnScreen] = useState<string | null>(null)
   const wide = useWide()
 
   useEffect(() => {
@@ -121,12 +183,21 @@ export default function Bridge() {
     }
   }, [])
 
-  const speak = (zh: string) => {
+  // The alien on screen: whoever of the encounter's cast spoke last
+  useEffect(() => {
+    if (!hud?.encounter) {
+      setOnScreen(null)
+      return
+    }
+    if (hud.encounter.cast.includes(hud.who)) setOnScreen(hud.who)
+  }, [hud?.encounter, hud?.who])
+
+  const speak = (zh: string, voice: string = CAPTAIN_VOICE) => {
     const id = ++talkId.current
     setTalking(true)
     return say(
       plain(zh, { home: latest.current.settings.home }),
-      CAPTAIN_VOICE,
+      voice,
     ).finally(() => {
       if (talkId.current === id) setTalking(false)
     })
@@ -142,9 +213,12 @@ export default function Bridge() {
     setOfficer(asOfficer)
     setMode('play')
     setPaused(false)
+    setOnScreen(null)
     s.setPaused(false)
     const f = new Flight(s, {
       officer: asOfficer,
+      // ?meet=dragon#bridge begins with that encounter
+      meet: new URLSearchParams(location.search).get('meet') ?? undefined,
       speak,
       onHud: setHud,
       onTick: (left) => {
@@ -164,10 +238,25 @@ export default function Bridge() {
           record(id, ok, ok ? (asOfficer ? 0.7 : 0.4) : 0.4)
         blip(ok ? 'right' : 'wrong')
       },
+      onMeet: (e) => {
+        const { bank: now, meet: m } = latest.current
+        m(e.words.filter((id) => !now.cards[id]))
+      },
+      onAnswered: ({ question, reply, right }) => {
+        const { record, levelOf, settings } = latest.current
+        const asked = shownWords(question, settings.home, levelOf)
+        if (right) {
+          const ids = new Set([
+            ...asked,
+            ...shownWords(reply.zh, settings.home, levelOf),
+          ])
+          for (const id of ids) record(id, true, asOfficer ? 0.7 : 0.5)
+        } else for (const id of asked) record(id, false, 0.4)
+        blip(right ? 'right' : 'wrong')
+      },
+      onArrived: () => latest.current.points(3),
       onOver: (h) => {
-        const { setBest, points } = latest.current
-        setBest('bridge', h.score)
-        points(Math.floor(h.count / 2))
+        latest.current.setBest('bridge', h.score)
         setMode('over')
       },
     })
@@ -179,6 +268,20 @@ export default function Bridge() {
   const act = (a: Action) => {
     if (mode !== 'play' || paused) return
     flight.current?.act(a)
+  }
+
+  const choose = (k: number) => {
+    if (mode !== 'play' || paused) return
+    flight.current?.choose(k)
+  }
+
+  const replay = () => {
+    const zh = hud?.order?.zh ?? hud?.line?.zh
+    if (!zh || !hud) return
+    const who = hud.order ? 'Captain' : hud.who
+    const voice =
+      who === 'you' ? 'Puck' : (speakerOf(who)?.voice ?? CAPTAIN_VOICE)
+    void speak(zh, voice)
   }
 
   const togglePause = () => {
@@ -194,6 +297,8 @@ export default function Bridge() {
     sfx.current?.setMuted(next)
   }
 
+  const choosing = mode === 'play' && hud?.phase === 'choose' && !paused
+
   useEffect(() => {
     if (mode !== 'play') return
     const key = (e: KeyboardEvent) => {
@@ -206,6 +311,17 @@ export default function Bridge() {
       }
       if (k === 'm') {
         toggleMute()
+        return
+      }
+      if (choosing) {
+        const n = Number(e.key)
+        if (n >= 1 && n <= hud.replies.length) {
+          e.preventDefault()
+          if (!e.repeat) choose(n - 1)
+        } else if (e.key === ' ') {
+          e.preventDefault()
+          if (!e.repeat) replay()
+        }
         return
       }
       const a = ACTIONS.find((x) => x.key === e.key || x.key === k)
@@ -221,6 +337,11 @@ export default function Bridge() {
   const order = hud?.order ?? null
   const live = mode === 'play' && hud?.phase === 'order' && !paused
   const best = Math.max(bank.best.bridge ?? 0, hud?.score ?? 0)
+  const meeting = !!hud?.encounter && !hud.met
+  const replying =
+    mode === 'play' && !!hud?.encounter && hud.replies.length > 0 && !order
+  const who = order ? 'Captain' : (hud?.who ?? 'Captain')
+  const speaker = who === 'you' ? null : (SPEAKERS[who] ?? SPEAKERS.Captain)
 
   return (
     <Frame
@@ -248,6 +369,20 @@ export default function Bridge() {
                 Hull
               </span>
               <Hull hull={hud?.hull ?? 100} />
+              {hud?.shield && (
+                <span title="A shield, given as a present: it takes the next blow">
+                  <Shield size={16} className="text-[var(--sb-f)]" />
+                </span>
+              )}
+              {(hud?.allies ?? 0) > 0 && (
+                <span
+                  className="flex items-center gap-1 text-xs font-bold text-[var(--sb-g)]"
+                  title="Friends made on the way"
+                >
+                  <Users size={15} />
+                  {hud?.allies}
+                </span>
+              )}
               <span className="ml-auto flex min-w-0 items-center gap-2">
                 <PlanetIcon id={leg.id} size={wide ? 22 : 18} />
                 <Mixed line={leg.name} size="sm" still className="truncate" />
@@ -268,6 +403,13 @@ export default function Bridge() {
             {flashes > 0 && (
               <div key={`warp${flashes}`} className="sb-warpflash" />
             )}
+            {mode === 'play' && onScreen && !order && (
+              <Hail
+                who={onScreen}
+                talking={talking && who === onScreen}
+                wide={wide}
+              />
+            )}
             {mode === 'play' && hud?.phase === 'result' && (
               <>
                 <div key={`v${hud.count}`} className="sb-verdict">
@@ -283,6 +425,17 @@ export default function Bridge() {
                   </div>
                 )}
               </>
+            )}
+            {mode === 'play' && hud?.award && (
+              <div
+                key={`a${hud.award.id}`}
+                className="sb-award"
+                style={{
+                  color: hud.award.n >= 0 ? 'var(--sb-f)' : 'var(--sb-e)',
+                }}
+              >
+                {hud.award.n >= 0 ? `+${hud.award.n}` : `−${-hud.award.n}`}
+              </div>
             )}
             {mode === 'play' && hud?.phase === 'arrived' && (
               <Arrived hud={hud} wide={wide} />
@@ -334,6 +487,9 @@ export default function Bridge() {
                 <Course
                   step={hud.phase === 'arrived' ? PER_LEG + 1 : hud.step}
                   of={PER_LEG}
+                  meetAt={MEET_AT}
+                  met={hud.met}
+                  meeting={meeting}
                 />
               )}
               <span className="ml-auto flex items-center gap-1.5">
@@ -367,14 +523,16 @@ export default function Bridge() {
         {mode !== 'ready' && hud && (
           <div className="sb-comm">
             <div className="sb-comm-face">
-              <Face look={CAPTAIN} size={wide ? 56 : 42} />
+              <SpeakerFace who={who} size={wide ? 56 : 42} talking={talking} />
             </div>
             <div className="sb-comm-body">
               <div className="sb-label text-[var(--sb-c)]">
-                Captain{' '}
-                <span className="zh text-sm tracking-normal normal-case">
-                  船长
-                </span>
+                {speaker ? speaker.name : 'You'}{' '}
+                {speaker && (
+                  <span className="zh text-sm tracking-normal normal-case">
+                    {plain(speaker.zh, { home: '' })}
+                  </span>
+                )}
                 {talking && (
                   <span className="sb-talk" aria-hidden>
                     <i />
@@ -383,16 +541,14 @@ export default function Bridge() {
                   </span>
                 )}
               </div>
-              <Said hud={hud} officer={officer} wide={wide} />
+              <Said hud={hud} officer={officer} talking={talking} wide={wide} />
               {(order ?? hud.line) && (
                 <button
                   type="button"
-                  onClick={() => {
-                    const zh = order?.zh ?? hud.line?.zh
-                    if (zh) void speak(zh)
-                  }}
+                  onClick={replay}
                   className="absolute top-1/2 right-2 -translate-y-1/2 rounded-full p-2 text-[var(--sb-g)] hover:bg-white/10"
                   aria-label="Hear it again"
+                  title={choosing ? 'Hear it again (space)' : 'Hear it again'}
                 >
                   <Volume2 size={22} />
                 </button>
@@ -400,26 +556,40 @@ export default function Bridge() {
             </div>
           </div>
         )}
-        {mode !== 'ready' && (
-          <Helm onAct={act} done={hud?.done ?? []} disabled={!live} />
-        )}
+        {mode !== 'ready' &&
+          (replying ? (
+            <Replies
+              hud={hud}
+              wide={wide}
+              disabled={!choosing}
+              onChoose={choose}
+            />
+          ) : (
+            <Helm onAct={act} done={hud?.done ?? []} disabled={!live} />
+          ))}
       </div>
     </Frame>
   )
 }
 
-// What the captain is saying: the order (hidden from officers until it is
-// settled), or a line about the voyage
+// What is being said: the captain's order (hidden from officers until it
+// is settled), or a line of the voyage or an encounter. In an encounter an
+// officer hears a line before seeing it, and the question before the
+// replies only once one is picked; a cadet sees the question's English
+// only then.
 function Said({
   hud,
   officer,
+  talking,
   wide,
 }: {
   hud: Hud
   officer: boolean
+  talking: boolean
   wide: boolean
 }) {
-  const size = wide ? 'lg' : 'md'
+  // An encounter's lines are longer: smaller on a phone, so the replies fit
+  const size = wide ? 'lg' : hud.encounter ? 'sm' : 'md'
   const o = hud.order
   if (o) {
     const settled = hud.phase !== 'order'
@@ -428,10 +598,7 @@ function Said({
         {!officer || settled ? (
           <Mixed key={o.zh} line={o.zh} size={size} />
         ) : (
-          <span className="text-[var(--sb-dim)] italic">
-            <Headphones size={15} className="mr-1 mb-0.5 inline" />
-            …listen
-          </span>
+          <Listen />
         )}
         {settled && (
           <div className="mt-1 text-sm text-[var(--sb-dim)]">{o.en}</div>
@@ -439,14 +606,123 @@ function Said({
       </div>
     )
   }
-  if (hud.line)
-    return (
-      <div className="mt-1">
-        <Mixed key={hud.line.zh} line={hud.line.zh} size={size} />
-        <div className="mt-1 text-sm text-[var(--sb-dim)]">{hud.line.en}</div>
+  const line = hud.line
+  if (!line) return null
+  const asking = hud.question && hud.who !== 'you'
+  const answered = hud.picked !== null
+  const inEncounter = !!hud.encounter && hud.who !== 'you'
+  const hidden = officer && inEncounter && (asking ? !answered : talking)
+  const english = !asking || answered
+  return (
+    <div className="mt-1">
+      {hidden ? <Listen /> : <Mixed key={line.zh} line={line.zh} size={size} />}
+      {english && !hidden && (
+        <div className="mt-1 text-sm text-[var(--sb-dim)]">{line.en}</div>
+      )}
+    </div>
+  )
+}
+
+function Listen() {
+  return (
+    <span className="text-[var(--sb-dim)] italic">
+      <Headphones size={15} className="mr-1 mb-0.5 inline" />
+      …listen
+    </span>
+  )
+}
+
+// The alien hailing the ship, framed on the viewscreen: a painted picture
+// of it where it is (public/art/aliens/, 144 × 96, shown pixelated)
+function Hail({
+  who,
+  talking,
+  wide,
+}: {
+  who: string
+  talking: boolean
+  wide: boolean
+}) {
+  const s = speakerOf(who)
+  if (!s?.alien) return null
+  const scale = wide ? 2 : 1
+  return (
+    <div key={who} className="sb-hail" data-talking={talking ? '1' : '0'}>
+      <div className="sb-hail-bar">
+        <span className="sb-label">{s.name}</span>
+        {talking && (
+          <span className="sb-talk sb-talk-dark" aria-hidden>
+            <i />
+            <i />
+            <i />
+          </span>
+        )}
+        <span className="zh ml-auto text-sm">{plain(s.zh, { home: '' })}</span>
       </div>
-    )
-  return null
+      <div className="sb-hail-face">
+        <img
+          src={`/art/aliens/${s.alien}.png`}
+          alt=""
+          width={144 * scale}
+          height={96 * scale}
+          draggable={false}
+          style={{ imageRendering: 'pixelated', display: 'block' }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// The replies to choose from, in Chinese: 1 to 3, or a tap
+function Replies({
+  hud,
+  wide,
+  disabled,
+  onChoose,
+}: {
+  hud: Hud
+  wide: boolean
+  disabled: boolean
+  onChoose: (k: number) => void
+}) {
+  return (
+    <div
+      className="sb-replies"
+      role="group"
+      aria-label={
+        hud.who === 'Captain' || hud.who === 'Engineer'
+          ? 'Your call'
+          : 'Your reply'
+      }
+    >
+      {hud.replies.map((r, k) => {
+        const picked = hud.picked === k
+        return (
+          <button
+            key={`${hud.encounter?.id}-${r.zh}`}
+            type="button"
+            className={`sb-reply ${hud.tried.includes(k) ? 'zh-shake' : ''}`}
+            data-picked={picked ? '1' : '0'}
+            disabled={
+              disabled ||
+              hud.tried.includes(k) ||
+              (hud.picked !== null && !picked)
+            }
+            onClick={() => onChoose(k)}
+          >
+            <span className="sb-reply-num">{k + 1}</span>
+            <span className="pointer-events-none min-w-0">
+              <Mixed
+                line={r.zh}
+                size={wide && hud.replies.length < 3 ? 'md' : 'sm'}
+                still
+              />
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
 }
 
 function Ready({
@@ -467,7 +743,8 @@ function Ready({
         </div>
         <p className="mt-2 text-sm leading-snug text-[var(--sb-ink)] sm:mt-3 sm:text-[15px]">
           The captain gives orders in Chinese, and the controls have no words:
-          do what you hear before the danger arrives.{' '}
+          do what you hear before the danger arrives. On the way, aliens hail
+          the ship and the crew ask what to do: answer them in Chinese.{' '}
           <span className="hidden sm:inline">
             Fly from Earth to the moon, Mars, Jupiter and Saturn, and home.
           </span>
@@ -479,7 +756,7 @@ function Ready({
             className="sb-pill py-2 text-base"
             style={{ background: 'var(--sb-a)' }}
           >
-            Cadet: see the orders
+            Cadet: see what is said
           </button>
           <button
             type="button"
@@ -487,12 +764,12 @@ function Ready({
             className="sb-pill py-2 text-base"
             style={{ background: 'var(--sb-c)' }}
           >
-            Officer: only hear them
+            Officer: only hear it
           </button>
         </div>
         <p className="mt-3 hidden text-xs text-[var(--sb-dim)] sm:block">
           Arrows steer · space fires · S shields · F faster · D slower · X stops
-          · P pauses
+          · 1–3 reply · P pauses
         </p>
         {best ? (
           <p className="mt-2 text-sm font-bold text-[var(--sb-f)]">
@@ -532,18 +809,41 @@ function Over({
   onStart: (officer: boolean) => void
   wide: boolean
 }) {
-  const missed = hud.missed.slice(-5)
+  const missed = hud.missed.slice(-4)
   return (
     <div className="sb-overlay">
       <div
         className="sb-card max-h-full overflow-y-auto"
-        style={{ animationDelay: '1.6s' }}
+        style={{ animationDelay: hud.home ? '0.4s' : '1.6s' }}
       >
+        {hud.home && (
+          <p className="sb-label flex items-center justify-center gap-2 text-[var(--sb-g)]">
+            <House size={14} /> Home again
+          </p>
+        )}
         <p className="text-5xl font-black tabular-nums">{hud.score}</p>
         <p className="mt-1 text-sm text-[var(--sb-dim)]">
           {hud.count} orders · {hud.reached}{' '}
-          {hud.reached === 1 ? 'planet' : 'planets'} · best {best}
+          {hud.reached === 1 ? 'planet' : 'planets'}
+          {hud.home && hud.bonus > 0 ? ` · +${hud.bonus} for the hull` : ''} ·
+          best {best}
         </p>
+        {hud.log.length > 0 && (
+          <div className="sb-log">
+            <div className="sb-label text-[var(--sb-c)]">Captain’s log</div>
+            <ul className="mt-1.5 space-y-1.5">
+              {hud.log.map((l) => (
+                <li key={`${l.leg}-${l.title}`}>
+                  <PlanetIcon id={l.leg} size={16} />
+                  <span>
+                    <span className="font-bold">{l.title}.</span>{' '}
+                    <span className="text-[var(--sb-dim)]">{l.text}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         {missed.length > 0 && (
           <div className="mt-3 text-left">
             <div className="sb-label text-[var(--sb-c)]">Missed</div>

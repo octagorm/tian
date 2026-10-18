@@ -114,10 +114,53 @@ export const VOICES: Record<string, Voice> = {
     style: 'clear and businesslike, giving directions she knows by heart',
   },
 
-  // The starship's captain (data/bridge.ts)
+  // The starship's captain (data/bridge.ts), its engineer, and those met on
+  // the way (data/encounters.ts)
   Captain: {
     base: 'Alnilam',
     style: 'a starship captain giving crisp, urgent orders',
+  },
+  Engineer: {
+    base: 'Pulcherrima',
+    style: "a cheerful, capable ship's engineer, quick and a little breathless",
+  },
+  'Alien child': {
+    base: 'Leda',
+    style: 'a young lost alien, shy, in a high, light voice',
+  },
+  'Alien mother': {
+    base: 'Vindemiatrix',
+    style: 'a warm alien mother, overjoyed and grateful',
+  },
+  'Crystal being': {
+    base: 'Achernar',
+    style: 'a serene, curious being from far away, soft, airy and slow',
+  },
+  Pirate: {
+    base: 'Fenrir',
+    style: 'a swaggering space pirate, loud, gruff and theatrical',
+  },
+  'Pirate boss': {
+    base: 'Demon king',
+    style: 'a gloating pirate chief, booming and theatrical',
+  },
+  Robot: {
+    base: 'Iapetus',
+    style:
+      'a robot at a gate: flat, even and mechanical, every syllable clipped',
+  },
+  Trader: {
+    base: 'Zubenelgenubi',
+    style: 'a jolly trader, chatty and persuasive, enjoying the bargain',
+  },
+  Dragon: {
+    base: 'Algieba',
+    style:
+      'an ancient, enormous dragon: slow, deep and majestic, a little amused',
+  },
+  'Alien pilot': {
+    base: 'Enceladus',
+    style: 'a frightened pilot, breathless and pleading, then relieved',
   },
 
   // The stories (data/stories.ts), and the myths among the sayings

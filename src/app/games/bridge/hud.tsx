@@ -9,6 +9,7 @@ import {
   Shield,
   Snail,
 } from 'lucide-react'
+import { Fragment } from 'react'
 import { ACTIONS } from '../../data/bridge'
 import type { Action, PlanetId } from '../../data/bridge'
 import type { LucideIcon } from 'lucide-react'
@@ -65,16 +66,37 @@ export function Hull({ hull }: { hull: number }) {
   )
 }
 
-// Orders on this leg so far, and the planet at the end
-export function Course({ step, of }: { step: number; of: number }) {
+// Orders on this leg so far, the encounter among them, and the planet at
+// the end
+export function Course({
+  step,
+  of,
+  meetAt,
+  met,
+  meeting,
+}: {
+  step: number
+  of: number
+  meetAt: number
+  met: boolean
+  meeting: boolean
+}) {
   return (
     <div className="sb-dots" aria-hidden>
       {Array.from({ length: of }, (_, i) => (
-        <i
-          key={i}
-          data-on={i < step ? '1' : '0'}
-          data-now={i === step ? '1' : '0'}
-        />
+        <Fragment key={i}>
+          {i === meetAt && (
+            <i
+              className="meet"
+              data-on={met ? '1' : '0'}
+              data-now={meeting ? '1' : '0'}
+            />
+          )}
+          <i
+            data-on={i < step ? '1' : '0'}
+            data-now={i === step && !meeting ? '1' : '0'}
+          />
+        </Fragment>
       ))}
       <i
         className="goal"

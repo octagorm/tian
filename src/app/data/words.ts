@@ -707,6 +707,39 @@ const RAW: Array<[string, string, string]> = [
 第三|dì sān|third|the third
 `,
   ],
+  [
+    'First contact',
+    '你们是谁',
+    `
+从|cóng|from
+工程师|gōng chéng shī|engineer
+忙|máng|busy
+让|ràng|let|to let, to allow; to make (someone do something)
+怎么办|zěn me bàn|what to do|what shall we do? what now?
+信号|xìn hào|signal
+救命|jiù mìng|help!|help! (literally "save a life")
+妈妈|mā ma|mum|mum, mother
+礼物|lǐ wù|present|a present, a gift
+新|xīn|new
+艘|sōu|(ship)|measure word for ships and boats|mw
+海盗|hǎi dào|pirate
+老大|lǎo dà|boss|the boss, the big chief (of a gang)
+机器人|jī qì rén|robot
+这里|zhè lǐ|here
+进|jìn|come in|to enter, to come in
+商人|shāng rén|trader|trader, merchant
+修|xiū|repair|to repair, to mend
+不用|bù yòng|no need|there's no need; no, thanks
+一路顺风|yī lù shùn fēng|bon voyage|have a good journey! (literally "a following wind all the way")
+聪明|cōng ming|clever
+珍珠|zhēn zhū|pearl
+飞行员|fēi xíng yuán|pilot
+近路|jìn lù|short cut
+绕路|rào lù|go round|to go the long way round
+安全|ān quán|safe|safe; safety
+吃饭|chī fàn|eat|to eat, to have a meal
+`,
+  ],
 ]
 
 export const LESSONS: Array<Lesson> = RAW.map(([title, zh], i) => ({

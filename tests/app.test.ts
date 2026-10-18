@@ -665,15 +665,18 @@ describe('the market', () => {
 })
 
 describe('starship', () => {
-  test('everything the captain says is made of known words', async () => {
+  test('everything said on the bridge is made of known words', async () => {
     const { CAPTAIN_LINES, ORDERS, VOYAGE } =
       await import('../src/app/data/bridge')
+    const { encounterSpeech } = await import('../src/app/data/encounters')
     for (const l of [...ORDERS, ...VOYAGE, ...CAPTAIN_LINES])
+      expect(() => tokens(l.zh, { home: '挪威' }), l.zh).not.toThrow()
+    for (const l of encounterSpeech())
       expect(() => tokens(l.zh, { home: '挪威' }), l.zh).not.toThrow()
   })
 
   test('orders are well formed, and every planet ends with a stop', async () => {
-    const { ACTIONS, ORDERS, STEER, VOYAGE } =
+    const { ACTIONS, ORDERS, POOLS, STEER, VOYAGE } =
       await import('../src/app/data/bridge')
     const ids = new Set(ACTIONS.map((a) => a.id))
     for (const o of ORDERS) {
@@ -688,6 +691,15 @@ describe('starship', () => {
       if (o.not) expect(o.do, o.zh).toEqual([])
       else expect(o.do.length, o.zh).toBeGreaterThan(0)
     }
+    for (const [name, pool] of Object.entries(POOLS)) {
+      expect(pool.length, name).toBeGreaterThan(2)
+      for (const o of pool) {
+        expect(ORDERS.includes(o), o.zh).toBe(true)
+        expect(o.arrival, o.zh).toBeFalsy()
+        // A fight's orders are the foe's, or anyone's
+        if (o.foe) expect(o.foe, o.zh).toBe(name)
+      }
+    }
     for (const leg of VOYAGE) {
       expect(leg.arrive.arrival, leg.id).toBe(true)
       expect(leg.arrive.do, leg.id).toEqual(['stop'])
@@ -696,6 +708,130 @@ describe('starship', () => {
         WORDS.some((w) => w.id === leg.name),
         leg.id,
       ).toBe(true)
+    }
+  })
+
+  test('encounters: every branch is reached, ends, and leaves a log', async () => {
+    const { ENCOUNTERS, SPEAKERS } = await import('../src/app/data/encounters')
+    const ids = new Set<string>()
+    for (const e of ENCOUNTERS) {
+      expect(ids.has(e.id), e.id).toBe(false)
+      ids.add(e.id)
+      for (const w of e.words)
+        expect(
+          WORDS.some((x) => x.id === w),
+          `${e.id}: ${w}`,
+        ).toBe(true)
+      for (const c of e.cast) {
+        expect(SPEAKERS[c], `${e.id}: ${c}`).toBeTruthy()
+        expect(SPEAKERS[c].alien, c).toBeTruthy()
+      }
+      const parts = e.parts
+      expect(parts[e.start], e.id).toBeTruthy()
+      // Where each part can go
+      const next = (id: string) => {
+        const p = parts[id]
+        return [
+          ...(p.next ? [p.next] : []),
+          ...p.replies.flatMap((r) => (r.next ? [r.next] : [])),
+          ...p.steps.flatMap((s) => (s.kind === 'if' ? [s.next] : [])),
+        ]
+      }
+      const seen = new Set<string>()
+      const walk = (id: string, path: Array<string>, logged: boolean) => {
+        const p = parts[id]
+        expect(p, `${e.id}: no part ${id}`).toBeTruthy()
+        // No going round in circles
+        expect(path.includes(id), `${e.id}: ${[...path, id].join(' > ')}`).toBe(
+          false,
+        )
+        seen.add(id)
+        const log = logged || !!p.log
+        for (const s of p.steps) {
+          if (s.kind === 'line')
+            expect(
+              s.by === 'Captain' ||
+                s.by === 'Engineer' ||
+                e.cast.includes(s.by),
+              `${e.id}: ${s.by}`,
+            ).toBe(true)
+          if (s.kind === 'do' && s.effect.kind === 'fight')
+            expect(e.foe, `${e.id} fights no foe`).toBeTruthy()
+        }
+        const to = next(id)
+        // A part that ends the encounter has said what happened
+        if (
+          !to.length ||
+          (p.replies.length > 0 &&
+            p.replies.every((r) => !r.next && r.right === false))
+        )
+          expect(log, `${e.id}: ${[...path, id].join(' > ')} has no log`).toBe(
+            true,
+          )
+        for (const n of to) walk(n, [...path, id], log)
+      }
+      walk(e.start, [], false)
+      expect([...seen].sort(), e.id).toEqual(Object.keys(parts).sort())
+      for (const p of Object.values(parts)) {
+        // Something to choose, and one right answer where there is any
+        if (p.replies.length) {
+          expect(p.replies.length, `${e.id}/${p.id}`).toBeGreaterThan(1)
+          const right = p.replies.filter((r) => r.right === true)
+          const wrong = p.replies.filter((r) => r.right === false)
+          if (wrong.length) expect(right.length, `${e.id}/${p.id}`).toBe(1)
+          // A wrong reply that is asked again has someone to be puzzled
+          if (wrong.some((r) => !r.next))
+            expect(
+              p.steps.some((s) => s.kind === 'line'),
+              `${e.id}/${p.id}`,
+            ).toBe(true)
+        }
+        expect(p.replies.length && p.next, `${e.id}/${p.id}`).toBeFalsy()
+      }
+    }
+    // Something for the last leg, and enough for the others
+    expect(ENCOUNTERS.filter((e) => e.last).length).toBeGreaterThan(0)
+    expect(ENCOUNTERS.filter((e) => !e.last && !e.from).length).toBeGreaterThan(
+      1,
+    )
+  })
+
+  test('an encounter for each leg, never twice in a voyage', async () => {
+    const { pickEncounter, HULL } =
+      await import('../src/app/games/bridge/flight')
+    const { VOYAGE } = await import('../src/app/data/bridge')
+    let seed = 7
+    const random = () => {
+      seed = (seed * 16807) % 2147483647
+      return seed / 2147483647
+    }
+    for (let round = 0; round < 50; round++) {
+      const met = new Set<string>()
+      for (let i = 0; i < VOYAGE.length; i++) {
+        const last = i === VOYAGE.length - 1
+        const hull = round % 2 ? HULL : 60
+        const e = pickEncounter(i, last, hull, met, random)
+        expect(e, `leg ${i}`).toBeTruthy()
+        if (!e) continue
+        expect(met.has(e.id)).toBe(false)
+        met.add(e.id)
+        expect(!!e.last).toBe(last)
+        expect(e.from ?? 0).toBeLessThanOrEqual(i)
+        if (e.damaged) expect(hull).toBeLessThan(HULL)
+      }
+    }
+  })
+
+  test('every alien has its picture for the viewscreen', async () => {
+    const { SPEAKERS } = await import('../src/app/data/encounters')
+    const { existsSync } = await import('node:fs')
+    for (const s of Object.values(SPEAKERS)) {
+      // People are drawn from a look, aliens from a picture
+      expect(!!s.look !== !!s.alien, s.name).toBe(true)
+      if (s.alien)
+        expect(existsSync(`public/art/aliens/${s.alien}.png`), s.alien).toBe(
+          true,
+        )
     }
   })
 
@@ -715,22 +851,28 @@ describe('starship', () => {
     expect(span(two, 0)).toBeCloseTo(8.4)
   })
 
-  test('a flight: right orders score, wrong ones cost the hull, five end it', async () => {
-    const { Flight, HULL } = await import('../src/app/games/bridge/flight')
+  // A scene that draws nothing
+  const stage = {
+    setOff: () => {},
+    warp: () => 1,
+    course: () => {},
+    order: () => {},
+    progress: () => {},
+    act: () => {},
+    resolve: () => 1,
+    arrive: () => {},
+    setHull: () => {},
+    wreck: () => {},
+    meet: () => 1,
+    cue: () => 0.5,
+    part: () => {},
+    save: () => {},
+    music: () => 1,
+  }
+
+  test('a flight: right orders score, wrong ones cost the hull and end it', async () => {
+    const { Flight } = await import('../src/app/games/bridge/flight')
     type Hud = InstanceType<typeof Flight>['hud']
-    // A scene that draws nothing
-    const stage = {
-      setOff: () => {},
-      warp: () => 1,
-      course: () => {},
-      order: () => {},
-      progress: () => {},
-      act: () => {},
-      resolve: () => 1,
-      arrive: () => {},
-      setHull: () => {},
-      wreck: () => {},
-    }
     const seen: { hud: Hud | null; over: Hud | null } = {
       hud: null,
       over: null,
@@ -746,32 +888,87 @@ describe('starship', () => {
     })
     void flight.run()
     const flush = () => new Promise((r) => setTimeout(r, 0))
-    // Runs the clock until an order is given, or the game is over
-    const nextOrder = async (): Promise<Hud | null> => {
-      for (let i = 0; i < 400; i++) {
+    // Runs the clock until an order or a choice is waiting, or the game is
+    // over
+    const next = async (): Promise<Hud | null> => {
+      for (let i = 0; i < 600; i++) {
         flight.update(0.05)
         await flush()
         if (seen.over) return null
-        if (seen.hud?.phase === 'order') return seen.hud
+        const h = seen.hud
+        if (h?.phase === 'order' && !h.done.length) return h
+        if (h?.phase === 'choose' && h.picked === null) return h
       }
-      throw new Error('no order')
+      throw new Error('stuck')
     }
 
-    const first = await nextOrder()
+    const first = await next()
     for (const a of first?.order?.do ?? []) flight.act(a)
     await flush()
     expect(settled[0].ok).toBe(true)
     expect(settled[0].gain).toBeGreaterThan(10)
 
-    for (let h = await nextOrder(); h; h = await nextOrder()) {
-      // The first leg gives single orders only
-      expect(h.order?.do.length).toBe(1)
+    let choices = 0
+    for (let h = await next(); h; h = await next()) {
+      if (h.phase === 'choose') {
+        choices++
+        flight.choose(0)
+        continue
+      }
+      // The first leg gives single orders only, outside an encounter
+      if (h.leg.id === 'moon' && !h.encounter)
+        expect(h.order?.do.length).toBe(1)
       flight.act(h.order?.do[0] === 'left' ? 'right' : 'left')
       await flush()
     }
-    expect(settled.filter((s) => !s.ok).length).toBe(HULL / 20)
+    expect(choices).toBeGreaterThan(0)
+    expect(settled.filter((s) => !s.ok).length).toBeGreaterThanOrEqual(5)
     expect(seen.over?.hull).toBeLessThanOrEqual(0)
-    expect(seen.over?.score).toBe(settled[0].gain)
+    expect(seen.over?.home).toBe(false)
+    expect(seen.over?.score).toBeGreaterThanOrEqual(settled[0].gain)
+    flight.stop()
+  })
+
+  test('a voyage flown well comes home, with a log of what happened', async () => {
+    const { Flight } = await import('../src/app/games/bridge/flight')
+    const { VOYAGE } = await import('../src/app/data/bridge')
+    type Hud = InstanceType<typeof Flight>['hud']
+    const seen: { hud: Hud | null; over: Hud | null } = {
+      hud: null,
+      over: null,
+    }
+    let seed = 3
+    const flight = new Flight(stage, {
+      officer: false,
+      speak: () => Promise.resolve(),
+      onHud: (h) => (seen.hud = h),
+      onSettled: () => {},
+      onOver: (h) => (seen.over = h),
+      random: () => {
+        seed = (seed * 16807) % 2147483647
+        return seed / 2147483647
+      },
+    })
+    void flight.run()
+    const flush = () => new Promise((r) => setTimeout(r, 0))
+    for (let i = 0; i < 20000 && !seen.over; i++) {
+      flight.update(0.05)
+      await flush()
+      const h = seen.hud
+      if (!h) continue
+      if (h.phase === 'order' && h.order && h.done.length === 0)
+        for (const a of h.order.do) flight.act(a)
+      if (h.phase === 'choose' && h.picked === null) {
+        // The right reply where there is one, else the first
+        const k = h.replies.findIndex((r) => r.right === true)
+        flight.choose(Math.max(0, k))
+      }
+    }
+    const end = seen.over
+    expect(end?.home).toBe(true)
+    expect(end?.reached).toBe(VOYAGE.length)
+    expect(end?.log.length).toBe(VOYAGE.length)
+    for (const l of end?.log ?? []) expect(l.text, l.title).not.toBe('')
     flight.stop()
   })
 })

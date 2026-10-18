@@ -263,10 +263,12 @@
   background: var(--sb-c);
   padding-left: 8px;
 }
-.sb-comm-face img {
+/* The backdrop goes behind the face, not on each of its layers (the
+   blinking and talking ones lie over it) */
+.sb-comm-face > span {
   border-radius: 10px;
   background: #1d1840;
-  box-shadow: inset 0 0 0 2px #120f1c;
+  box-shadow: 0 0 0 2px #120f1c;
 }
 .sb-comm-body {
   position: relative;
@@ -593,4 +595,207 @@
   50% {
     opacity: 0.35;
   }
+}
+.sb-dots > i.meet {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  transform: rotate(45deg);
+  margin: 0 2px;
+  background: #3a2c50;
+}
+.sb-dots > i.meet[data-on='1'] {
+  background: var(--sb-c);
+}
+.sb-dots > i.meet[data-now='1'] {
+  background: var(--sb-f);
+}
+
+/* --- Encounters --- */
+
+/* Someone hailing the ship, on the viewscreen: a framed transmission */
+.sb-hail {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px 16px 16px 4px;
+  overflow: hidden;
+  background: rgba(10, 8, 22, 0.82);
+  box-shadow:
+    inset 0 0 0 2px var(--sb-c),
+    0 6px 24px rgba(0, 0, 0, 0.5);
+  animation: sb-hail 0.5s ease-out both;
+  pointer-events: none;
+}
+.sb-hail-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--sb-c);
+  color: #120f1c;
+  padding: 2px 10px 2px 12px;
+}
+.sb-hail-face {
+  position: relative;
+  padding: 3px;
+  background: #0d0b1c;
+}
+.sb-hail[data-talking='1'] {
+  box-shadow:
+    inset 0 0 0 2px var(--sb-f),
+    0 0 18px rgba(244, 208, 111, 0.35),
+    0 6px 24px rgba(0, 0, 0, 0.5);
+}
+.sb-hail[data-talking='1'] .sb-hail-bar {
+  background: var(--sb-f);
+}
+.sb-talk-dark > i {
+  background: #120f1c;
+}
+.sb-hail-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.05) 0 1px,
+    transparent 1px 3px
+  );
+  animation: sb-scan 4s linear infinite;
+  pointer-events: none;
+}
+@keyframes sb-hail {
+  from {
+    transform: scaleY(0.05);
+    opacity: 0;
+  }
+  60% {
+    transform: scaleY(1.04);
+    opacity: 1;
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes sb-scan {
+  to {
+    background-position: 0 30px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-hail,
+  .sb-hail-face::after {
+    animation: none;
+  }
+}
+@media (max-width: 639px) {
+  .sb-hail {
+    left: 8px;
+    top: 8px;
+  }
+  .sb-hail-face {
+    padding: 2px;
+  }
+}
+
+/* The replies on offer, in place of the helm and as tall as it, so
+   nothing below moves: side by side on a wide screen, stacked on a phone */
+.sb-replies {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+  min-height: 64px;
+}
+.sb-reply {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  border-radius: 999px 16px 16px 999px;
+  background: var(--sb-panel);
+  box-shadow: inset 0 0 0 1px rgba(185, 161, 232, 0.25);
+  padding: 6px 12px 6px 8px;
+  min-height: 64px;
+  transition:
+    background-color 0.15s,
+    opacity 0.2s,
+    box-shadow 0.15s;
+  cursor: pointer;
+}
+.sb-reply:hover:not(:disabled) {
+  background: #1d1a30;
+  box-shadow: inset 0 0 0 1px var(--sb-c);
+}
+.sb-reply:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.sb-reply[data-picked='1'] {
+  opacity: 1;
+  box-shadow: inset 0 0 0 2px var(--sb-f);
+}
+.sb-reply-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: var(--sb-c);
+  color: #120f1c;
+  font-weight: 900;
+}
+.sb-reply[data-picked='1'] .sb-reply-num {
+  background: var(--sb-f);
+}
+@media (max-width: 639px) {
+  .sb-replies {
+    grid-auto-flow: row;
+    grid-auto-columns: auto;
+    align-content: start;
+    margin-top: 8px;
+    gap: 6px;
+    min-height: 148px;
+  }
+  .sb-reply {
+    padding: 5px 10px 5px 6px;
+    min-height: 44px;
+    gap: 8px;
+  }
+  .sb-reply-num {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Points won or paid in an encounter */
+.sb-award {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  z-index: 3;
+  transform: translateX(-50%);
+  font-weight: 900;
+  font-size: 34px;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.8);
+  animation: sb-gain 1.8s ease-out both;
+  pointer-events: none;
+}
+
+.sb-log {
+  margin-top: 12px;
+  text-align: left;
+}
+.sb-log li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.35;
 }

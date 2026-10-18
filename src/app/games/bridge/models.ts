@@ -40,7 +40,7 @@ export function at(
 }
 
 // Collects painted parts and merges them into one geometry
-class Builder {
+export class Builder {
   private parts: Array<THREE.BufferGeometry> = []
 
   add(geo: THREE.BufferGeometry, color: Painter, m?: THREE.Matrix4) {
@@ -61,14 +61,14 @@ class Builder {
   }
 }
 
-const lathe = (pts: Array<[number, number]>, segments: number) =>
+export const lathe = (pts: Array<[number, number]>, segments: number) =>
   new THREE.LatheGeometry(
     pts.map(([x, y]) => new THREE.Vector2(x, y)),
     segments,
   )
 
 // Panels: alternate faces a shade apart by their angle round the y axis
-function panels(a: string, b: string, n: number) {
+export function panels(a: string, b: string, n: number) {
   const ca = new THREE.Color(a)
   const cb = new THREE.Color(b)
   return (c: THREE.Vector3) => {
