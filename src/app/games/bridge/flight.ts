@@ -486,7 +486,9 @@ export class Flight {
         } else if (s.kind === 'if') {
           const yes = s.ally
             ? this.hud.allies.length > 0
-            : !!s.met && this.met.has(s.met)
+            : s.damaged
+              ? this.hud.hull < HULL
+              : !!s.met && this.met.has(s.met)
           if (yes) {
             next = s.next
             jumped = true

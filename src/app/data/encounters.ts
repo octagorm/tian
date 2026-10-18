@@ -19,6 +19,7 @@ import type { Look } from '../pixel/portraits'
 //                                    earlier in the voyage
 //   ? met pirates > label            on to label if that encounter came
 //                                    earlier in the voyage
+//   ? damaged > label                on to label if the hull is damaged
 //   > label                          on to label
 //   @ Fought off a pirate ship.      the captain's log, for this ending
 //
@@ -94,7 +95,7 @@ export interface Reply {
 export type Step =
   | Said
   | { kind: 'do'; effect: Effect }
-  | { kind: 'if'; ally?: true; met?: string; next: string }
+  | { kind: 'if'; ally?: true; met?: string; damaged?: true; next: string }
 
 export interface Part {
   id: string
@@ -228,6 +229,8 @@ function parse(script: string): { start: string; parts: Record<string, Part> } {
       const [cond, next] = body.split('>').map((t) => t.trim())
       const [what, id] = cond.split(/\s+/)
       if (what === 'ally') part.steps.push({ kind: 'if', ally: true, next })
+      else if (what === 'damaged')
+        part.steps.push({ kind: 'if', damaged: true, next })
       else if (what === 'met' && id)
         part.steps.push({ kind: 'if', met: id, next })
       else throw new Error(`No such condition: ${cond}`)
@@ -467,11 +470,42 @@ export const ENCOUNTERS: Array<Encounter> = [
     visitor: 'junk',
     cast: ['trader'],
     from: 1,
-    damaged: true,
     words: ['商人', '修'],
     script: `
       = start
       trader: 你好 ， 朋友 ！ 我 是 商人 。 | Hello, friends! I'm a trader.
+      ? damaged > repair
+      trader: 我 有 很 多 好 东西 。 你们 要 一 个 新 护盾 吗 ？ 四十 块 。 | I have lots of good things. Would you like a new shield? Forty kuai.
+      * 好 ， 成交 ！ | All right, it's a deal! > forty
+      * 太 贵 了 ！ | That's too expensive! > cheaper
+      * 不用 ， 谢谢 。 | No, thanks. > nothing
+
+      = cheaper
+      trader: 太 贵 了 ？ 好 吧 ， 二十 块 ！ | Too expensive? All right, twenty!
+      * 成交 ！ | Deal! > twenty
+      * 不用 ， 谢谢 。 | No, thanks. > nothing
+
+      = forty
+      ! score -40
+      ! shield
+      trader: 这 是 你们 的 新 护盾 。 你们 很 好 ， 我们 是 朋友 ！ | Here is your new shield. You're good people: we are friends!
+      ! ally
+      ! ship leave
+      @ Paid a trader his full price for a new shield, and made a friend.
+
+      = twenty
+      ! score -20
+      ! shield
+      trader: 这 是 你们 的 新 护盾 。 一路顺风 ！ | Here is your new shield. Bon voyage!
+      ! ship leave
+      @ Haggled a trader down to twenty for a new shield.
+
+      = nothing
+      trader: 好 吧 。 再见 ， 朋友 ！ | All right. Goodbye, friends!
+      ! ship leave
+      @ Turned down a trader's offer of a new shield.
+
+      = repair
       trader: 你们 的 飞船 坏 了 。 我 可以 修 ， 五十 块 。 | Your ship is damaged. I can repair it: fifty kuai.
       * 好 ， 成交 ！ | All right, it's a deal! > fifty
       * 太 贵 了 ！ | That's too expensive! > haggle
@@ -485,9 +519,10 @@ export const ENCOUNTERS: Array<Encounter> = [
       = fifty
       ! score -50
       ! hull 40
-      trader: 修 好 了 ！ 一路顺风 ！ | All fixed! Bon voyage!
+      trader: 修 好 了 ！ 你们 很 好 ， 我们 是 朋友 ！ | All fixed! You're good people: we are friends!
+      ! ally
       ! ship leave
-      @ Paid a trader fifty to repair the hull.
+      @ Paid a trader his full price to repair the hull, and made a friend.
 
       = thirty
       ! score -30
