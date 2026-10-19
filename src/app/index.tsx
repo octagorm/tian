@@ -5,6 +5,7 @@ import { Frame, PeekProvider } from './ui'
 import Home from './home'
 import { GAMES } from './registry'
 import { Reminders, SealToaster, TodayDock } from './daily'
+import { Broken, Mend } from './mend'
 import type { GameId } from './registry'
 import { WithConvexAuth } from '~/lib/convex'
 import './tian.css'
@@ -21,20 +22,23 @@ const fromHash = (): GameId | null => {
 }
 
 export default function Chinese() {
+  // Whatever breaks, the page says so rather than going blank (mend.tsx)
   return (
-    <WithConvexAuth>
-      <BankProvider>
-        <PeekProvider>
-          <Router />
-          {/* A seal earned anywhere is stamped here, a step of Today
+    <Mend>
+      <WithConvexAuth>
+        <BankProvider>
+          <PeekProvider>
+            <Router />
+            {/* A seal earned anywhere is stamped here, a step of Today
               played on its own page has a way back, and the daily reminder
               hears of the day done */}
-          <SealToaster />
-          <TodayDock />
-          <Reminders />
-        </PeekProvider>
-      </BankProvider>
-    </WithConvexAuth>
+            <SealToaster />
+            <TodayDock />
+            <Reminders />
+          </PeekProvider>
+        </BankProvider>
+      </WithConvexAuth>
+    </Mend>
   )
 }
 
@@ -109,7 +113,17 @@ function Router() {
             </Frame>
           }
         >
-          <found.Page key={found.id} />
+          {/* A game that breaks keeps its frame and the way home */}
+          <Mend
+            key={found.id}
+            fallback={(reload) => (
+              <Frame title={found.title} zh={found.zh}>
+                <Broken reload={reload} />
+              </Frame>
+            )}
+          >
+            <found.Page />
+          </Mend>
         </Suspense>
       ) : (
         <Home />
