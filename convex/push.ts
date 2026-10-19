@@ -52,9 +52,10 @@ export const send = internalAction({
             {
               vapidDetails: { subject: SUBJECT, publicKey, privateKey },
               TTL,
-              urgency: 'normal',
-              // A reminder not yet delivered is replaced by the next
-              topic: 'today',
+              // At the time chosen, not when it suits the phone's battery
+              urgency: 'high',
+              // No Topic: Apple refuses even a valid one (BadWebPushTopic),
+              // and with a TTL of hours no reminder waits for the next
             },
           )
         } catch (e) {
