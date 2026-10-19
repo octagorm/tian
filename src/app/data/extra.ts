@@ -13,6 +13,7 @@ import { GARDEN_ITEMS, NIGHT_LINE, SEASON_LINES } from './garden.ts'
 import { QUEST, QUEST_SPEECH } from './quest.ts'
 import { pinyinSpeech } from './pinyin.ts'
 import { marketLines } from './market.ts'
+import { QUIZ, QUIZ_VOICE } from './quiz.ts'
 
 // Speech for the games beyond the word bank and the trip, gathered for
 // lib/speech.ts. Lines are written word by word as in the trip; here
@@ -50,6 +51,7 @@ export const EXTRA_LINES: Array<string> = [
   ...QUEST.flatMap((c) => (c.demon.line ? [c.demon.line.zh] : [])),
   ...[...Object.values(SEASON_LINES), NIGHT_LINE].map((l) => l.zh),
   ...marketLines().map((l) => l.zh),
+  ...QUIZ.flatMap((q) => [q.zh, ...q.options]),
 ]
 
 export const EXTRA_SPEECH: Array<ExtraSpeech> = [
@@ -122,6 +124,12 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
     (l) => ({ voice: WORD_VOICE, text: joined(l.zh), kind: 'line' as const }),
   ),
   ...QUEST_SPEECH,
+  // The quiz's questions, read by its host
+  ...QUIZ.map((q) => ({
+    voice: QUIZ_VOICE,
+    text: joined(q.zh),
+    kind: 'line' as const,
+  })),
   { ...SPEED_SAMPLE, kind: 'line' as const },
   // First steps, the beginner's course: all of it heard elsewhere too
   ...courseSpeech(),

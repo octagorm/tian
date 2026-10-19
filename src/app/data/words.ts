@@ -749,6 +749,82 @@ const RAW: Array<[string, string, string]> = [
 晚安|wǎn ān|good night
 `,
   ],
+  [
+    'The quiz',
+    '问答',
+    `
+动物|dòng wù|animal
+鱼|yú|fish
+大象|dà xiàng|elephant
+长颈鹿|cháng jǐng lù|giraffe|giraffe (literally "long-neck deer")
+企鹅|qǐ é|penguin
+鲸鱼|jīng yú|whale
+海|hǎi|sea
+海马|hǎi mǎ|seahorse
+变色龙|biàn sè lóng|chameleon|chameleon (literally "change-colour dragon")
+蜜蜂|mì fēng|bee
+蜂蜜|fēng mì|honey
+牛奶|niú nǎi|milk|milk|drink
+草|cǎo|grass
+狮子|shī zi|lion
+小熊猫|xiǎo xióng māo|red panda|red panda (literally "little panda")
+老鼠|lǎo shǔ|rat|rat, mouse
+生肖|shēng xiào|zodiac animal|animal of the Chinese zodiac
+鼻子|bí zi|nose
+耳朵|ěr duo|ear
+嘴|zuǐ|mouth
+手|shǒu|hand
+脚|jiǎo|foot
+手指|shǒu zhǐ|finger
+左边|zuǒ biān|left|the left, on the left
+右边|yòu biān|right|the right, on the right
+大人|dà rén|adult|adult, grown-up
+医生|yī shēng|doctor
+生病|shēng bìng|be ill|to fall ill, to be ill
+寿司|shòu sī|sushi||food
+披萨|pī sà|pizza||food
+烤鸭|kǎo yā|roast duck||food
+月饼|yuè bǐng|mooncake||food
+西瓜|xī guā|watermelon||food
+黄豆|huáng dòu|soybean|soybean (literally "yellow bean")
+甜|tián|sweet
+过年|guò nián|celebrate New Year|to celebrate the (Chinese) New Year
+中秋节|zhōng qiū jié|Mid-Autumn Festival|the Mid-Autumn Festival, at the full moon of the eighth lunar month
+天空|tiān kōng|sky
+绿色|lǜ sè|green
+国旗|guó qí|flag|national flag
+国家|guó jiā|country|country, state
+首都|shǒu dū|capital|capital city
+北方|běi fāng|the north|the north (of a country)
+东京|Dōng jīng|Tokyo|Tokyo (literally "eastern capital")|place
+巴黎|Bā lí|Paris||place
+伦敦|Lún dūn|London||place
+华盛顿|Huá shèng dùn|Washington||place
+纽约|Niǔ yuē|New York||place
+奥斯陆|ào sī lù|Oslo||place
+意大利|Yì dà lì|Italy||place
+俄罗斯|é luó sī|Russia||place
+加拿大|Jiā ná dà|Canada||place
+澳大利亚|ào dà lì yà|Australia||place
+埃及|āi jí|Egypt||place
+印度|Yìn dù|India||place
+非洲|Fēi zhōu|Africa||place
+南极|Nán jí|Antarctica|the South Pole, Antarctica|place
+北极|Běi jí|the Arctic|the North Pole, the Arctic|place
+珠峰|Zhū fēng|Everest|Mount Everest (short for 珠穆朗玛峰)|place
+泰山|Tài shān|Mount Tai|Mount Tai, a sacred mountain in Shandong|place
+长江|Cháng jiāng|Yangtze|the Yangtze (literally "long river")|place
+黄河|Huáng hé|Yellow River|the Yellow River|place
+金字塔|jīn zì tǎ|pyramid|pyramid (literally "a tower shaped like 金")
+环|huán|ring
+纸|zhǐ|paper
+发明|fā míng|invent|to invent; an invention
+民族|mín zú|ethnic group|ethnic group, nationality
+声调|shēng diào|tone|tone (of a syllable)
+数字|shù zì|number|number, digit
+加|jiā|plus|to add; plus
+`,
+  ],
 ]
 
 export const LESSONS: Array<Lesson> = RAW.map(([title, zh], i) => ({

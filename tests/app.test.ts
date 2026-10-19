@@ -1888,3 +1888,33 @@ describe('taxi', () => {
     expect(judge(stop, 1, 'straight').missed).toEqual(['书店'])
   })
 })
+
+describe('the quiz', () => {
+  test('questions and options are words of the bank, the facts too', async () => {
+    const { QUIZ } = await import('../src/app/data/quiz')
+    const ids = new Set(WORDS.map((w) => w.id))
+    for (const q of QUIZ) {
+      for (const l of [q.zh, ...q.options])
+        expect(() => tokens(l, { home: '挪威' }), l).not.toThrow()
+      for (const m of (q.fact ?? '').matchAll(/\{([^}=]+)(=[^}]*)?\}/g))
+        expect(ids.has(m[1]), `${q.id}: ${m[1]}`).toBe(true)
+    }
+  })
+
+  test('each question has two to four different options, and a topic', async () => {
+    const { QUIZ, TOPICS } = await import('../src/app/data/quiz')
+    const { SPRITES } = await import('../src/app/pixel/sprites')
+    const topics = new Set(TOPICS.map((t) => t.id))
+    for (const t of TOPICS) expect(SPRITES[t.sprite], t.id).toBeTruthy()
+    expect(new Set(QUIZ.map((q) => q.id)).size).toBe(QUIZ.length)
+    for (const q of QUIZ) {
+      expect(topics.has(q.topic), q.id).toBe(true)
+      expect(q.options.length, q.zh).toBeGreaterThanOrEqual(2)
+      expect(q.options.length, q.zh).toBeLessThanOrEqual(4)
+      expect(new Set(q.options).size, q.zh).toBe(q.options.length)
+      expect(q.en, q.zh).not.toBe('')
+    }
+    // enough for a round of ten, many times over
+    expect(QUIZ.length).toBeGreaterThan(60)
+  })
+})

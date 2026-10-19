@@ -184,6 +184,12 @@ export const VOICES: Record<string, Voice> = {
     style: 'a frightened pilot, breathless and pleading, then relieved',
   },
 
+  // The quiz's host (data/quiz.ts)
+  'Quiz host': {
+    base: 'Laomedeia',
+    style: 'a cheerful quiz-show host, clear and unhurried',
+  },
+
   // The stories (data/stories.ts), and the myths among the sayings
   Storyteller: {
     base: 'Storyteller',

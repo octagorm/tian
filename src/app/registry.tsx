@@ -153,6 +153,15 @@ export const GAMES = [
     Page: page(() => import('./games/numbers')),
   },
   {
+    id: 'quiz',
+    title: 'Quiz',
+    zh: '问答',
+    sprite: 'paper-lantern',
+    blurb:
+      'General questions in simple Chinese. Read what you can, guess the rest.',
+    Page: page(() => import('./games/quiz')),
+  },
+  {
     id: 'order',
     title: 'Word order',
     zh: '语序',

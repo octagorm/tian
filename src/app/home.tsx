@@ -62,7 +62,7 @@ const GROUPS = [
     title: 'Practice',
     zh: '练习',
     pinyin: 'liànxí',
-    ids: ['learn', 'review', 'listen', 'order'],
+    ids: ['learn', 'review', 'listen', 'order', 'quiz'],
   },
   {
     id: 'skills',
