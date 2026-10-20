@@ -846,7 +846,7 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'A few more',
-            text: 'A mouth, a gate with two doors, a woman kneeling, a horse with its mane and legs, rain falling from the sky, a field cut into plots.',
+            text: 'A mouth, a doorway, a woman kneeling, a horse with its mane and legs, rain falling from the sky, a field cut into plots.',
             show: {
               k: 'glyphs',
               small: true,
