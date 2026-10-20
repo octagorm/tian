@@ -4,7 +4,7 @@
   // Passes Google's sign-in on to Convex; nothing else runs it
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-10",
-  // The built files. Headers are in public/_headers.
+  // The built files. Headers are in public/_headers, old URLs in public/_redirects.
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",

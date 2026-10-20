@@ -5,9 +5,12 @@ import { authTables } from '@convex-dev/auth/server'
 export default defineSchema({
   ...authTables,
 
-  // Who may keep a word bank on their account (besides the admin, who
-  // always may): let in by an invitation, by the admin's answer to a
-  // request, or by the admin directly
+  // No longer used: from before signing in was enough (access.ts). Kept so
+  // that a deploy does not meet documents its schema lacks; empty them in
+  // the dashboard, then remove them here.
+  //
+  // Who could keep a word bank on their account: let in by an invitation,
+  // by the admin's answer to a request, or by the admin
   members: defineTable({
     userId: v.id('users'),
     email: v.string(),
