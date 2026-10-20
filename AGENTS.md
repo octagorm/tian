@@ -18,7 +18,7 @@ Commands:
 - `npm test` – Vitest: the game's data (`tests/app.test.ts`), access, reminders, the Worker
 - `npm run lint`, `npm run format`
 
-Changes in `convex/` go to production with `npx convex deploy`, separately from the site. When removing a function, push the frontend that stops calling it first.
+Changes in `convex/` go to production with the site: Workers Builds' production deploy command is `npx convex deploy && npx wrangler deploy`, with a deploy key («Cloudflare Workers Builds», `deployment:deploy` only) as the build secret `CONVEX_DEPLOY_KEY`. Previews deploy the site only. The backend goes first, so when removing a function, push the frontend that stops calling it in an earlier push.
 
 Once a piece of work is finished and tested (`npm test`, `npm run lint`, `npm run build`, and a look at it where it shows), commit it and push it to `main` without asking; the site is live a few minutes later. Ask first only when unsure: something half done, a change to production data, or a choice the user has not made.
 
