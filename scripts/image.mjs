@@ -16,8 +16,11 @@
 //   --transparent       ask for a transparent background (for cutouts)
 //   --ref <file>        a reference image (repeatable), e.g. for a shared style
 //   --pixel <WxH>       make pixel art at this size: <out> is the pixel art.
-//                       Match the canvas: landscape comes back about 16:9
-//                       (e.g. 320x180), portrait 9:16, square 1:1
+//                       The picture is scaled to cover the size, keeping its
+//                       proportions, and cropped from the centre: landscape
+//                       comes back 3:2 or wider (1536x1024), portrait 2:3, so
+//                       a 16:9 size such as 320x180 loses a little top and
+//                       bottom
 //   --full <file>       also keep the full-size original there (keep it out
 //                       of public/: it is megabytes)
 //   --colors <n>        palette size for --pixel (default 48)
@@ -166,8 +169,10 @@ try {
   if (!pixel) {
     await magick(files[0], out)
   } else {
-    // Scale down by area averaging and reduce the palette, so the result is
-    // true pixel art at its own small size
+    // Scale down by area averaging to cover the size, keeping the picture's
+    // proportions, crop from the centre and reduce the palette, so the result
+    // is true pixel art at its own small size. The model does not keep to
+    // 16:9, and squeezing it into the size stretches everything in it
     if (keepFull) {
       mkdirSync(dirname(keepFull), { recursive: true })
       await magick(files[0], keepFull)
@@ -177,7 +182,11 @@ try {
       '-filter',
       'Box',
       '-resize',
-      `${pixel}!`,
+      `${pixel}^`,
+      '-gravity',
+      'center',
+      '-extent',
+      pixel,
       ...(dither ? ['-ordered-dither', 'o4x4,32'] : ['+dither']),
       '-colors',
       colors,

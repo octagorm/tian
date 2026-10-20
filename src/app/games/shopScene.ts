@@ -12,12 +12,14 @@ export const H = 180
 const CELL_W = 77
 const CELL_H = 90
 // the counter's top edge, and the stretch of it the customer stands behind
-const COUNTER = 137
+const COUNTER = 144
 const OPEN_X0 = 88
 const OPEN_X1 = 244
 // where the customer stands, the middle of them
 const STAND_X = 168
-const STAND_BOTTOM = 152
+const STAND_BOTTOM = 161
+// the tray on the counter, its top edge
+const TRAY_Y = 155
 
 export type Mood = 'away' | 'enter' | 'wait' | 'happy' | 'cross' | 'leave'
 
@@ -52,10 +54,10 @@ interface Puff {
 const EMITTERS: Array<[number, number, number]> = [
   // x, y, how thick
   [20, 89, 1],
-  [58, 102, 0.8],
-  [66, 120, 1],
-  [255, 123, 0.5],
-  [286, 110, 0.7],
+  [58, 104, 0.8],
+  [66, 125, 1],
+  [255, 128, 0.5],
+  [286, 113, 0.7],
 ]
 
 const sprites = new Map<string, HTMLCanvasElement>()
@@ -154,7 +156,7 @@ export function shopScene(
     const n = 14
     for (let i = 0; i < n; i++) {
       const x = 281 + Math.random() * 17
-      const y = 134 + Math.random() * 7
+      const y = 141 + Math.random() * 8
       dot(
         x,
         y,
@@ -167,7 +169,7 @@ export function shopScene(
     }
     // the glow on the wok's underside
     const a = 0.16 + 0.06 * Math.sin(now / 90) + 0.04 * Math.sin(now / 37)
-    glow(289, 134, 18, `rgba(255, 140, 40, ${a})`)
+    glow(289, 141, 18, `rgba(255, 140, 40, ${a})`)
   }
 
   const glow = (x: number, y: number, r: number, c: string) => {
@@ -182,8 +184,8 @@ export function shopScene(
 
   const lanterns = (now: number) => {
     const a = 0.13 + 0.05 * Math.sin(now / 700)
-    glow(32, 31, 26, `rgba(255, 120, 60, ${a})`)
-    glow(290, 31, 26, `rgba(255, 120, 60, ${a * 0.9})`)
+    glow(32, 23, 26, `rgba(255, 120, 60, ${a})`)
+    glow(290, 23, 26, `rgba(255, 120, 60, ${a * 0.9})`)
   }
 
   // Where the customer is and how they move: sliding in from a side as
@@ -259,7 +261,7 @@ export function shopScene(
     const w = Math.min(n, perRow) * 13 + 10
     const tw = Math.max(46, w)
     const tx = Math.round(STAND_X - tw / 2)
-    const ty = 147
+    const ty = TRAY_Y
     // the tray: dark wood with a lighter rim
     g.fillStyle = '#3a2214'
     g.fillRect(tx, ty, tw, 9)
@@ -312,4 +314,4 @@ export function shopScene(
 // Where the customer's head is, as fractions of the scene, for the speech
 // bubble and the coins
 export const HEAD = { x: STAND_X / W, y: (STAND_BOTTOM - CELL_H + 18) / H }
-export const TRAY = { x: STAND_X / W, y: 147 / H }
+export const TRAY = { x: STAND_X / W, y: TRAY_Y / H }
