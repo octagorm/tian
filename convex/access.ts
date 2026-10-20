@@ -1,14 +1,15 @@
 import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
-import { mutation, query } from './_generated/server'
+import { internalAction, query } from './_generated/server'
+import { internal } from './_generated/api'
 import { ADMIN_EMAIL } from './auth'
 import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 
-// Who may keep their word bank on their account. Anyone with a
-// Google account can sign in, but only members get in: the admin lets
-// people in by answering their requests, or by invitation links that last
-// for a while (or until revoked). The admin is always a member.
+// Who may keep their word bank on their account: anyone who signs in with
+// Google. Each new account is sent to the admin's inbox at
+// ymse.land/admin/innboks, which pushes it to the admin's phone, and the
+// admin page lists them all.
 
 type Ctx = QueryCtx | MutationCtx
 
@@ -20,19 +21,10 @@ async function currentUser(ctx: Ctx): Promise<Doc<'users'> | null> {
 const emailOf = (user: Doc<'users'>) => user.email?.toLowerCase() ?? ''
 const isAdminUser = (user: Doc<'users'>) => emailOf(user) === ADMIN_EMAIL
 
-async function memberOf(ctx: Ctx, userId: Id<'users'>) {
-  return await ctx.db
-    .query('members')
-    .withIndex('by_user', (q) => q.eq('userId', userId))
-    .first()
-}
-
-// The signed-in user, if a member (or the admin); else an error
-export async function requireMember(ctx: Ctx): Promise<Doc<'users'>> {
+// The signed-in user; else an error
+export async function requireUser(ctx: Ctx): Promise<Doc<'users'>> {
   const user = await currentUser(ctx)
   if (!user) throw new ConvexError('Sign in first')
-  if (!isAdminUser(user) && !(await memberOf(ctx, user._id)))
-    throw new ConvexError('No access yet')
   return user
 }
 
@@ -42,210 +34,82 @@ async function requireAdmin(ctx: Ctx): Promise<Doc<'users'>> {
   return user
 }
 
-async function signedIn(ctx: Ctx): Promise<Doc<'users'>> {
-  const user = await currentUser(ctx)
-  if (!user) throw new ConvexError('Sign in first')
-  return user
+// A new account, from auth.ts: a message for the admin's inbox, with how
+// many have come in the last day
+export async function welcome(ctx: MutationCtx, userId: Id<'users'>) {
+  const user = await ctx.db.get('users', userId)
+  if (!user || isAdminUser(user)) return
+  const today = await ctx.db
+    .query('users')
+    .withIndex('by_creation_time', (q) =>
+      q.gt('_creationTime', Date.now() - 86_400_000),
+    )
+    .take(1000)
+  await ctx.scheduler.runAfter(0, internal.access.announce, {
+    title: `Ny bruker: ${user.name ?? emailOf(user)}`,
+    body: `${emailOf(user)}\n${today.length === 1 ? 'Den eneste nye' : `${today.length} nye`} det siste døgnet.`,
+  })
 }
 
-// An invitation that can be used now, or null
-async function validInvite(ctx: Ctx, token: string) {
-  const invite = await ctx.db
-    .query('invites')
-    .withIndex('by_token', (q) => q.eq('token', token))
-    .first()
-  if (!invite || invite.revokedAt !== undefined) return null
-  if (invite.expiresAt !== undefined && invite.expiresAt < Date.now())
-    return null
-  return invite
-}
+// To the admin's inbox, with the sender's token in YMSELAND_NOTIFY_TOKEN
+// (made at ymse.land/admin/innboks); without it, nothing is sent. Unread,
+// the next one replaces it.
+export const announce = internalAction({
+  args: { title: v.string(), body: v.string() },
+  handler: async (_ctx, { title, body }) => {
+    const token = process.env.YMSELAND_NOTIFY_TOKEN
+    if (!token) return
+    try {
+      const res = await fetch('https://ymse.land/api/notify', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          body,
+          url: 'https://tian.ymse.land/admin',
+          tag: 'ny-bruker',
+        }),
+        signal: AbortSignal.timeout(10_000),
+      })
+      if (!res.ok) console.error('The inbox answered', res.status)
+    } catch (e) {
+      console.error('The inbox could not be reached', e)
+    }
+  },
+})
 
 // --- For everyone ---
 
-// Where the signed-in user stands: not signed in (null), a member, waiting
-// for an answer, or neither
+// The signed-in user, or null
 export const me = query({
   args: {},
   handler: async (ctx) => {
     const user = await currentUser(ctx)
     if (!user) return null
-    const admin = isAdminUser(user)
-    const member = admin || !!(await memberOf(ctx, user._id))
-    const request = await ctx.db
-      .query('accessRequests')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .order('desc')
-      .first()
     return {
       name: user.name ?? null,
       email: emailOf(user),
-      admin,
-      member,
-      request: member ? null : (request?.status ?? null),
+      admin: isAdminUser(user),
     }
-  },
-})
-
-// Whether an invitation link is good, before signing in with it
-export const invitation = query({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const invite = await validInvite(ctx, token)
-    return invite ? { label: invite.label } : null
-  },
-})
-
-// Uses an invitation: the signed-in user becomes a member
-export const redeem = mutation({
-  args: { token: v.string() },
-  handler: async (ctx, { token }) => {
-    const user = await signedIn(ctx)
-    if (isAdminUser(user) || (await memberOf(ctx, user._id))) return true
-    const invite = await validInvite(ctx, token)
-    if (!invite) throw new ConvexError('The invitation is no longer valid')
-    await ctx.db.insert('members', {
-      userId: user._id,
-      email: emailOf(user),
-      via: 'invite',
-      invite: invite._id,
-      grantedAt: Date.now(),
-    })
-    await ctx.db.patch('invites', invite._id, { uses: invite.uses + 1 })
-    return true
-  },
-})
-
-// Asks the admin to be let in (again, if asked before)
-export const request = mutation({
-  args: { message: v.optional(v.string()) },
-  handler: async (ctx, { message }) => {
-    const user = await signedIn(ctx)
-    if (isAdminUser(user) || (await memberOf(ctx, user._id))) return
-    const text = message?.trim().slice(0, 500) || undefined
-    const prev = await ctx.db
-      .query('accessRequests')
-      .withIndex('by_user', (q) => q.eq('userId', user._id))
-      .filter((q) => q.eq(q.field('status'), 'pending'))
-      .first()
-    if (prev) {
-      await ctx.db.patch('accessRequests', prev._id, {
-        message: text,
-        createdAt: Date.now(),
-      })
-      return
-    }
-    await ctx.db.insert('accessRequests', {
-      userId: user._id,
-      email: emailOf(user),
-      name: user.name,
-      message: text,
-      createdAt: Date.now(),
-      status: 'pending',
-    })
   },
 })
 
 // --- For the admin ---
 
-export const requests = query({
+// Everyone who has signed in, newest first
+export const users = query({
   args: {},
   handler: async (ctx) => {
     await requireAdmin(ctx)
-    return await ctx.db
-      .query('accessRequests')
-      .withIndex('by_status', (q) => q.eq('status', 'pending'))
-      .order('desc')
-      .collect()
-  },
-})
-
-export const decide = mutation({
-  args: { id: v.id('accessRequests'), approve: v.boolean() },
-  handler: async (ctx, { id, approve }) => {
-    await requireAdmin(ctx)
-    const req = await ctx.db.get('accessRequests', id)
-    if (!req || req.status !== 'pending') return
-    await ctx.db.patch('accessRequests', id, {
-      status: approve ? 'approved' : 'denied',
-      decidedAt: Date.now(),
-    })
-    if (approve && !(await memberOf(ctx, req.userId)))
-      await ctx.db.insert('members', {
-        userId: req.userId,
-        email: req.email,
-        via: 'request',
-        grantedAt: Date.now(),
-      })
-  },
-})
-
-export const invites = query({
-  args: {},
-  handler: async (ctx) => {
-    await requireAdmin(ctx)
-    const all = await ctx.db.query('invites').order('desc').collect()
-    const now = Date.now()
-    return all.map((i) => ({
-      ...i,
-      valid:
-        i.revokedAt === undefined &&
-        (i.expiresAt === undefined || i.expiresAt >= now),
+    const list = await ctx.db.query('users').order('desc').take(500)
+    return list.map((u) => ({
+      _id: u._id,
+      name: u.name ?? null,
+      email: emailOf(u),
+      createdAt: u._creationTime,
     }))
-  },
-})
-
-// A new invitation link's token, valid for `days` (none: no end)
-export const invite = mutation({
-  args: { label: v.string(), days: v.optional(v.number()) },
-  handler: async (ctx, { label, days }) => {
-    await requireAdmin(ctx)
-    const now = Date.now()
-    const token = crypto.randomUUID().replaceAll('-', '')
-    await ctx.db.insert('invites', {
-      token,
-      label: label.trim().slice(0, 100) || 'Invitation',
-      createdAt: now,
-      expiresAt: days === undefined ? undefined : now + days * 86_400_000,
-      uses: 0,
-    })
-    return token
-  },
-})
-
-export const revokeInvite = mutation({
-  args: { id: v.id('invites') },
-  handler: async (ctx, { id }) => {
-    await requireAdmin(ctx)
-    const i = await ctx.db.get('invites', id)
-    if (i && i.revokedAt === undefined)
-      await ctx.db.patch('invites', id, { revokedAt: Date.now() })
-  },
-})
-
-export const members = query({
-  args: {},
-  handler: async (ctx) => {
-    await requireAdmin(ctx)
-    const list = await ctx.db.query('members').order('desc').collect()
-    return await Promise.all(
-      list.map(async (m) => {
-        const user = await ctx.db.get('users', m.userId)
-        const from = m.invite ? await ctx.db.get('invites', m.invite) : null
-        return {
-          ...m,
-          name: user?.name ?? null,
-          inviteLabel: from?.label ?? null,
-        }
-      }),
-    )
-  },
-})
-
-// Takes away someone's access (they can ask again)
-export const removeMember = mutation({
-  args: { id: v.id('members') },
-  handler: async (ctx, { id }) => {
-    await requireAdmin(ctx)
-    await ctx.db.delete('members', id)
   },
 })

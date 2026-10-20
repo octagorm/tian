@@ -1,6 +1,6 @@
 import { ConvexError, v } from 'convex/values'
 import { mutation, query } from './_generated/server'
-import { requireMember } from './access'
+import { requireUser } from './access'
 
 // The word bank on the account, so it follows the player from device to
 // device. The browser keeps its own copy and merges the two
@@ -13,7 +13,7 @@ const MAX = 400_000
 export const bank = query({
   args: {},
   handler: async (ctx) => {
-    const user = await requireMember(ctx)
+    const user = await requireUser(ctx)
     const row = await ctx.db
       .query('banks')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
@@ -25,7 +25,7 @@ export const bank = query({
 export const save = mutation({
   args: { data: v.string() },
   handler: async (ctx, { data }) => {
-    const user = await requireMember(ctx)
+    const user = await requireUser(ctx)
     if (data.length > MAX) throw new ConvexError('Word bank too large')
     try {
       const parsed: unknown = JSON.parse(data)

@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuthActions } from '@convex-dev/auth/react'
-import { useMutation } from 'convex/react'
-import { Cloud, CloudOff, LogIn, LogOut } from 'lucide-react'
-import { api } from '../../convex/_generated/api'
+import { Cloud, LogIn, LogOut } from 'lucide-react'
 import { useStore } from './lib/store'
 import { Fret } from './ornament/Borders'
 
@@ -29,17 +27,14 @@ const installed = () =>
   (navigator as Navigator & { standalone?: boolean }).standalone === true
 
 // Top right of the home screen: signing in with Google. The word bank
-// follows a member's account; others can ask for access (the admin
-// answers in /admin) and keep their progress in the browser meanwhile.
+// then follows the account.
 // `glass` is for over the scene.
 export function Account({ glass = false }: { glass?: boolean }) {
   const { account } = useStore()
   const { signIn, signOut } = useAuthActions()
-  const request = useMutation(api.access.request)
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [message, setMessage] = useState('')
   const box = useRef<HTMLDivElement>(null)
   // Closed by a click elsewhere or Escape
   useEffect(() => {
@@ -121,15 +116,9 @@ export function Account({ glass = false }: { glass?: boolean }) {
       </button>
     )
   const name = me.name ?? me.email
-  const status = me.member
-    ? account.synced
-      ? 'Your word bank is kept on your account, and follows you to any device you sign in on.'
-      : 'Fetching your word bank…'
-    : me.request === 'pending'
-      ? 'You have asked for access. Until then, progress stays in this browser.'
-      : me.request === 'denied'
-        ? 'This account was not given access. Progress stays in this browser.'
-        : 'This account has no access yet. Ask for it, or use an invitation link.'
+  const status = account.synced
+    ? 'Your word bank is kept on your account, and follows you to any device you sign in on.'
+    : 'Fetching your word bank…'
   return (
     <div className="relative" ref={box}>
       <button
@@ -143,9 +132,6 @@ export function Account({ glass = false }: { glass?: boolean }) {
           {name.charAt(0).toUpperCase()}
         </span>
         <span className="max-w-32 truncate max-sm:hidden">{name}</span>
-        {!me.member && (
-          <span className="h-2 w-2 rounded-full bg-amber-400" aria-hidden />
-        )}
       </button>
       {open && (
         <div
@@ -167,38 +153,9 @@ export function Account({ glass = false }: { glass?: boolean }) {
               </span>
             </div>
             <p className="flex gap-2 leading-snug text-[var(--ink-2)]">
-              {me.member ? (
-                <Cloud
-                  size={16}
-                  className="mt-0.5 shrink-0 text-[var(--jade)]"
-                />
-              ) : (
-                <CloudOff
-                  size={16}
-                  className="mt-0.5 shrink-0 text-[var(--gold-2)]"
-                />
-              )}
+              <Cloud size={16} className="mt-0.5 shrink-0 text-[var(--jade)]" />
               {status}
             </p>
-            {!me.member && !me.request && (
-              <>
-                <input
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  maxLength={500}
-                  placeholder="Who are you? (optional)"
-                  className="rounded-xl border-2 border-[var(--paper-2)] bg-white px-3 py-2"
-                />
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void act(() => request({ message }))}
-                  className="zh-btn self-start rounded-xl bg-[var(--gold)] px-3 py-1.5 font-bold text-[var(--ink)] [--edge:#a87a22] disabled:opacity-50"
-                >
-                  Ask for access
-                </button>
-              </>
-            )}
             {error && <p className="text-[var(--red)]">{error}</p>}
             <button
               type="button"

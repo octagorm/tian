@@ -5,9 +5,9 @@ Tian (天, _tiān_: day, sky; 天天向上, a little further every day) is a set
 ## The repo
 
 - Astro with one React island (`client:only`), Tailwind v4, built to static files.
-- The game is `src/app/`; paths below without a folder are in it. The page is `src/pages/index.astro`; `/admin` and `/invite` are for access.
-- Convex (project `tian`) keeps the word bank of members (`convex/bank.ts`), who they are (`convex/access.ts`) and the daily reminders (`convex/reminders.ts`, below): anyone can sign in with Google, but only the admin (Gorm) and members keep their bank on the account. The admin lets people in at `/admin`, by answering requests or with invitation links (`/invite?code=…`).
-- Hosting: the Cloudflare Worker `tian`, built by Workers Builds on push to `main` (other branches get preview URLs). The files are static assets; `worker/index.ts` runs only for `/api/auth/*`, passing Google's sign-in on to Convex so that Google's page names tian.ymse.land (Convex's `CUSTOM_AUTH_SITE_URL`). Headers are in `public/_headers`.
+- The game is `src/app/`; paths below without a folder are in it. The page is `src/pages/index.astro`; `/admin` lists who has signed in.
+- Convex (project `tian`) keeps the word bank on the account (`convex/bank.ts`), who has signed in (`convex/access.ts`) and the daily reminders (`convex/reminders.ts`, below): anyone can sign in with Google and keep their bank on the account. Each new account is sent to Gorm's inbox at ymse.land/admin/innboks, which pushes it to the phone, with the sender's token in `YMSELAND_NOTIFY_TOKEN` on production's Convex (without it, nothing is sent); `/admin` lists them all.
+- Hosting: the Cloudflare Worker `tian`, built by Workers Builds on push to `main` (other branches get preview URLs). The files are static assets; `worker/index.ts` runs only for `/api/auth/*`, passing Google's sign-in on to Convex so that Google's page names tian.ymse.land (Convex's `CUSTOM_AUTH_SITE_URL`). Headers are in `public/_headers`, and old URLs are redirected in `public/_redirects`.
 - Google sign-in has a Cloud project, client and brand of its own: project «Tian» (`tian-511918`, owned by gormroedder@gmail.com), client «Tian», with `https://tian.ymse.land/api/auth/callback/google` as its only redirect URI, so Google's page says «Tian». The brand is verified and the app published (External), with `/about` as its home page, `/privacy` as its privacy policy and `ymse.land` as its authorized domain (verified in Google Search Console by a TXT record in the zone, which must stay). Keep `/privacy` in step with `convex/schema.ts`. Changing the app's name, home page or privacy link means verifying the brand again, and a logo means a full app review. Production's Convex is `valuable-akita-141`, with `SITE_URL` and `CUSTOM_AUTH_SITE_URL` https://tian.ymse.land; development's (`dutiful-hummingbird-800`) has no Google sign-in.
 
 Commands:
@@ -38,7 +38,7 @@ A word's card decides how it is shown everywhere (`Mixed`, `Sprinkled` and `Ruby
 - met (learning): hanzi with pinyin above;
 - known (stability 1.5 days or more, not faded): hanzi alone.
 
-`lib/store.tsx` holds the bank and the settings as React state, in `localStorage` (`tian:bank:v1`, `tian:settings:v1`). For a member (see `convex/access.ts`) the bank is also kept on the account (`convex/bank.ts`, as the page's own JSON) and merged on sign-in: per word the card seen last, per score, day, scene and garden thing the highest, per seal the first day it was earned, and of two Today sessions the later day's, or the one further on.
+`lib/store.tsx` holds the bank and the settings as React state, in `localStorage` (`tian:bank:v1`, `tian:settings:v1`). Signed in, the bank is also kept on the account (`convex/bank.ts`, as the page's own JSON) and merged on sign-in: per word the card seen last, per score, day, scene and garden thing the highest, per seal the first day it was earned, and of two Today sessions the later day's, or the one further on.
 
 ## The daily habit
 

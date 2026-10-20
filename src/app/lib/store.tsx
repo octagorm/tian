@@ -15,7 +15,7 @@ import type { ReactNode } from 'react'
 import type { Bank, Level, Path } from './bank'
 
 // The word bank and the settings as React state, for every game at once.
-// Both are kept in localStorage; for a member, the bank is also kept on
+// Both are kept in localStorage; signed in, the bank is also kept on
 // the account (convex/bank.ts): the two are merged whenever the
 // account's copy comes in, and each change is saved a moment later.
 //
@@ -110,8 +110,7 @@ export interface Account {
   me: {
     name: string | null
     email: string
-    member: boolean
-    request: string | null
+    admin: boolean
   } | null
   synced: boolean
 }
@@ -352,7 +351,7 @@ const same = (a: Bank, b: Bank) =>
 function useAccount(local: Bank, setLocal: (b: Bank) => void): Account {
   const { isAuthenticated, isLoading } = useConvexAuth()
   const me = useQuery(api.access.me, isAuthenticated ? {} : 'skip')
-  const member = isAuthenticated && !!me?.member
+  const member = isAuthenticated && !!me
   const remoteRaw = useQuery(api.bank.bank, member ? {} : 'skip')
   const save = useMutation(api.bank.save)
   const merged = useRef(false)
