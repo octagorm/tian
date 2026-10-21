@@ -2,6 +2,7 @@ import { courseSpeech } from '../lib/course.ts'
 import { TONE_SETS } from './tones.ts'
 import { CAPTAIN_LINES, CAPTAIN_VOICE, MISSIONS, ORDERS } from './bridge.ts'
 import { encounterSpeech } from './encounters.ts'
+import { officeSpeech } from './office.ts'
 import { SHOP_ORDERS } from './shop.ts'
 import { PASSENGERS, TAXI_LINES } from './taxi.ts'
 import { NUMBER_ITEMS } from './numbers.ts'
@@ -48,6 +49,7 @@ export const EXTRA_LINES: Array<string> = [
   ),
   ...TAXI_LINES,
   ...encounterSpeech().map((l) => l.zh),
+  ...officeSpeech().map((l) => l.zh),
   ...QUEST.flatMap((c) => (c.demon.line ? [c.demon.line.zh] : [])),
   ...[...Object.values(SEASON_LINES), NIGHT_LINE].map((l) => l.zh),
   ...marketLines().map((l) => l.zh),
@@ -111,6 +113,12 @@ export const EXTRA_SPEECH: Array<ExtraSpeech> = [
   })),
   // The starship's encounters: the crew, the aliens and the player's replies
   ...encounterSpeech().map((l) => ({
+    voice: l.voice,
+    text: joined(l.zh),
+    kind: 'line' as const,
+  })),
+  // The office: colleagues, the client and the player's replies
+  ...officeSpeech().map((l) => ({
     voice: l.voice,
     text: joined(l.zh),
     kind: 'line' as const,

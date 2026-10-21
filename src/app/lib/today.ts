@@ -33,6 +33,7 @@ export const DAILY_GAMES = [
   'shop',
   'market',
   'taxi',
+  'office',
   'tones',
   'numbers',
   'order',

@@ -825,6 +825,71 @@ const RAW: Array<[string, string, string]> = [
 加|jiā|plus|to add; plus
 `,
   ],
+  [
+    'The office',
+    '办公室',
+    `
+公司|gōng sī|company
+办公室|bàn gōng shì|office
+经理|jīng lǐ|manager
+总|zǒng|director|head, chief; after a surname, the head of a company (王总, Director Wang)
+总经理|zǒng jīng lǐ|general manager|general manager, the head of a company
+实习生|shí xí shēng|intern
+职员|zhí yuán|clerk|clerk, member of staff
+客户|kè hù|client|client, customer
+刘|Liú|Liu|Liu, a surname||name
+陈|Chén|Chen|Chen, a surname||name
+赵|Zhào|Zhao|Zhao, a surname||name
+周|Zhōu|Zhou|Zhou, a surname||name
+林|Lín|Lin|Lin, a surname||name
+孙|Sūn|Sun|Sun, a surname||name
+上班|shàng bān|go to work|to go to work, to be at work
+下班|xià bān|finish work|to finish work for the day
+加班|jiā bān|work late|to work overtime
+请假|qǐng jià|take time off|to ask for time off
+迟到|chí dào|be late|to arrive late
+休息|xiū xi|rest|to rest, to take a break
+开会|kāi huì|meet|to hold or attend a meeting
+会议|huì yì|meeting
+会议室|huì yì shì|meeting room
+文件|wén jiàn|document|document, file
+报告|bào gào|report|report; to report
+合同|hé tong|contract
+打印|dǎ yìn|print
+电脑|diàn nǎo|computer
+电话|diàn huà|phone|telephone; phone call
+打电话|dǎ diàn huà|call|to make a phone call
+号码|hào mǎ|number|number (of a phone, a room)
+邮件|yóu jiàn|email|email; post
+发|fā|send|to send
+收到|shōu dào|receive|to receive, to get
+交给|jiāo gěi|hand to|to hand over to, to give to
+告诉|gào su|tell
+有空|yǒu kòng|be free|to have time, to be free
+订|dìng|book|to book, to reserve
+改|gǎi|change|to change, to correct
+取消|qǔ xiāo|cancel
+完|wán|finish|to finish; (after a verb) done, through
+出差|chū chāi|go on business|to go on a business trip
+前台|qián tái|front desk|front desk, reception
+快递|kuài dì|parcel|parcel, courier delivery
+蛋糕|dàn gāo|cake||food
+生日|shēng rì|birthday
+周末|zhōu mò|weekend
+后天|hòu tiān|day after tomorrow|the day after tomorrow
+重要|zhòng yào|important
+需要|xū yào|need
+计划|jì huà|plan|plan; to plan
+价格|jià gé|price
+签|qiān|sign|to sign (one's name)
+满意|mǎn yì|pleased|satisfied, pleased
+放心|fàng xīn|don't worry|to be at ease (放心 = don't worry)
+辛苦|xīn kǔ|hard work|hard, toilsome (辛苦了 = thanks for your hard work)
+恭喜|gōng xǐ|congratulations
+升职|shēng zhí|be promoted|to be promoted
+万|wàn|ten thousand||num
+`,
+  ],
 ]
 
 export const LESSONS: Array<Lesson> = RAW.map(([title, zh], i) => ({

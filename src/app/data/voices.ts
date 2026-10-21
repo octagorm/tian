@@ -184,6 +184,37 @@ export const VOICES: Record<string, Voice> = {
     style: 'a frightened pilot, breathless and pleading, then relieved',
   },
 
+  // The office (data/office.ts): the boss, the managers, the colleagues
+  // and the client
+  'Director Wang': {
+    base: 'Charon',
+    style: 'a senior company director, calm, warm and assured',
+  },
+  'Manager Liu': {
+    base: 'Callirrhoe',
+    style: 'a busy office manager, brisk but kind',
+  },
+  'Manager Zhao': {
+    base: 'Enceladus',
+    style: 'a careful, serious manager, a little dry',
+  },
+  'Manager Zhou': {
+    base: 'Vindemiatrix',
+    style: 'a friendly, efficient manager, clear and quick',
+  },
+  'Xiao Chen': {
+    base: 'Umbriel',
+    style: 'a chatty young colleague, casual and cheerful',
+  },
+  'Xiao Lin': {
+    base: 'Autonoe',
+    style: 'a keen young intern, eager and polite',
+  },
+  'Mr Sun': {
+    base: 'Rasalgethi',
+    style: 'a demanding client, businesslike and a little impatient',
+  },
+
   // The quiz's host (data/quiz.ts)
   'Quiz host': {
     base: 'Laomedeia',

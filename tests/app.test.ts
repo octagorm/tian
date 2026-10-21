@@ -1977,3 +1977,127 @@ describe('choices', () => {
     }
   })
 })
+
+describe('the office', () => {
+  test('every line and every thing to pick is made of words in the bank', async () => {
+    const { TASKS, officeSpeech } = await import('../src/app/data/office')
+    for (const l of officeSpeech())
+      expect(() => tokens(l.zh, { home: '挪威' }), l.zh).not.toThrow()
+    for (const t of TASKS)
+      for (const p of t.pick)
+        expect(() => tokens(p, { home: '挪威' }), p).not.toThrow()
+  })
+
+  test('tasks are well formed, and every rank has days of them', async () => {
+    const { TASKS, CAST, RANKS, DAY } = await import('../src/app/data/office')
+    expect(new Set(TASKS.map((t) => t.id)).size).toBe(TASKS.length)
+    for (const t of TASKS) {
+      expect(['chat', 'voice', 'call', 'meet', 'pass'], t.id).toContain(t.kind)
+      expect(t.lines.length, t.id).toBeGreaterThan(0)
+      for (const s of [...t.lines, ...t.after]) {
+        expect(CAST[s.by], `${t.id}: ${s.by}`).toBeTruthy()
+        expect(s.en, `${t.id}: ${s.zh}`).toBeTruthy()
+      }
+      // replies with one right among them, or things to pick, not both
+      expect(!!t.replies.length !== !!t.pick.length, t.id).toBe(true)
+      if (t.replies.length) {
+        expect(
+          t.replies.filter((r) => r.right),
+          t.id,
+        ).toHaveLength(1)
+        expect(t.replies.length, t.id).toBeGreaterThanOrEqual(3)
+      } else {
+        expect(t.pick.length, t.id).toBeGreaterThanOrEqual(3)
+        expect(new Set(t.pick).size, t.id).toBe(t.pick.length)
+        expect(t.prompt, t.id).toBeTruthy()
+      }
+      // an order to pass on says who to
+      if (t.kind === 'pass') expect(t.after.length, t.id).toBeGreaterThan(0)
+      if (t.kind === 'meet' && t.pick.length)
+        expect(new Set(t.lines.map((l) => l.by)).size, t.id).toBeGreaterThan(1)
+    }
+    RANKS.forEach((_, r) =>
+      expect(TASKS.filter((t) => t.rank === r).length).toBeGreaterThan(
+        DAY * 1.5,
+      ),
+    )
+  })
+
+  test('wrong answers are as long as the right one', async () => {
+    const { TASKS } = await import('../src/app/data/office')
+    const { syllables: hanzi } = await import('../src/app/lib/office')
+    const said = (zh: string) =>
+      tokens(zh, { home: '挪威' }).reduce((n, t) => n + t.pinyin.length, 0)
+    for (const t of TASKS) {
+      if (t.pick.length) {
+        const n = said(t.pick[0])
+        for (const p of t.pick) expect(said(p), `${t.id}: ${p}`).toBe(n)
+      }
+      const right = t.replies.find((r) => r.right)
+      if (right)
+        for (const r of t.replies)
+          expect(
+            Math.abs(hanzi(r.zh) - hanzi(right.zh)),
+            `${t.id}: ${r.zh}`,
+          ).toBeLessThanOrEqual(2)
+    }
+  })
+
+  test('a day is ten tasks of its rank, the ones not done lately first', async () => {
+    const { TASKS, DAY } = await import('../src/app/data/office')
+    const { dayOf } = await import('../src/app/lib/office')
+    for (let r = 0; r < 4; r++) {
+      const a = dayOf(r)
+      expect(a).toHaveLength(DAY)
+      expect(new Set(a.map((t) => t.id)).size).toBe(DAY)
+      for (const t of a) expect(t.rank).toBe(r)
+      const b = dayOf(
+        r,
+        Math.random,
+        a.map((t) => t.id),
+      )
+      const pool = TASKS.filter((t) => t.rank === r).length
+      const repeats = b.filter((t) => a.some((x) => x.id === t.id)).length
+      expect(repeats).toBe(Math.max(0, 2 * DAY - pool))
+    }
+  })
+
+  test('things to pick are shown as faces, pictures, clocks and figures', async () => {
+    const { lookOf, clockOf } = await import('../src/app/lib/office')
+    const { TASKS } = await import('../src/app/data/office')
+    const { SPRITES } = await import('../src/app/pixel/sprites')
+    expect(lookOf('赵 经理')).toEqual({ kind: 'person', who: 'zhao' })
+    expect(lookOf('咖啡')).toEqual({ kind: 'thing', sprite: 'coffee' })
+    expect(clockOf(['下午', '四', '点', '半'])).toBe('16:30')
+    expect(clockOf(['上午', '十', '点'])).toBe('10:00')
+    expect(clockOf(['晚上', '七', '点'])).toBe('19:00')
+    expect(lookOf('星期 三 下午 两 点')).toEqual({
+      kind: 'time',
+      day: '星期 三',
+      clock: '14:00',
+    })
+    expect(lookOf('八三五六')).toMatchObject({ kind: 'number', n: '8356' })
+    expect(lookOf('两万')).toMatchObject({ kind: 'number', n: '20,000' })
+    expect(lookOf('十二 份')).toMatchObject({ n: '12', rest: '份' })
+    expect(lookOf('星期 五')).toEqual({ kind: 'text' })
+    for (const t of TASKS)
+      for (const p of t.pick) {
+        const look = lookOf(p)
+        if (look.kind === 'thing')
+          expect(SPRITES[look.sprite], look.sprite).toBeTruthy()
+      }
+  })
+
+  test('promotion: a day with at most one miss, or a long run right', async () => {
+    const { promotion } = await import('../src/app/lib/office')
+    const { DAY, STREAK, RANKS } = await import('../src/app/data/office')
+    const day = (misses: number) =>
+      Array.from({ length: DAY }, (_, i) => ({ id: `t${i}`, hit: i >= misses }))
+    expect(promotion(0, day(0), DAY)).toBe(true)
+    expect(promotion(0, day(1), 3)).toBe(true)
+    expect(promotion(0, day(2), 3)).toBe(false)
+    expect(promotion(1, day(3), STREAK)).toBe(true)
+    // no rank above the top
+    expect(promotion(RANKS.length - 1, day(0), 99)).toBe(false)
+  })
+})

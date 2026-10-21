@@ -129,6 +129,15 @@ export const GAMES = [
     Page: page(() => import('./games/taxi')),
   },
   {
+    id: 'office',
+    title: 'The office',
+    zh: '办公室',
+    sprite: 'briefcase',
+    blurb:
+      'Messages, calls and meetings in Chinese. Do well, and you are promoted.',
+    Page: page(() => import('./games/office')),
+  },
+  {
     id: 'parts',
     title: 'Character parts',
     zh: '部首',
