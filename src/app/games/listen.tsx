@@ -4,6 +4,7 @@ import { SCENES } from '../data/trip'
 import { WORD } from '../data/words'
 import { english, plain, tokens } from '../lib/text'
 import { blip } from '../lib/audio'
+import { lineChoices } from '../lib/choices'
 import { useStore } from '../lib/store'
 import { Btn, Frame, Mixed, shuffle, tokenLevel } from '../ui'
 import { Face } from '../pixel/Pix'
@@ -114,16 +115,7 @@ export default function Listen() {
   const buttons = useRef(new Map<string, HTMLButtonElement | null>())
   const { speaking, play } = useSpeaker()
   const q = pool[i % pool.length]
-  const choices = useMemo(
-    () =>
-      shuffle([
-        q.en,
-        ...shuffle(
-          [...new Set(HEARD.map((h) => h.en))].filter((en) => en !== q.en),
-        ).slice(0, 3),
-      ]),
-    [q],
-  )
+  const choices = useMemo(() => lineChoices(q, HEARD), [q])
   const hear = () => void play(plain(q.zh, vars), q.voice)
 
   useEffect(() => {

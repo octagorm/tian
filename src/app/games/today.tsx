@@ -13,6 +13,7 @@ import { WORD } from '../data/words'
 import { SEALS } from '../data/seals'
 import { english, plain, tokens, wordIds } from '../lib/text'
 import { toHanzi } from '../lib/numbers'
+import { lineChoices } from '../lib/choices'
 import { blip, say } from '../lib/audio'
 import { dayKey, streak } from '../lib/bank'
 import { useStore } from '../lib/store'
@@ -736,18 +737,7 @@ function ListenLines({
   const [i, setI] = useState(0)
   const [picked, setPicked] = useState<{ en: string; at: number } | null>(null)
   const q = lines[i] as Heard | undefined
-  const choices = useMemo(
-    () =>
-      q
-        ? shuffle([
-            q.en,
-            ...shuffle(
-              [...new Set(HEARD.map((h) => h.en))].filter((en) => en !== q.en),
-            ).slice(0, 3),
-          ])
-        : [],
-    [q],
-  )
+  const choices = useMemo(() => (q ? lineChoices(q, HEARD) : []), [q])
   const hear = () => {
     if (q) void play(plain(q.zh, vars), q.voice)
   }

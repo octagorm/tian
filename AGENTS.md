@@ -30,7 +30,7 @@ To look at a change without a dev server, build, serve `dist/` and take screensh
 
 ## The word bank
 
-Every game reads and writes one bank (`lib/bank.ts`), so a word learnt in one is known in all. Each word met has a card with a memory in the manner of FSRS: `s` is the stability in days, recall is `1 / (1 + t / 9s)`, a right answer multiplies `s` by more the more it had faded (crammed answers count little, spaced ones a lot), a wrong one cuts it, and a real slip brings a known word back to pinyin. Games weigh what an answer says (`record(id, right, weight)`): typing pinyin 1, picking from four about 0.6, hints that a word was looked up 0.3.
+Every game reads and writes one bank (`lib/bank.ts`), so a word learnt in one is known in all. Each word met has a card with a memory in the manner of FSRS: `s` is the stability in days, recall is `1 / (1 + t / 9s)`, a right answer multiplies `s` by more the more it had faded (crammed answers count little, spaced ones a lot), a wrong one cuts it, and a real slip brings a known word back to pinyin. Games weigh what an answer says (`record(id, right, weight)`): typing pinyin 1, picking from four about 0.6, hints that a word was looked up 0.3. The wrong answers of a question of four (`lib/choices.ts`) must not give it away by their shape: by ear and for picking the character they have as many syllables as the right one (from the whole vocabulary if the words met have too few), and by ear they share syllables or tones with it; a line heard is offered beside meanings of lines about as long, and a number beside numbers said in as many syllables.
 
 A word's card decides how it is shown everywhere (`Mixed`, `Sprinkled` and `Ruby` in `ui.tsx`):
 

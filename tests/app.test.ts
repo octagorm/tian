@@ -16,6 +16,12 @@ import {
 } from '../src/app/lib/numbers'
 import { tokens } from '../src/app/lib/text'
 import {
+  lineChoices,
+  numberChoices,
+  soundsSame,
+  wordChoices,
+} from '../src/app/lib/choices'
+import {
   answer,
   emptyBank,
   level,
@@ -1916,5 +1922,58 @@ describe('the quiz', () => {
     }
     // enough for a round of ten, many times over
     expect(QUIZ.length).toBeGreaterThan(60)
+  })
+})
+
+describe('choices', () => {
+  const len = (w: { p: string }) => w.p.split(' ').filter(Boolean).length
+
+  test('by ear, wrong answers are as long as the word and never sound the same', () => {
+    const pool = WORDS.slice(0, 60)
+    for (const w of WORDS) {
+      const cs = wordChoices(w, pool, 'listen')
+      expect(cs).toHaveLength(4)
+      expect(new Set(cs.map((c) => c.id)).size).toBe(4)
+      expect(cs.filter((c) => c.id === w.id)).toHaveLength(1)
+      for (const c of cs) {
+        expect(len(c)).toBe(len(w))
+        if (c.id !== w.id) expect(soundsSame(c, w)).toBe(false)
+      }
+    }
+  })
+
+  test('a small pool still gives four', () => {
+    const w = WORDS.find((x) => len(x) === 4)!
+    const cs = wordChoices(w, WORDS.slice(0, 8), 'listen')
+    expect(cs).toHaveLength(4)
+    for (const c of cs) expect(len(c)).toBe(4)
+    expect(wordChoices(WORDS[0], WORDS.slice(0, 8), 'meaning')).toHaveLength(4)
+  })
+
+  test('sounds alike: neutral tone, 他 and 她', () => {
+    const he = WORDS.find((x) => x.h === '他')!
+    const she = WORDS.find((x) => x.h === '她')!
+    expect(soundsSame(he, she)).toBe(true)
+  })
+
+  test('numbers heard are offered beside numbers as long', () => {
+    for (const n of [11, 18, 20, 25, 30, 45, 54, 72, 89, 99]) {
+      const cs = numberChoices(n)
+      expect(cs).toHaveLength(4)
+      expect(new Set(cs).size).toBe(4)
+      for (const c of cs)
+        expect([...toHanzi(c)].length).toBe([...toHanzi(n)].length)
+    }
+  })
+
+  test('lines heard get four different meanings', () => {
+    const lines = SCENES.flatMap((s) =>
+      s.steps.flatMap((st) => (st.kind === 'line' ? [st] : [])),
+    )
+    for (const q of lines.slice(0, 50)) {
+      const cs = lineChoices(q, lines)
+      expect(new Set(cs).size).toBe(4)
+      expect(cs).toContain(q.en)
+    }
   })
 })

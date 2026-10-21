@@ -5,7 +5,7 @@ import { join, matches, syllables } from '../lib/pinyin'
 import { say } from '../lib/audio'
 import { useStore } from '../lib/store'
 import { Ruby, shuffle } from '../ui'
-import { distractors } from '../quiz'
+import { wordChoices } from '../lib/choices'
 import type { Word } from '../data/words'
 
 // One question of the fight: what a word means, which word was said, or
@@ -61,7 +61,9 @@ export function Ask({
     // the pool for wrong answers, once
   }, [])
   const [choices, setChoices] = useState(() =>
-    q.mirror ? lookalikes(w) : distractors(w, pool),
+    q.mirror
+      ? lookalikes(w)
+      : wordChoices(w, pool, kind === 'listen' ? 'listen' : 'meaning'),
   )
   const [answered, setAnswered] = useState<string | null>(null)
   const [left, setLeft] = useState(q.seconds ?? 0)

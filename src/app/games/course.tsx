@@ -20,6 +20,7 @@ import { WORD_VOICE } from '../lib/speech'
 import { useStore } from '../lib/store'
 import { english, plain, tokens } from '../lib/text'
 import { numberPinyin, value } from '../lib/numbers'
+import { numberChoices } from '../lib/choices'
 import { TONE_NAME, join } from '../lib/pinyin'
 import {
   dayDone,
@@ -1388,23 +1389,10 @@ function earQuestions(
   if (s.numbers) {
     for (const h of shuffle(s.numbers).slice(0, s.n)) {
       const n = value(h)
-      const tens = Math.floor(n / 10)
-      const ones = n % 10
-      const near = [
-        ones * 10 + tens,
-        n + 10,
-        n - 10,
-        n + 1,
-        n - 1,
-        tens * 100 + ones,
-      ]
-      const wrong = shuffle(
-        [...new Set(near)].filter((x) => x > 0 && x < 1000 && x !== n),
-      ).slice(0, 3)
       out.push({
         say: h,
         answer: String(n),
-        options: shuffle([n, ...wrong].map(String)),
+        options: numberChoices(n).map(String),
         tip: `${h}, ${join(numberPinyin(h))}`,
       })
     }

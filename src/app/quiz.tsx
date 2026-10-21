@@ -3,6 +3,7 @@ import { X } from 'lucide-react'
 import { WORDS } from './data/words'
 import { join, matches, syllables } from './lib/pinyin'
 import { blip } from './lib/audio'
+import { wordChoices } from './lib/choices'
 import { useStore } from './lib/store'
 import { Btn, Ruby, shuffle } from './ui'
 import {
@@ -46,33 +47,6 @@ const WEIGHT: Record<Kind, number> = {
 export interface Question {
   w: Word
   kind: Kind
-}
-
-// Four choices: the word and three others, alike in kind where possible,
-// and never one that sounds the same (他 and 她 are both tā)
-export function distractors(w: Word, pool: Array<Word>): Array<Word> {
-  const sound = w.p.toLowerCase()
-  const others = pool.filter(
-    (x) =>
-      x.id !== w.id &&
-      x.g !== w.g &&
-      x.h !== w.h &&
-      x.p.toLowerCase() !== sound,
-  )
-  const alike = others.filter(
-    (x) =>
-      x.tags.some((t) => w.tags.includes(t)) ||
-      Math.abs(x.lesson - w.lesson) <= 1,
-  )
-  const picked = shuffle(alike).slice(0, 3)
-  if (picked.length < 3)
-    picked.push(
-      ...shuffle(others.filter((x) => !picked.includes(x))).slice(
-        0,
-        3 - picked.length,
-      ),
-    )
-  return shuffle([w, ...picked])
 }
 
 interface Answered {
@@ -120,7 +94,10 @@ export function Quiz({
     return met.length >= 8 ? met : WORDS.slice(0, 40)
     // the pool for distractors, once
   }, [])
-  const choices = useMemo(() => (q ? distractors(q.w, pool) : []), [q, pool])
+  const choices = useMemo(
+    () => (q && q.kind !== 'type' ? wordChoices(q.w, pool, q.kind) : []),
+    [q, pool],
+  )
 
   useEffect(() => {
     if (!q) onDone(score, questions.length)
