@@ -280,6 +280,12 @@ def cut(wav: Path, items) -> list[tuple[float, float]] | None:
         per = (b - a) / chars
         if b - a < 0.2 or per > 1.6 or (chars > 3 and per < 0.1):
             return None
+        # A word said twice, or begun and said again in another tone (纸
+        # as zhí, then zhǐ), leaves a pause inside its piece that the pace
+        # lets through. Pauses inside a number (三百 … 二十) are shorter.
+        inside = max((e - s for s, e in rest if a < s and e < b), default=0)
+        if inside >= (0.3 if chars == 1 else 0.55):
+            return None
         pace.append((b - a) / (0.25 + 0.28 * chars))
     if not clear:
         mid = statistics.median(pace)
