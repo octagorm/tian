@@ -4,6 +4,7 @@ import { WORDS } from './data/words'
 import { join, matches, syllables } from './lib/pinyin'
 import { blip } from './lib/audio'
 import { wordChoices } from './lib/choices'
+import { KNOWN, weakest } from './lib/bank'
 import { useStore } from './lib/store'
 import { Btn, Ruby, shuffle } from './ui'
 import {
@@ -24,25 +25,42 @@ import {
 import { Pix } from './pixel/Pix'
 import type { ReactNode } from 'react'
 import type { Word } from './data/words'
+import type { Bank, Link } from './lib/bank'
 
 // A round of questions about words, shared by Learn and Review. Each
-// question asks one thing in one way, and tells the bank how much the
-// answer says: typing the pinyin counts for more than picking a meaning.
-// A word answered wrong comes back once at the end of the round.
+// question asks about one link of a word (lib/bank.ts) in one way, and
+// tells the bank how much the answer says: typing the pinyin counts for
+// more than picking a meaning. A word answered wrong comes back once at
+// the end of the round.
 //
 // It plays with the keyboard (1–4 to choose, Enter for the next, Space to
 // hear the word again) and with a thumb: on a phone the choices sit at the
 // bottom of the screen. A right answer bursts and counts up a streak; a
 // wrong one shakes and shows the answer.
 
-export type Kind = 'meaning' | 'listen' | 'reverse' | 'type'
+// What a question shows and asks for: the meaning of a character, the
+// character for a meaning, the character heard, the pinyin of a
+// character typed, and the meaning of a word heard
+export type Kind = 'meaning' | 'reverse' | 'listen' | 'type' | 'hear'
 
 const WEIGHT: Record<Kind, number> = {
   meaning: 0.6,
-  listen: 0.7,
   reverse: 0.7,
+  listen: 0.7,
   type: 1,
+  hear: 0.6,
 }
+
+const LINK_OF: Record<Kind, Link> = {
+  meaning: 'hm',
+  reverse: 'hm',
+  listen: 'hs',
+  type: 'hs',
+  hear: 'sm',
+}
+
+// Questions played by ear: the word is said as they come up
+const heard = (k: Kind) => k === 'listen' || k === 'hear'
 
 export interface Question {
   w: Word
@@ -105,7 +123,7 @@ export function Quiz({
 
   // a word to listen to is said as its question comes up
   useEffect(() => {
-    if (q?.kind === 'listen') void play(q.w.h)
+    if (q && heard(q.kind)) void play(q.w.h)
   }, [at])
 
   useEffect(
@@ -120,7 +138,12 @@ export function Quiz({
     setAnswered({ right, picked, t: Date.now() })
     blip(right ? 'right' : 'wrong')
     const firstTime = !retried.current.has(q.w.id)
-    record(q.w.id, right, firstTime ? WEIGHT[q.kind] : WEIGHT[q.kind] / 2)
+    record(
+      q.w.id,
+      right,
+      firstTime ? WEIGHT[q.kind] : WEIGHT[q.kind] / 2,
+      LINK_OF[q.kind],
+    )
     if (right) {
       if (firstTime) {
         setScore((s) => s + 1)
@@ -141,12 +164,14 @@ export function Quiz({
         retried.current.add(q.w.id)
         setQueue((qs) => [
           ...qs,
-          { w: q.w, kind: q.kind === 'type' ? 'meaning' : q.kind },
+          // a pinyin missed comes back as the easier question on the
+          // same link
+          { w: q.w, kind: q.kind === 'type' ? 'listen' : q.kind },
         ])
       }
     }
     if (right || !firstTime) onSettle?.(q)
-    if (q.kind !== 'listen' || !right) void play(q.w.h)
+    if (!heard(q.kind) || !right) void play(q.w.h)
   }
 
   const next = () => {
@@ -167,7 +192,7 @@ export function Quiz({
   useKeys((key) => {
     if (!q) return
     if (key === ' ') {
-      if (q.kind !== 'listen' && !answered) return
+      if (!heard(q.kind) && !answered) return
       void play(q.w.h)
       return true
     }
@@ -284,7 +309,7 @@ function Choice({
           className="absolute top-1.5 right-1.5 text-[var(--red)]"
         />
       )}
-      {kind === 'meaning' ? (
+      {kind === 'meaning' || kind === 'hear' ? (
         <>
           <span className="text-base leading-snug font-semibold sm:text-lg">
             {c.e}
@@ -368,7 +393,7 @@ function Verdict({
           ) : (
             <span className="max-sm:hidden">
               <Key k="1" />–<Key k="4" /> to choose
-              {q.kind === 'listen' && (
+              {heard(q.kind) && (
                 <>
                   , <Key k="Space" /> to hear it again
                 </>
@@ -392,17 +417,19 @@ function Prompt({
   speaking: boolean
   onPlay: () => void
 }) {
-  const { levelOf } = useStore()
-  const learning = levelOf(q.w.id) < 2
   const label = (text: string) => (
     <p className="text-xs font-black tracking-[0.18em] text-[var(--ink-2)] uppercase">
       {text}
     </p>
   )
-  if (q.kind === 'listen')
+  if (heard(q.kind))
     return (
       <div className="text-center">
-        {label('Which word do you hear?')}
+        {label(
+          q.kind === 'listen'
+            ? 'Which word do you hear?'
+            : 'What does it mean?',
+        )}
         <PlayButton
           onClick={onPlay}
           speaking={speaking}
@@ -425,11 +452,13 @@ function Prompt({
         </p>
       </div>
     )
+  // The character alone, even while the word is learnt: the pinyin over
+  // it would answer for it
   return (
     <div className="text-center">
       {label(q.kind === 'type' ? 'Type the pinyin' : 'What does it mean?')}
       <div className="mt-3">
-        {(learning && q.kind === 'meaning') || reveal ? (
+        {reveal ? (
           <Ruby h={q.w.h} p={q.w.p} className="text-7xl sm:text-8xl" />
         ) : (
           <span className="zh text-7xl sm:text-8xl">{q.w.h}</span>
@@ -515,20 +544,29 @@ export function EnterToContinue({ onEnter }: { onEnter: () => void }) {
   return null
 }
 
-// Questions for a set of words: the ways to ask each depend on how well it
-// is known
+// Questions for a set of words, one each, about the link of the word
+// that most needs practice: its character and sound by ear while that is
+// learnt, and mostly by typing the pinyin once it lasts; its character
+// and meaning either way round; its sound and meaning by ear
 export function questionsFor(
   words: Array<Word>,
-  levelOf: (id: string) => number,
+  cards: Bank['cards'],
+  now: number,
+  random: () => number = Math.random,
 ): Array<Question> {
   const out: Array<Question> = []
   for (const w of words) {
-    const lv = levelOf(w.id)
+    const c = cards[w.id]
+    const link = c ? weakest(c, now, random) : 'hm'
     const kinds: Array<Kind> =
-      lv <= 1
-        ? ['meaning', 'listen', 'reverse']
-        : ['listen', 'reverse', 'type', 'type']
-    out.push({ w, kind: kinds[Math.floor(Math.random() * kinds.length)] })
+      link === 'hs'
+        ? c && c.hs.s >= KNOWN
+          ? ['type', 'type', 'listen']
+          : ['listen']
+        : link === 'hm'
+          ? ['meaning', 'reverse']
+          : ['hear']
+    out.push({ w, kind: kinds[Math.floor(random() * kinds.length)] })
   }
   return shuffle(out)
 }

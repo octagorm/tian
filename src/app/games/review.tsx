@@ -8,15 +8,16 @@ import { Pix } from '../pixel/Pix'
 import { Key, useKeys } from './fx'
 import type { Word } from '../data/words'
 
-// Review: the words that have faded most, a dozen at a time, asked in the
-// ways that suit how well each is known. Before a round, every word met is
+// Review: the words that have faded most, a dozen at a time, each asked
+// about its link that has faded most, in a way that suits how well that
+// is known. Before a round, every word met is
 // written out in ink as strong as the memory of it: the faded ones are
 // pale.
 
 const ROUND = 12
 
 export default function Review() {
-  const { bank, levelOf, points } = useStore()
+  const { bank, points } = useStore()
   const peek = usePeek()
   const [round, setRound] = useState<Array<Word> | null>(null)
   const [result, setResult] = useState<[number, number] | null>(null)
@@ -62,7 +63,7 @@ export default function Review() {
       <Frame title="Review" zh="复习">
         <Quiz
           key={n}
-          questions={questionsFor(round, levelOf)}
+          questions={questionsFor(round, bank.cards, now)}
           onDone={(r, t) => {
             setResult([r, t])
             points(3)

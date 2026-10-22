@@ -187,7 +187,7 @@ export function Battle({
         : demon.twist === 'numbers'
           ? w.tags.includes('num') || NUMBERS.has(w.id)
           : true)
-    return pick(bank, 24, Date.now(), fit)
+    return pick(bank, 24, Date.now(), { fit })
     // once, for the fight
   }, [])
   useEffect(() => meet(chosen.fresh.map((w) => w.id)), [chosen, meet])
@@ -217,9 +217,13 @@ export function Battle({
     render()
   }
 
-  const note = (w: Word, right: boolean, weight: number) => {
-    record(w.id, right, weight)
-    f.seen.push({ w, right })
+  // An answer: a meaning picked is about the character, or about the
+  // pinyin over it while the word is learnt (but not in the wind, which
+  // blows the pinyin away); anything heard or typed is about the sound
+  const note = (q: Question, right: boolean, weight: number) => {
+    const how = q.kind !== 'meaning' ? 'hs' : q.noHints ? 'hm' : 'read'
+    record(q.w.id, right, weight, how)
+    f.seen.push({ w: q.w, right })
     blip(right ? 'right' : 'wrong')
   }
 
@@ -298,7 +302,7 @@ export function Battle({
       const { right, ms } = await ask(q)
       if (!alive()) return
       const since = performance.now()
-      note(q.w, right, kind === 'type' ? 0.9 : 0.6)
+      note(q, right, kind === 'type' ? 0.9 : 0.6)
       if (right) {
         const crit = ms < 3500
         const dmg = Math.round(
@@ -363,7 +367,7 @@ export function Battle({
         const { right } = await ask(q)
         if (!alive()) return
         const since = performance.now()
-        note(q.w, right, clones ? 0.6 : 0.9)
+        note(q, right, clones ? 0.6 : 0.9)
         const dmg = Math.round((clones ? 8 : 24) * power)
         if (clones) await s()?.clones([right ? dmg : null])
         else await s()?.attack('cloud', right ? dmg : 0, false, right)
@@ -387,7 +391,7 @@ export function Battle({
     const { right } = await ask(q)
     if (!alive()) return
     const since = performance.now()
-    note(q.w, right, 0.9)
+    note(q, right, 0.9)
     if (id === 'freeze') {
       if (right) {
         f.frozen = 1
@@ -440,7 +444,7 @@ export function Battle({
     const { right } = await ask(q)
     if (!alive()) return
     const since = performance.now()
-    note(q.w, right, 0.5)
+    note(q, right, 0.5)
     const hits = tw === 'swarm' ? 2 : 1
     const per = tw === 'gourd' ? demon.power * 2 : demon.power
     if (!right && tw === 'poison') addPoison()

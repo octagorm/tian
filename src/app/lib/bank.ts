@@ -1,21 +1,41 @@
 import { WORDS } from '../data/words.ts'
 import type { Word } from '../data/words.ts'
 
-// The word bank: what the player knows, shared by every game. Each word
-// they have met has a card with a memory of it, in the manner of FSRS: the
+// The word bank: what the player knows, shared by every game. A word is
+// three things to remember, learnt apart: the links between its
+// character, its sound (pinyin and tones) and its meaning. A word can be
+// read at sight and still have a tone that slips, or be understood when
+// heard and not yet when seen. Writing is not one of them.
+//
+// Each link of a word met has a memory, in the manner of FSRS: the
 // stability `s` is how many days until the chance of remembering it falls
 // to 90 %. A right answer makes it last longer, by more the more it had
 // faded (practice spaced out counts for more than practice crammed); a
 // wrong one cuts it down. Games weigh their evidence: typing a word's
 // pinyin says more than picking its meaning from four.
 //
-// How a word is shown follows from its card: not met yet, in English;
-// met, in hanzi with pinyin; known (lasting a day and a half or more, and
-// not faded much), in hanzi alone.
+// How a word is shown follows from its links to the character: not met
+// yet, in English; met, in hanzi with pinyin; known (both lasting a day
+// and a half or more, and not faded much), in hanzi alone.
 
-export interface Card {
+export type Link = 'hs' | 'hm' | 'sm'
+
+export const LINKS: Array<Link> = ['hs', 'hm', 'sm']
+
+export interface Memory {
   // Stability, in days
   s: number
+  // Last answered, ms
+  t: number
+}
+
+export interface Card {
+  // Hanzi and sound: saying the character, knowing it by ear
+  hs: Memory
+  // Hanzi and meaning: reading it
+  hm: Memory
+  // Sound and meaning: understanding it said, or written in pinyin
+  sm: Memory
   // Last seen, ms
   t: number
   // Times answered, and of those wrong
@@ -58,8 +78,8 @@ export interface Path {
   // Started, ms
   t: number
   steps: Array<PathStep>
-  // Words met and known when it started, and the stability of the words
-  // it reviews, for the summary
+  // Words met and known when it started, and the stability of each link
+  // of the words it reviews ("你好 hs"), for the summary
   met: number
   known: number
   s0: Record<string, number | undefined>
@@ -105,51 +125,101 @@ export const KNOWN = 1.5
 export type Level = 0 | 1 | 2
 
 // The chance of remembering, now
-export function recall(card: Card, now: number): number {
-  const days = Math.max(0, now - card.t) / DAY
-  return 1 / (1 + days / (9 * card.s))
+export function recall(m: Memory, now: number): number {
+  const days = Math.max(0, now - m.t) / DAY
+  return 1 / (1 + days / (9 * m.s))
 }
 
+// A link known: lasting a day and a half or more, and not faded much
+const holds = (m: Memory, now: number) => m.s >= KNOWN && recall(m, now) >= 0.8
+
+// Hanzi alone once the character brings back both the sound and the
+// meaning
 export function level(card: Card | undefined, now: number): Level {
   if (!card) return 0
-  return card.s >= KNOWN && recall(card, now) >= 0.8 ? 2 : 1
+  return holds(card.hs, now) && holds(card.hm, now) ? 2 : 1
+}
+
+// A memory after an answer. `weight` (0–1] is how much the answer says.
+export function answer(
+  m: Memory,
+  right: boolean,
+  now: number,
+  weight = 1,
+): Memory {
+  const r = recall(m, now)
+  if (right) {
+    const gain = Math.min(8, 1.1 + 15 * (1 - r))
+    return { s: m.s * (1 + (gain - 1) * weight), t: now }
+  }
+  // A real slip (not a weak hint of one) also takes a known link back
+  // below known (and a word back to pinyin), until it has been got right
+  // again
+  const cut = m.s * (1 - 0.7 * weight)
+  return {
+    s: Math.max(MIN, weight >= 0.5 ? Math.min(cut, KNOWN * 0.6) : cut),
+    t: now,
+  }
 }
 
 export const newCard = (now: number, s = FIRST): Card => ({
-  s,
+  hs: { s, t: now },
+  hm: { s, t: now },
+  sm: { s, t: now },
   t: now,
   n: 0,
   x: 0,
   i: now,
 })
 
-// A card after an answer. `weight` (0–1] is how much the answer says.
-export function answer(
+// A card after an answer about some of its links
+export function answerCard(
   card: Card | undefined,
+  links: Array<Link>,
   right: boolean,
   now: number,
   weight = 1,
 ): Card {
-  const c = card ?? newCard(now)
-  const r = recall(c, now)
-  if (right) {
-    const gain = Math.min(8, 1.1 + 15 * (1 - r))
-    return { ...c, s: c.s * (1 + (gain - 1) * weight), t: now, n: c.n + 1 }
-  }
-  // A real slip (not a weak hint of one) also brings a known word back
-  // to pinyin, until it has been got right again
-  const cut = c.s * (1 - 0.7 * weight)
-  return {
-    ...c,
-    s: Math.max(MIN, weight >= 0.5 ? Math.min(cut, KNOWN * 0.6) : cut),
-    t: now,
-    n: c.n + 1,
-    x: c.x + 1,
-  }
+  const c = { ...(card ?? newCard(now)), t: now, n: (card?.n ?? 0) + 1 }
+  if (!right) c.x++
+  for (const l of links) c[l] = answer(c[l], right, now, weight)
+  return c
 }
 
 // Words the player says they know already: straight to known
 export const known = (now: number): Card => ({ ...newCard(now, 4), n: 1 })
+
+// The chance of remembering a word's weakest link, now
+export const recallOf = (card: Card, now: number) =>
+  Math.min(...LINKS.map((l) => recall(card[l], now)))
+
+// The link of a word that most needs practice: the most faded, or of
+// links about as faded, any of them
+export function weakest(
+  card: Card,
+  now: number,
+  random: () => number = Math.random,
+): Link {
+  const by = LINKS.map((l) => ({ l, r: recall(card[l], now) + random() * 0.1 }))
+  return by.reduce((a, b) => (b.r < a.r ? b : a)).l
+}
+
+// A card as a page from before the links saved it, with one memory for
+// the whole word: each link starts from that memory
+type Saved = Partial<Card> & { s?: number; t: number }
+
+function upgrade(c: Saved): Card {
+  const was: Memory = { s: c.s ?? FIRST, t: c.t }
+  return {
+    hs: c.hs ?? was,
+    hm: c.hm ?? was,
+    sm: c.sm ?? was,
+    t: c.t,
+    n: c.n ?? 0,
+    x: c.x ?? 0,
+    i: c.i ?? c.t,
+  }
+}
 
 export const dayKey = (now: number) => {
   const d = new Date(now)
@@ -171,13 +241,19 @@ export function streak(bank: Bank, now: number): number {
 }
 
 // The words met, by how much they need practice: the faded first, and
-// those not seen for a while before those just seen
-export function due(bank: Bank, now: number, words: Array<Word> = WORDS) {
+// those not seen for a while before those just seen. By how faded one of
+// their links is, or else the weakest.
+export function due(
+  bank: Bank,
+  now: number,
+  words: Array<Word> = WORDS,
+  link?: Link,
+) {
   return words
     .filter((w) => bank.cards[w.id])
     .map((w) => {
       const c = bank.cards[w.id] as Card
-      return { w, r: recall(c, now), c }
+      return { w, r: link ? recall(c[link], now) : recallOf(c, now), c }
     })
     .sort((a, b) => a.r - b.r)
 }
@@ -187,18 +263,27 @@ export const unmet = (bank: Bank, words: Array<Word> = WORDS) =>
   words.filter((w) => !bank.cards[w.id])
 
 // Words for a round of a game: up to `n` of them, weighted towards those
-// that need practice, among the words met that `fit`; if there are too
-// few, at most `fresh` new ones in lesson order are added (and should be
-// met, and shown as new). Words seen in the last minute are left to last.
+// that need practice (in the `link` the game asks about, if it asks about
+// one), among the words met that `fit`; if there are too few, at most
+// `newest` new ones in lesson order are added (and should be met, and
+// shown as new). Words seen in the last minute are left to last.
 export function pick(
   bank: Bank,
   n: number,
   now: number,
-  fit: (w: Word) => boolean = () => true,
-  random: () => number = Math.random,
-  newest = 5,
+  {
+    fit = () => true,
+    link,
+    random = Math.random,
+    newest = 5,
+  }: {
+    fit?: (w: Word) => boolean
+    link?: Link
+    random?: () => number
+    newest?: number
+  } = {},
 ): { words: Array<Word>; fresh: Array<Word> } {
-  const met = due(bank, now).filter(({ w }) => fit(w))
+  const met = due(bank, now, WORDS, link).filter(({ w }) => fit(w))
   const scored = met
     .map(({ w, r, c }) => ({
       w,
@@ -218,17 +303,18 @@ const keysOf = (...rs: Array<object | undefined>) =>
   new Set(rs.flatMap((r) => (r ? Object.keys(r) : [])))
 
 // Two banks made one, for a player with an account on two devices: for
-// each card the one seen last, for days and scores the larger, seals
-// from both (each at the earlier date), and of two days' sessions the
-// later day's, or of the same day's the one further on. A bank saved
-// before a field existed (from an older page, or the account's copy)
-// is read as having it empty.
+// each link of a word the memory answered last, for days and scores the
+// larger, seals from both (each at the earlier date), and of two days'
+// sessions the later day's, or of the same day's the one further on. A
+// bank saved before a field existed (from an older page, or the
+// account's copy) is read as having it empty, and a card saved before
+// the links as having its one memory in each.
 export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
   const out = emptyBank()
   for (const id of keysOf(a.cards, b.cards)) {
-    const x = a.cards?.[id]
-    const y = b.cards?.[id]
-    out.cards[id] = !x ? y : !y ? x : x.t >= y.t ? x : y
+    const x = a.cards?.[id] && upgrade(a.cards[id])
+    const y = b.cards?.[id] && upgrade(b.cards[id])
+    out.cards[id] = !x ? y : !y ? x : both(x, y)
   }
   for (const k of ['days', 'scenes', 'best', 'daily', 'garden'] as const) {
     for (const id of keysOf(a[k], b[k]))
@@ -248,6 +334,19 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
   }
   out.path = laterPath(a.path ?? null, b.path ?? null)
   return out
+}
+
+const later = (a: Memory, b: Memory) => (a.t >= b.t ? a : b)
+
+function both(x: Card, y: Card): Card {
+  const last = x.t >= y.t ? x : y
+  return {
+    ...last,
+    hs: later(x.hs, y.hs),
+    hm: later(x.hm, y.hm),
+    sm: later(x.sm, y.sm),
+    i: Math.min(x.i, y.i),
+  }
 }
 
 // How far a session has got: its steps done, then the answers in the rest

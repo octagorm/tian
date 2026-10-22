@@ -21,7 +21,9 @@ import {
 // stroke, in the right order and direction. Hanzi Writer checks each
 // stroke (its stroke data, from Make Me a Hanzi, loads from a CDN). The
 // sheet is rice paper with a red writing grid; the ink bleeds a little
-// into it; a character written well gets the teacher's red seal.
+// into it; a character written well gets the teacher's red seal. Writing
+// is not one of the links the word bank keeps (lib/bank.ts), so it earns
+// points but leaves the words' memories as they were.
 
 interface Char {
   c: string
@@ -54,7 +56,7 @@ const PAPER = (() => {
 })()
 
 export default function Write() {
-  const { bank, record, points, setBest } = useStore()
+  const { bank, points, setBest } = useStore()
   const { speaking, play } = useSpeaker()
   const chars = useMemo(() => {
     const met = WORDS.filter((w) => bank.cards[w.id]).map((w) => w.id)
@@ -104,7 +106,6 @@ export default function Write() {
         const good = totalMistakes <= 2
         blip(good ? 'right' : 'wrong')
         void play(ch.c)
-        if (WORD[ch.c]) record(ch.c, good, 0.5)
         if (good) {
           points(2)
           burst(box.current, {

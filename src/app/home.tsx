@@ -7,7 +7,7 @@ import { WORDS } from './data/words'
 import { CITIES, SCENES } from './data/trip'
 import { QUEST } from './data/quest'
 import { STORIES } from './data/stories'
-import { dayKey, level, recall, streak, unmet } from './lib/bank'
+import { dayKey, level, recallOf, streak, unmet } from './lib/bank'
 import { Pix } from './pixel/Pix'
 import { Account } from './account'
 import { GAMES } from './registry'
@@ -104,7 +104,9 @@ export default function Home() {
   const now = Date.now()
   const met = WORDS.filter((w) => bank.cards[w.id])
   const knownN = met.filter((w) => level(bank.cards[w.id], now) === 2).length
-  const fading = met.filter((w) => recall(bank.cards[w.id]!, now) < 0.85).length
+  const fading = met.filter(
+    (w) => recallOf(bank.cards[w.id]!, now) < 0.85,
+  ).length
   const today = bank.days[dayKey(now)] ?? 0
   const reached = today >= GOAL
 

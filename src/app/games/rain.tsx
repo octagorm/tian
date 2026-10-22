@@ -88,7 +88,10 @@ export default function Rain() {
 
   const start = () => {
     const s = state.current
-    const chosen = pick(bank, 40, Date.now(), (w) => !w.tags.includes('part'))
+    const chosen = pick(bank, 40, Date.now(), {
+      fit: (w) => !w.tags.includes('part'),
+      link: 'hs',
+    })
     s.pool = chosen.words
     meet(chosen.fresh.map((w) => w.id))
     s.drops = []
@@ -194,7 +197,7 @@ export default function Rain() {
       s.lives--
       s.streak = 0
       s.missed.push(d.w)
-      record(d.w.id, false, d.hint === 'pinyin' ? 0.2 : 0.6)
+      record(d.w.id, false, d.hint === 'pinyin' ? 0.2 : 0.6, 'hs')
       scene.current?.splash(d.x / 100, (GROUND + 4) / 100)
       floatText(els.current.get(d.key), join(syllables(d.w.p)), {
         color: '#ff8a70',
@@ -296,6 +299,7 @@ export default function Rain() {
       hit.w.id,
       true,
       hit.hint === 'pinyin' ? 0.2 : hit.hint === 'meaning' ? 0.6 : 0.9,
+      'hs',
     )
     blip('right')
     void say(hit.w.h)

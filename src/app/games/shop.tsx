@@ -208,7 +208,13 @@ export default function Shop() {
       setCash((c) => c + gained)
       setServed((s) => s + 1)
       blip('right')
-      for (const id of ids(order)) record(id, true, ears && !shown ? 0.8 : 0.5)
+      for (const id of ids(order))
+        record(
+          id,
+          true,
+          ears && !shown ? 0.8 : 0.5,
+          ears && !shown ? 'sm' : 'read',
+        )
       setVerdict({ ok: true, text: `谢谢！ ${bill} kuai, and ${tip} tip.` })
       view.current = { ...view.current, mood: 'happy', since: now }
       const head = scenePoint(HEAD)
@@ -231,7 +237,8 @@ export default function Shop() {
         (k) => (want[k] ?? 0) !== (tray[k] ?? 0),
       )
       for (const id of wrongItems)
-        if (want[id] && levelOf(id) > 0) record(id, false, 0.5)
+        if (want[id] && levelOf(id) > 0)
+          record(id, false, 0.5, ears && !shown ? 'sm' : 'read')
       setVerdict({
         ok: false,
         text: `${timeout ? 'Too slow! ' : '不对！ '}They wanted ${what}.`,

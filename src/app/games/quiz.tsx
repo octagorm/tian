@@ -132,7 +132,7 @@ export default function QuizGame() {
       const read = [...wordsOf(q.zh), ...wordsOf(q.options[0])].flatMap((t) =>
         t.id && levelOf(t.id) > 0 ? [t.id] : [],
       )
-      for (const id of new Set(read)) record(id, true, 0.3)
+      for (const id of new Set(read)) record(id, true, 0.3, 'read')
     } else setMissed((m) => [...m, i])
     const id = newWord(q, levelOf)
     setTaught(id)

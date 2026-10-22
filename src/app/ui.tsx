@@ -15,8 +15,9 @@ import { useStore } from './lib/store'
 import { toggleMusic, useSound } from './lib/music'
 import { Fret } from './ornament/Borders'
 import { Pix } from './pixel/Pix'
+import { LINKS, recall } from './lib/bank'
 import type { ReactNode } from 'react'
-import type { Level } from './lib/bank'
+import type { Card, Level, Link } from './lib/bank'
 import type { Token } from './lib/text'
 
 // The pieces every game shares: mixed text, the sheet a tapped word
@@ -24,6 +25,62 @@ import type { Token } from './lib/text'
 
 export const LEVEL_NAME = ['New', 'Learning', 'Known'] as const
 export const LEVEL_COLOR = ['#9a8f84', '#2f7d6d', '#c8372d'] as const
+
+// The three links of a word (lib/bank.ts), named by their ends: 字 the
+// character, 音 its sound, 义 its meaning
+export const LINK_NAME: Record<Link, { zh: string; en: string }> = {
+  hs: { zh: '字音', en: 'hanzi and sound' },
+  hm: { zh: '字义', en: 'hanzi and meaning' },
+  sm: { zh: '音义', en: 'sound and meaning' },
+}
+
+// How long a memory lasts, in hours or days
+const howLong = (s: number) =>
+  s < 1 ? `${Math.round(s * 24)} h` : `${s.toFixed(1)} d`
+
+// A word's links as bars, each as full as the chance of remembering it
+// now, red once it fades, with how long it lasts
+export function LinkBars({
+  card,
+  now,
+  wide = false,
+}: {
+  card: Card
+  now: number
+  // with the links' names in English
+  wide?: boolean
+}) {
+  return (
+    <span
+      className={`flex w-full flex-col ${wide ? 'gap-1.5 text-xs' : 'gap-0.5 text-[10px]'} text-[var(--ink-2)] tabular-nums`}
+    >
+      {LINKS.map((l) => {
+        const m = card[l]
+        const r = recall(m, now)
+        return (
+          <span
+            key={l}
+            className="flex items-center gap-1.5"
+            title={`${LINK_NAME[l].en}: lasts ${howLong(m.s)}`}
+          >
+            <span className="zh shrink-0 leading-none">{LINK_NAME[l].zh}</span>
+            {wide && <span className="w-32 shrink-0">{LINK_NAME[l].en}</span>}
+            <span className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--paper-2)]">
+              <span
+                className="block h-full rounded-full"
+                style={{
+                  width: `${r * 100}%`,
+                  background: r < 0.85 ? 'var(--red)' : 'var(--jade)',
+                }}
+              />
+            </span>
+            <span className="w-9 shrink-0 text-right">{howLong(m.s)}</span>
+          </span>
+        )
+      })}
+    </span>
+  )
+}
 
 // --- Mixed text ---
 
@@ -215,12 +272,14 @@ export function PeekProvider({ children }: { children: ReactNode }) {
 }
 
 function Sheet({ token, onClose }: { token: Token; onClose: () => void }) {
-  const { levelOf, meet, know, record } = useStore()
+  const { bank, levelOf, meet, know, record } = useStore()
   const w = token.id ? WORD[token.id] : undefined
   const lv = tokenLevel(token, levelOf)
-  // Looking up a known word is a hint that it is not quite known
+  const card = w ? bank.cards[w.id] : undefined
+  // Looking up a known word is a hint that its character did not bring
+  // back its sound or its meaning
   useEffect(() => {
-    if (w && lv === 2) record(w.id, false, 0.3)
+    if (w && lv === 2) record(w.id, false, 0.3, ['hs', 'hm'])
     // once, when opened
   }, [])
   useEffect(() => {
@@ -307,6 +366,11 @@ function Sheet({ token, onClose }: { token: Token; onClose: () => void }) {
               <span className="text-[var(--ink-2)]">lesson {w.lesson}</span>
             )}
           </div>
+          {card && (
+            <div className="mt-3">
+              <LinkBars card={card} now={Date.now()} wide />
+            </div>
+          )}
           <div className="mt-4 flex flex-wrap gap-2">
             <Btn kind="ghost" onClick={() => void say(token.h, WORD_VOICE)}>
               <Volume2 size={16} /> Hear it

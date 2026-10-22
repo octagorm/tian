@@ -23,12 +23,16 @@ import {
 } from '../src/app/lib/choices'
 import {
   answer,
+  answerCard,
+  due,
   emptyBank,
   level,
   merge,
   newCard,
   pick,
+  weakest,
 } from '../src/app/lib/bank'
+import type { Bank } from '../src/app/lib/bank'
 
 // Tian: the words, the trip's scripts and the helpers they rely on
 
@@ -176,49 +180,97 @@ describe('bank', () => {
   const D = 24 * H
 
   test('cramming builds memory slowly, spacing builds it fast', () => {
-    let crammed = newCard(0)
+    let crammed = newCard(0).hm
     for (let i = 1; i <= 10; i++) crammed = answer(crammed, true, i * 60_000)
-    let spaced = newCard(0)
+    let spaced = newCard(0).hm
     for (let i = 1; i <= 4; i++) spaced = answer(spaced, true, i * D)
     expect(crammed.s).toBeLessThan(0.5)
     expect(spaced.s).toBeGreaterThan(3)
-    expect(level(spaced, 4 * D)).toBe(2)
-    expect(level(crammed, H)).toBe(1)
   })
 
-  test('a wrong answer brings a known word back to pinyin', () => {
-    let c = newCard(0, 5)
+  test('a word is known once its character brings back sound and meaning', () => {
+    let c = newCard(0)
+    for (let i = 1; i <= 4; i++) c = answerCard(c, ['hm'], true, i * D)
+    // read at sight, but not yet said
+    expect(c.hm.s).toBeGreaterThan(3)
+    expect(level(c, 4 * D)).toBe(1)
+    for (let i = 1; i <= 4; i++) c = answerCard(c, ['hs'], true, (4 + i) * D)
+    expect(level(c, 8 * D)).toBe(2)
+    // understanding it by ear is not needed to read it
+    expect(c.sm.s).toBeLessThan(0.1)
+    expect(c.n).toBe(8)
+  })
+
+  test('a slip on a link to the character brings a known word back to pinyin', () => {
+    const c = newCard(0, 5)
     expect(level(c, H)).toBe(2)
-    c = answer(c, false, H)
-    expect(level(c, H)).toBe(1)
+    expect(level(answerCard(c, ['hs'], false, H), H)).toBe(1)
+    expect(level(answerCard(c, ['hm'], false, H), H)).toBe(1)
+    // one by ear leaves it in hanzi alone, and a hint is not a slip
+    expect(level(answerCard(c, ['sm'], false, H), H)).toBe(2)
+    expect(level(answerCard(c, ['hs', 'hm'], false, H, 0.3), H)).toBe(2)
+    const slipped = answerCard(c, ['sm'], false, H)
+    expect(slipped.x).toBe(1)
+    expect(slipped.hs).toBe(c.hs)
+  })
+
+  test('the weakest link is the most faded', () => {
+    const c = newCard(0, 5)
+    c.sm = { s: 0.5, t: 0 }
+    expect(weakest(c, D, () => 0)).toBe('sm')
+    c.hs = { s: 0.2, t: 0 }
+    expect(weakest(c, D, () => 0)).toBe('hs')
   })
 
   test('picking prefers faded words and adds new ones when short', () => {
     const bank = emptyBank()
     bank.cards['你好'] = newCard(0)
-    bank.cards['谢谢'] = { ...newCard(0), s: 10 }
-    const { words, fresh } = pick(
-      bank,
-      4,
-      D,
-      () => true,
-      () => 0,
-    )
+    bank.cards['谢谢'] = newCard(0, 10)
+    const { words, fresh } = pick(bank, 4, D, { random: () => 0 })
     expect(words[0].id).toBe('你好')
     expect(fresh.length).toBe(2)
     expect(words.length).toBe(4)
   })
 
-  test('merging keeps the card seen last and the best scores', () => {
+  test('picking for one link looks at that link alone', () => {
+    const bank = emptyBank()
+    bank.cards['你好'] = { ...newCard(0, 10), sm: { s: 0.1, t: 0 } }
+    bank.cards['谢谢'] = { ...newCard(0, 10), hs: { s: 0.1, t: 0 } }
+    expect(due(bank, D)[0].r).toBeLessThan(0.5)
+    expect(due(bank, D, WORDS, 'hs')[0].w.id).toBe('谢谢')
+    expect(due(bank, D, WORDS, 'sm')[0].w.id).toBe('你好')
+    const { words } = pick(bank, 1, D, { link: 'hs', random: () => 0 })
+    expect(words[0].id).toBe('谢谢')
+  })
+
+  test('merging keeps each link answered last and the best scores', () => {
     const a = emptyBank()
     const b = emptyBank()
-    a.cards['你好'] = { ...newCard(0), s: 1 }
-    b.cards['你好'] = { ...newCard(5), s: 2 }
+    a.cards['你好'] = { ...newCard(0, 1), hs: { s: 3, t: 9 }, t: 9 }
+    b.cards['你好'] = { ...newCard(5, 2), i: 0 }
     a.best.rain = 10
     b.best.rain = 4
     const m = merge(a, b)
-    expect(m.cards['你好']?.s).toBe(2)
+    expect(m.cards['你好']?.hs).toEqual({ s: 3, t: 9 })
+    expect(m.cards['你好']?.hm).toEqual({ s: 2, t: 5 })
+    expect(m.cards['你好']?.t).toBe(9)
     expect(m.best.rain).toBe(10)
+  })
+
+  test('a card saved before the links has its one memory in each', () => {
+    const old = { s: 4, t: 7, n: 3, x: 1, i: 2 }
+    const bank = { cards: { 你好: old } } as unknown as Partial<Bank>
+    const c = merge(bank, emptyBank()).cards['你好']
+    expect(c).toEqual({
+      hs: { s: 4, t: 7 },
+      hm: { s: 4, t: 7 },
+      sm: { s: 4, t: 7 },
+      t: 7,
+      n: 3,
+      x: 1,
+      i: 2,
+    })
+    expect(level(c, 8)).toBe(2)
   })
 })
 
@@ -1247,7 +1299,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(p.steps[0].k).toBe('review')
     expect(p.steps[0].ids?.length).toBe(8)
     expect(p.steps[0].arg).toBeUndefined()
-    expect(p.s0[p.steps[0].ids?.[0] ?? '']).toBe(0.5)
+    expect(p.s0[`${p.steps[0].ids?.[0]} hs`]).toBe(0.5)
     expect(current(p)).toBe(0)
     // the trip, played on its own page, is found done there
     const i = p.steps.findIndex((s) => s.k === 'trip')
@@ -1266,6 +1318,18 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     const s = summary(done, b, NOON)
     expect(s.words.length).toBeGreaterThan(0)
     expect(s.tomorrow).toBeGreaterThan(0)
+    // a word reviewed is summed up by the link that grew
+    const id = p.steps[0].ids?.[0] ?? ''
+    b.cards[id] = answerCard(b.cards[id], ['sm'], true, NOON)
+    const one = summary(done, b, NOON).words.find((w) => w.id === id)
+    expect(one?.link).toBe('sm')
+    expect(one?.before).toBe(0.5)
+    expect(one?.after).toBeGreaterThan(2)
+    // and a session planned before the links, by the word's one memory
+    const old = { ...done, s0: { [id]: 0.5 } }
+    expect(summary(old, b, NOON).words.find((w) => w.id === id)?.before).toBe(
+      0.5,
+    )
   })
 
   test('Today keeps each answer, so a step can be left and taken up again', async () => {

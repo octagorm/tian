@@ -2,15 +2,24 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { LESSONS, WORDS } from '../data/words'
 import { bare, syllables } from '../lib/pinyin'
-import { level, recall } from '../lib/bank'
+import { LINKS, level, recallOf } from '../lib/bank'
 import { useStore } from '../lib/store'
-import { Btn, Frame, LEVEL_COLOR, LEVEL_NAME, Ruby, usePeek } from '../ui'
+import {
+  Btn,
+  Frame,
+  LEVEL_COLOR,
+  LEVEL_NAME,
+  LINK_NAME,
+  LinkBars,
+  Ruby,
+  usePeek,
+} from '../ui'
 import { Key, useKeys } from './fx'
 import type { Card, Level } from '../lib/bank'
 import type { Word } from '../data/words'
 
 // The word bank: every word, coloured by how well it is known, with how
-// much of it is remembered now. Search by hanzi, pinyin (tones or not) or
+// much of each of its links is remembered now. Search by hanzi, pinyin (tones or not) or
 // English; filter by level, lesson or kind; sort by lesson or by fading.
 // Words can be marked as known (for what the player knew before) or
 // forgotten, a lesson at a time.
@@ -272,7 +281,7 @@ function sorted(
   const key = (w: Word) => {
     const c = cards[w.id]
     if (!c) return Infinity
-    return sort === 'fading' ? recall(c, now) : -c.t
+    return sort === 'fading' ? recallOf(c, now) : -c.t
   }
   return [...ws].sort((a, b) => key(a) - key(b))
 }
@@ -319,7 +328,6 @@ function Grid({
       {words.map((w) => {
         const c = bank.cards[w.id]
         const lv = level(c, now)
-        const r = c ? recall(c, now) : 0
         return (
           <button
             key={w.id}
@@ -336,17 +344,8 @@ function Grid({
               {w.g}
             </span>
             {c ? (
-              <span className="mt-0.5 flex w-full items-center gap-1.5 px-1 text-[10px] text-[var(--ink-2)] tabular-nums">
-                <span className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--paper-2)]">
-                  <span
-                    className="block h-full rounded-full"
-                    style={{
-                      width: `${r * 100}%`,
-                      background: r < 0.85 ? 'var(--red)' : 'var(--jade)',
-                    }}
-                  />
-                </span>
-                {c.s < 1 ? `${Math.round(c.s * 24)} h` : `${c.s.toFixed(1)} d`}
+              <span className="mt-0.5 w-full px-1">
+                <LinkBars card={c} now={now} />
               </span>
             ) : (
               <span className="mt-0.5 text-[10px] text-[var(--ink-2)]/70">
@@ -410,6 +409,20 @@ function Summary({ counts }: { counts: Array<number> }) {
           </div>
         ))}
       </div>
+      <p className="mt-4 border-t border-dashed border-[var(--paper-2)] pt-3 text-xs leading-relaxed text-[var(--ink-2)]">
+        Each word has three links, remembered apart:{' '}
+        {LINKS.map((l, i) => (
+          <span key={l}>
+            {i > 0 && ' · '}
+            <span className="zh text-sm text-[var(--ink)]">
+              {LINK_NAME[l].zh}
+            </span>{' '}
+            {LINK_NAME[l].en}
+          </span>
+        ))}
+        . A word is known once its character brings back both its sound and its
+        meaning.
+      </p>
     </div>
   )
 }

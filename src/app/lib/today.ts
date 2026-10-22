@@ -1,8 +1,8 @@
 import { WORD, WORDS } from '../data/words.ts'
 import { SCENES } from '../data/trip.ts'
-import { dayKey, due, level, recall, streak, unmet } from './bank.ts'
+import { LINKS, dayKey, due, level, recallOf, streak, unmet } from './bank.ts'
 import { isDone, offered, partOf, partsToday, wordsOf } from './course.ts'
-import type { Bank, Path, PathStep, StepKind } from './bank.ts'
+import type { Bank, Link, Path, PathStep, StepKind } from './bank.ts'
 
 // Today: a session of about ten minutes, made once a day from the bank
 // and kept in it (bank.path), so it can be taken up again where it was
@@ -26,7 +26,8 @@ export const STEP: Record<
 }
 
 // Games the session picks from, one a day in turn; the page leaves out any
-// that are not in the registry
+// that are not in the registry. Brush is not one: writing is not a link
+// the bank keeps.
 export const DAILY_GAMES = [
   'mahjong',
   'rain',
@@ -42,7 +43,6 @@ export const DAILY_GAMES = [
   'quest',
   'bridge',
   'sayings',
-  'write',
 ]
 
 // Words to review: those fading, the most faded first
@@ -111,13 +111,12 @@ export function plan(
     steps.push({ k: 'listen' })
   }
 
-  // How long the words reviewed, and those the course meets that are met
-  // already, lasted before
+  // How long each link of the words reviewed, and of those the course
+  // meets that are met already, lasted before
   const s0: Record<string, number> = {}
-  for (const w of review) s0[w.id] = bank.cards[w.id]?.s ?? 0
-  for (const id of course.flatMap(wordsOf)) {
+  for (const id of [...review.map((w) => w.id), ...course.flatMap(wordsOf)]) {
     const c = bank.cards[id]
-    if (c) s0[id] = c.s
+    if (c) for (const l of LINKS) s0[partKey(id, l)] = c[l].s
   }
   const { met, known } = counts(bank, now)
   return { d: dayKey(now), t: now, steps, met, known, s0 }
@@ -288,9 +287,15 @@ export function gain(p: Path, i: number, key: string): Path {
 }
 
 export interface Summary {
-  // The words of the session, by how long they will now last, in days:
-  // before (null for a word met today) and after
-  words: Array<{ id: string; before: number | null; after: number }>
+  // The words of the session, each by its link that grew most, and how
+  // long that will now last, in days: before (null for a word met today)
+  // and after
+  words: Array<{
+    id: string
+    link: Link
+    before: number | null
+    after: number
+  }>
   met: number
   known: number
   metGain: number
@@ -313,13 +318,22 @@ export function summary(p: Path, bank: Bank, now: number): Summary {
   const words = [...ids].flatMap((id) => {
     const c = bank.cards[id]
     if (!c) return []
-    const before = id in p.s0 ? (p.s0[id] ?? null) : null
-    return [{ id, before, after: c.s }]
+    // (a session planned before the links kept one memory for a word)
+    const was = (l: Link) => p.s0[partKey(id, l)] ?? p.s0[id] ?? null
+    const grew = (w: { before: number | null; after: number }) =>
+      w.before === null ? w.after : w.after / w.before
+    const each = LINKS.map((link) => ({
+      id,
+      link,
+      before: was(link),
+      after: c[link].s,
+    }))
+    return [each.reduce((a, b) => (grew(b) > grew(a) ? b : a))]
   })
   const { met, known } = counts(bank, now)
   const tomorrow = WORDS.filter((w) => {
     const c = bank.cards[w.id]
-    return c && recall(c, now + DAY) < FADING
+    return c && recallOf(c, now + DAY) < FADING
   }).length
   return {
     words,

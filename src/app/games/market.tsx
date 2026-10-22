@@ -394,7 +394,8 @@ function StallView({
     if (!nums.length) return
     const ids = right ? wordIds(heard.zh, vars) : nums
     const weight = heard.open ? 0.3 : 0.6
-    for (const id of ids) if (levelOf(id) > 0) record(id, right, weight)
+    for (const id of ids)
+      if (levelOf(id) > 0) record(id, right, weight, heard.open ? 'read' : 'sm')
   }
 
   const ask = (mw: string) => {
@@ -404,11 +405,11 @@ function StallView({
       setNote(stall.why)
       blip('wrong')
       replay(moves.current, 'fx-shake')
-      if (levelOf(stall.mw) > 0) record(stall.mw, false, 0.6)
+      if (levelOf(stall.mw) > 0) record(stall.mw, false, 0.6, 'read')
       return
     }
     blip('right')
-    if (wrong.size === 0) record(stall.mw, true, 0.6)
+    if (wrong.size === 0) record(stall.mw, true, 0.6, 'read')
     void exchange(ASK(stall), {
       zh: OPEN(stall, haggle.mood, haggle.ladder[0]),
     })

@@ -430,7 +430,7 @@ function Play({
     if (o.right) {
       const first = wrong.size === 0
       if (first) {
-        for (const id of shownIds(o.zh)) record(id, true, 0.5)
+        for (const id of shownIds(o.zh)) record(id, true, 0.5, 'read')
         points(2)
         stage.current?.mark(lastNpc, 'good', 1.4)
       }
@@ -465,7 +465,7 @@ function Play({
         choice.options.filter((x) => x.right).flatMap((x) => shownIds(x.zh)),
       )
       for (const id of shownIds(o.zh))
-        if (!right.has(id)) record(id, false, 0.4)
+        if (!right.has(id)) record(id, false, 0.4, 'read')
     }
   }
 

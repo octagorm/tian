@@ -262,7 +262,7 @@ export default function Order() {
     if (ok) {
       points(2)
       for (const t of words)
-        if (t.id && tokenLevel(t, levelOf) > 0) record(t.id, true, 0.3)
+        if (t.id && tokenLevel(t, levelOf) > 0) record(t.id, true, 0.3, 'read')
       tiles.forEach((el, j) => later(() => replay(el, 'fx-pulse'), j * 90))
       later(() => cheer(row.current, '+2'), tiles.length * 90)
     } else {

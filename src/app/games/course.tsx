@@ -1045,28 +1045,28 @@ function Built({ c }: { c: Array<string> }) {
   )
 }
 
-// A word's chance of being remembered over four weeks: met, then got right
-// each time it begins to fade, against one never seen again. Drawn from
-// the bank's own sums (lib/bank.ts).
+// The chance of remembering a word over four weeks (one of its links):
+// met, then got right each time it begins to fade, against one never seen
+// again. Drawn from the bank's own sums (lib/bank.ts).
 const DAY_MS = 86_400_000
 const SPAN = 28
 const FADE = 0.85
 
 function memoryCurves() {
   const t0 = 0
-  let card = newCard(t0)
+  let m = newCard(t0).hm
   const reviews: Array<number> = []
   const kept: Array<[number, number]> = []
-  const alone = newCard(t0)
+  const alone = newCard(t0).hm
   const lost: Array<[number, number]> = []
   for (let i = 0; i <= SPAN * 96; i++) {
     const t = (i / 96) * DAY_MS
-    if (recall(card, t) < FADE) {
-      kept.push([t, recall(card, t)])
-      card = answer(card, true, t, 0.7)
+    if (recall(m, t) < FADE) {
+      kept.push([t, recall(m, t)])
+      m = answer(m, true, t, 0.7)
       reviews.push(t)
     }
-    kept.push([t, recall(card, t)])
+    kept.push([t, recall(m, t)])
     lost.push([t, recall(alone, t)])
   }
   return { kept, lost, reviews }

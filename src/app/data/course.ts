@@ -268,7 +268,7 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'Words as you know them',
-            text: 'Every game here writes a word by how well you know it. A word you have not met is in English, with its pinyin above. A word you are learning is in characters with pinyin. A word you know is in characters alone.',
+            text: 'Every game here writes a word by how well you know it. A word you have not met is in English, with its pinyin above. A word you are learning is in characters with pinyin. A word you know, whose character brings back both its sound and its meaning, is in characters alone.',
             show: { k: 'levels', zh: '请 给 我=me 你 的 护照 。' },
           },
           {
@@ -423,7 +423,7 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'Words fade, then stay',
-            text: 'Each word you meet has a memory in your word bank. Just after you meet it, it fades within hours. Each time you get it right as it begins to fade, it lasts longer, from hours to days and then to weeks.\n\nSo ten minutes every day does more than an hour once a week, and Today begins with the words that are fading.',
+            text: 'Each word you meet has three memories in your word bank, one for each link: its character and its sound, its character and its meaning, and its sound and its meaning. Just after you meet a word, they fade within hours. Each time you get one right as it begins to fade, it lasts longer, from hours to days and then to weeks.\n\nSo ten minutes every day does more than an hour once a week, and Today begins with the words that are fading.',
             show: { k: 'memory' },
           },
         ],

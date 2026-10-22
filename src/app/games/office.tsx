@@ -231,7 +231,7 @@ export default function Office() {
       for (const id of idsOf(right.zh))
         if (!chose.has(id) && !missed.current.has(id)) {
           missed.current.add(id)
-          if (levelOf(id) > 0) record(id, false, HEARD)
+          if (levelOf(id) > 0) record(id, false, HEARD, shown ? 'read' : 'sm')
         }
       const asker = askerOf(t)
       const line = { by: asker, ...(t.replies.length ? HUH : NOT_THAT) }
@@ -247,7 +247,8 @@ export default function Office() {
         ...t.lines.flatMap((l) => idsOf(l.zh)),
         ...idsOf(o.zh),
       ]))
-        if (levelOf(id) > 0) record(id, true, shown ? READ : HEARD)
+        if (levelOf(id) > 0)
+          record(id, true, shown ? READ : HEARD, shown ? 'read' : 'sm')
     const rs = [...results, { id: t.id, hit }]
     const earned = pay + (hit ? RANKS[rank].pay : 0)
     setResults(rs)

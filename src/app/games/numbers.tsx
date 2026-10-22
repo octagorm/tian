@@ -170,7 +170,7 @@ function Drill({ kind, onExit }: { kind: NumberKind; onExit: () => void }) {
     if (ok) points(1)
     // the number words in it that have been met
     for (const c of new Set([...q.zh]))
-      if (WORD[c] && levelOf(c) > 0) record(c, ok, 0.3)
+      if (WORD[c] && levelOf(c) > 0) record(c, ok, 0.3, 'sm')
   }
 
   const next = () => {

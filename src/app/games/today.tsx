@@ -9,13 +9,13 @@ import {
   X,
 } from 'lucide-react'
 import { SCENES } from '../data/trip'
-import { WORD } from '../data/words'
+import { WORD, WORDS } from '../data/words'
 import { SEALS } from '../data/seals'
 import { english, plain, tokens, wordIds } from '../lib/text'
 import { toHanzi } from '../lib/numbers'
 import { lineChoices } from '../lib/choices'
 import { blip, say } from '../lib/audio'
-import { dayKey, streak } from '../lib/bank'
+import { LINKS, dayKey, due, streak } from '../lib/bank'
 import { useStore } from '../lib/store'
 import {
   LISTEN,
@@ -35,6 +35,7 @@ import {
 import {
   Btn,
   Frame,
+  LINK_NAME,
   Mixed,
   Ruby,
   SpeakButton,
@@ -505,11 +506,12 @@ function ReviewStep({
   onGot,
   onDone,
 }: StepProps & { words: Array<Word> }) {
-  const { levelOf } = useStore()
+  const { bank } = useStore()
   const [questions] = useState(() =>
     questionsFor(
       words.filter((w) => !step.got?.includes(w.id)),
-      levelOf,
+      bank.cards,
+      Date.now(),
     ),
   )
   if (!questions.length) return <Empty onDone={onDone} />
@@ -675,9 +677,11 @@ const HEARD: Array<Heard> = SCENES.flatMap((s) =>
   ),
 )
 
-// Four lines or words, but for those heard in an earlier sitting
+// Four lines or words, but for those heard in an earlier sitting: lines of
+// the trip once enough scenes are played, or else words whose sound and
+// meaning have faded most, each heard and its meaning picked
 function ListenStep({ step, onGot, onDone }: StepProps) {
-  const { bank, levelOf } = useStore()
+  const { bank } = useStore()
   const [heard] = useState(() => new Set(step.got))
   const want = Math.max(0, LISTEN - heard.size)
   const [lines] = useState(() => {
@@ -688,11 +692,11 @@ function ListenStep({ step, onGot, onDone }: StepProps) {
   })
   const [words] = useState(() =>
     shuffle(
-      Object.keys(bank.cards).flatMap((id) => {
-        const w = WORD[id]
-        return w && !w.tags.includes('part') && !heard.has(id) ? [w] : []
-      }),
-    ).slice(0, want),
+      due(bank, Date.now(), WORDS, 'sm')
+        .map((d) => d.w)
+        .filter((w) => !w.tags.includes('part') && !heard.has(w.id))
+        .slice(0, want),
+    ),
   )
   if (lines.length)
     return (
@@ -706,10 +710,7 @@ function ListenStep({ step, onGot, onDone }: StepProps) {
   if (words.length >= (heard.size ? 1 : 2))
     return (
       <Quiz
-        questions={questionsFor(words, levelOf).map((q) => ({
-          ...q,
-          kind: 'listen' as const,
-        }))}
+        questions={words.map((w) => ({ w, kind: 'hear' as const }))}
         before={heard.size}
         onSettle={(q) => onGot(q.w.id)}
         onDone={onDone}
@@ -753,7 +754,8 @@ function ListenLines({
     const ok = en === q.en
     blip(ok ? 'right' : 'wrong')
     for (const t of tokens(q.zh, vars))
-      if (t.id && !t.punct && tokenLevel(t, levelOf) > 0) record(t.id, ok, 0.3)
+      if (t.id && !t.punct && tokenLevel(t, levelOf) > 0)
+        record(t.id, ok, 0.3, 'sm')
     if (ok) points(1)
     onHeard(q)
   }
@@ -929,11 +931,19 @@ function Done({ path }: { path: Path }) {
                   />
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm">{word.e}</p>
-                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--paper-2)]">
-                      <div
-                        className="h-full rounded-full bg-[var(--jade)] transition-all duration-1000"
-                        style={{ width: `${width}%` }}
-                      />
+                    <div
+                      className="mt-1 flex items-center gap-1.5"
+                      title={LINK_NAME[w.link].en}
+                    >
+                      <span className="zh shrink-0 text-xs leading-none text-[var(--ink-2)]">
+                        {LINK_NAME[w.link].zh}
+                      </span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--paper-2)]">
+                        <div
+                          className="h-full rounded-full bg-[var(--jade)] transition-all duration-1000"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
                     </div>
                   </div>
                   <span className="shrink-0 text-right text-xs text-[var(--ink-2)] tabular-nums">
@@ -945,7 +955,15 @@ function Done({ path }: { path: Path }) {
             })}
           </ul>
           <p className="mt-3 text-xs text-[var(--ink-2)]">
-            How long each will last before it starts to fade.
+            How long each will last before it starts to fade, by the link that
+            grew most:{' '}
+            {LINKS.map((l, i) => (
+              <span key={l}>
+                {i > 0 && ', '}
+                <span className="zh">{LINK_NAME[l].zh}</span> {LINK_NAME[l].en}
+              </span>
+            ))}
+            .
           </p>
         </section>
       )}

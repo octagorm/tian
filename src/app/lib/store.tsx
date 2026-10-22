@@ -9,10 +9,18 @@ import {
 } from 'react'
 import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
-import { answer, dayKey, emptyBank, known, level, merge, newCard } from './bank'
+import {
+  answerCard,
+  dayKey,
+  emptyBank,
+  known,
+  level,
+  merge,
+  newCard,
+} from './bank'
 import { setRate } from './audio'
 import type { ReactNode } from 'react'
-import type { Bank, Level, Path } from './bank'
+import type { Bank, Level, Link, Path } from './bank'
 
 // The word bank and the settings as React state, for every game at once.
 // Both are kept in localStorage; signed in, the bank is also kept on
@@ -73,8 +81,9 @@ interface Store {
   settings: Settings
   setSettings: (s: Partial<Settings>) => void
   levelOf: (id: string) => Level
-  // An answer about a word; weight is how much it says (see lib/bank.ts)
-  record: (id: string, right: boolean, weight?: number) => void
+  // An answer about a word: how much it says (see lib/bank.ts), and which
+  // of the word's links it tested
+  record: (id: string, right: boolean, weight: number, how: How) => void
   // Words met for the first time
   meet: (ids: Array<string>) => void
   // Words the player already knows
@@ -93,6 +102,11 @@ interface Store {
   // A day's session finished, with points for it; only once a day
   finishDay: (day: string, bonus?: number) => void
 }
+
+// What an answer tested: a link of the word, or some, or the word read
+// as the page shows it, its meaning taken from the character when it
+// stands alone and from the pinyin over it while it is being learnt
+export type How = Link | Array<Link> | 'read'
 
 // Seals just earned on this device, for the toaster
 type SealListener = (ids: Array<string>) => void
@@ -124,7 +138,10 @@ export function useStore(): Store {
 }
 
 export function BankProvider({ children }: { children: ReactNode }) {
-  const [bank, setBank] = useState<Bank>(() => load(BANK_KEY, emptyBank()))
+  // (merged with nothing, so a bank kept by an older page is read as now)
+  const [bank, setBank] = useState<Bank>(() =>
+    merge(load(BANK_KEY, emptyBank()), emptyBank()),
+  )
   const [settings, setAll] = useState<Settings>(() =>
     load(SETTINGS_KEY, DEFAULTS),
   )
@@ -139,12 +156,19 @@ export function BankProvider({ children }: { children: ReactNode }) {
   const today = () => dayKey(Date.now())
 
   const record = useCallback(
-    (id: string, right: boolean, weight = 1) =>
+    (id: string, right: boolean, weight: number, how: How) =>
       update((b) => {
         const now = Date.now()
+        const card = b.cards[id]
+        const links =
+          how === 'read'
+            ? [level(card, now) === 2 ? ('hm' as const) : ('sm' as const)]
+            : typeof how === 'string'
+              ? [how]
+              : how
         const cards = {
           ...b.cards,
-          [id]: answer(b.cards[id], right, now, weight),
+          [id]: answerCard(card, links, right, now, weight),
         }
         const days = right
           ? { ...b.days, [today()]: (b.days[today()] ?? 0) + 1 }

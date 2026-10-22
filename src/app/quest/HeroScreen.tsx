@@ -146,8 +146,8 @@ export function HeroScreen({ onBack }: { onBack: () => void }) {
         <Section title="Arts" zh="七十二变">
           <p className="mb-3 text-sm text-[var(--ink-2)]">
             Each comes back to Wukong when enough words are known – shown in
-            hanzi alone, remembered for a day and a half or more. Each is a
-            question of its own, once a fight.
+            hanzi alone, the character bringing back sound and meaning for a day
+            and a half or more. Each is a question of its own, once a fight.
           </p>
           <div className="grid gap-2">
             {SKILLS.map((k) => {

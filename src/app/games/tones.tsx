@@ -536,7 +536,7 @@ function Pairs({ onExit }: { onExit: () => void }) {
     if (exact) cheer(card.current, '+1')
     if (want.length >= 2) tone(`${want[0]}${want[1]}`, right)
     else tone(`${want[0]}`, right)
-    record(w.id, right, 0.4)
+    record(w.id, right, 0.4, 'hs')
     if (right) points(1)
     setScore((s) => {
       const n = {
@@ -818,7 +818,7 @@ function Say({ onExit }: { onExit: () => void }) {
         const sc = likeness(s, ref_)
         setScore(sc)
         blip(sc >= 70 ? 'right' : 'wrong')
-        record(w.id, sc >= 70, 0.3)
+        record(w.id, sc >= 70, 0.3, 'hs')
         if (sc >= 70) points(2)
         setBest('say', sc)
       } else if (!s) setError('No voice heard. Try again, a bit louder.')

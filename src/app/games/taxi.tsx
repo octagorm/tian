@@ -390,7 +390,8 @@ export default function Taxi() {
       // the instruction followed: the words it turned on, remembered
       if (p.pi === ins.points.length - 1 && !s.missed.size)
         for (const id of ins.words)
-          if (levelOf(id) > 0) record(id, true, s.shown ? READ : HEARD)
+          if (levelOf(id) > 0)
+            record(id, true, s.shown ? READ : HEARD, s.shown ? 'read' : 'sm')
       return
     }
     s.mistakes++
@@ -401,7 +402,7 @@ export default function Taxi() {
     for (const id of verdict.missed)
       if (!s.missed.has(id)) {
         s.missed.add(id)
-        if (levelOf(id) > 0) record(id, false, HEARD)
+        if (levelOf(id) > 0) record(id, false, HEARD, s.shown ? 'read' : 'sm')
       }
     const line =
       verdict.complaint === 'early'

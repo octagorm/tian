@@ -221,6 +221,8 @@ export default function Bridge() {
     const { bank: b, meet } = latest.current
     meet(FIRST_WORDS.filter((id) => !b.cards[id]))
     setOfficer(asOfficer)
+    // a cadet reads what is said; an officer understands it by ear
+    const by = asOfficer ? 'sm' : 'read'
     setMode('play')
     setPaused(false)
     setOnScreen(null)
@@ -245,7 +247,7 @@ export default function Bridge() {
       onSettled: ({ order, ok }) => {
         const { record, levelOf, settings } = latest.current
         for (const id of orderWords(order, settings.home, levelOf))
-          record(id, ok, ok ? (asOfficer ? 0.7 : 0.4) : 0.4)
+          record(id, ok, ok ? (asOfficer ? 0.7 : 0.4) : 0.4, by)
         blip(ok ? 'right' : 'wrong')
       },
       onMeet: (e) => {
@@ -260,8 +262,8 @@ export default function Bridge() {
             ...asked,
             ...shownWords(reply.zh, settings.home, levelOf),
           ])
-          for (const id of ids) record(id, true, asOfficer ? 0.7 : 0.5)
-        } else for (const id of asked) record(id, false, 0.4)
+          for (const id of ids) record(id, true, asOfficer ? 0.7 : 0.5, by)
+        } else for (const id of asked) record(id, false, 0.4, by)
         blip(right ? 'right' : 'wrong')
       },
       onArrived: () => latest.current.points(3),

@@ -131,7 +131,7 @@ export default function Listen() {
     const ids = tokens(q.zh, vars)
       .filter((t) => !t.punct && tokenLevel(t, levelOf) > 0)
       .flatMap((t) => (t.id ? [t.id] : []))
-    for (const id of ids) record(id, ok, 0.3)
+    for (const id of ids) record(id, ok, 0.3, 'sm')
     if (ok) points(1)
     setScore((s) => {
       const n = {

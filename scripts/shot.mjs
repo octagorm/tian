@@ -56,7 +56,8 @@ page.on(
 )
 
 if (learner) {
-  // Words of the first lessons met an hour ago, every third one known
+  // Words of the first lessons met an hour ago, every third one known, and
+  // of the rest some with one link to the character well on the way
   await page.evaluateOnNewDocument(() => {
     if (localStorage.getItem('tian:bank:v1')) return
     const now = Date.now()
@@ -66,9 +67,13 @@ if (learner) {
       )
     const cards = {}
     ids.forEach((id, i) => {
+      const t = now - 3600000
+      const s = i % 3 === 0 ? 4 : 0.3
       cards[id] = {
-        s: i % 3 === 0 ? 4 : 0.3,
-        t: now - 3600000,
+        hs: { s: i % 3 === 1 ? 2 : s, t },
+        hm: { s: i % 3 === 2 ? 2.5 : s, t },
+        sm: { s: i % 3 === 0 ? 1.2 : s, t },
+        t,
         n: 2,
         x: 0,
         i: now - 86400000,

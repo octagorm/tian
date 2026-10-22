@@ -119,14 +119,11 @@ export default function Mahjong() {
 
   const newBoard = (l = layout, m = mode) => {
     const { slots, pairs } = LAYOUTS[l]
-    const chosen = pick(
-      bank,
-      pairs * 2,
-      Date.now(),
-      (w) => !w.tags.includes('part'),
-      Math.random,
-      pairs * 2,
-    )
+    const chosen = pick(bank, pairs * 2, Date.now(), {
+      fit: (w) => !w.tags.includes('part'),
+      link: m === 'pinyin' ? 'hs' : undefined,
+      newest: pairs * 2,
+    })
     // no two words that would look alike on their tiles
     const seen = new Set<string>()
     const words = chosen.words
@@ -192,7 +189,7 @@ export default function Mahjong() {
     const w = board.words[board.pairOf[a]]
     blip('right')
     void say(w.h)
-    record(w.id, true, 0.4)
+    record(w.id, true, 0.4, board.mode === 'pinyin' ? 'hs' : 'read')
     const t = { ...tally, pairs: tally.pairs + 1 }
     setTally(t)
     setPicked(null)
@@ -245,7 +242,8 @@ export default function Mahjong() {
     blip('wrong')
     const h = board.hanzi[a] ? a : i
     const hw = board.words[board.pairOf[h]]
-    if (!board.fresh.has(hw.id)) record(hw.id, false, 0.2)
+    if (!board.fresh.has(hw.id))
+      record(hw.id, false, 0.2, board.mode === 'pinyin' ? 'hs' : 'read')
     setTally((t) => ({ ...t, misses: t.misses + 1 }))
     setShaking([a, i])
     setPicked(null)

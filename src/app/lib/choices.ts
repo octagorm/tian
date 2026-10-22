@@ -19,7 +19,9 @@ function shuffle<T>(xs: Array<T>, random: () => number): Array<T> {
   return a
 }
 
-export type ChoiceKind = 'meaning' | 'listen' | 'reverse'
+// Meanings for a character, characters for a meaning, characters for a
+// word heard, and meanings for a word heard
+export type ChoiceKind = 'meaning' | 'reverse' | 'listen' | 'hear'
 
 // A word as it is said, the tone changes of 不 and 一 applied
 const spoken = (w: Word) => inContext([{ h: w.h, s: syllables(w.p) }])[0]
@@ -51,8 +53,8 @@ const length = (w: Word) => syllables(w.p).length
 function likeness(w: Word, x: Word, kind: ChoiceKind): number {
   const alike =
     x.tags.some((t) => w.tags.includes(t)) || Math.abs(x.lesson - w.lesson) <= 1
-  let score = alike ? (kind === 'meaning' ? 2 : 0.5) : 0
-  if (kind === 'listen') {
+  let score = alike ? (kind === 'meaning' || kind === 'hear' ? 2 : 0.5) : 0
+  if (kind === 'listen' || kind === 'hear') {
     const sw = spoken(w)
     const sx = spoken(x)
     const bw = sw.map((s) => bare(s).toLowerCase())
@@ -87,7 +89,8 @@ export function wordChoices(
       .sort((a, b) => b.s - a.s)
       .map((r) => r.x)
   let picked: Array<Word>
-  if (kind === 'meaning') picked = ranked(others).slice(0, 3)
+  // meanings in English do not show how long the word is
+  if (kind === 'meaning' || kind === 'hear') picked = ranked(others).slice(0, 3)
   else {
     const n = length(w)
     const tiers = [
