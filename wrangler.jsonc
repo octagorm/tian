@@ -1,7 +1,8 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "tian",
-  // Passes Google's sign-in on to Convex; nothing else runs it
+  // Passes Google's sign-in on to Convex and serves the podcast from R2;
+  // nothing else runs it
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-10",
   // The built files. Headers are in public/_headers, old URLs in public/_redirects.
@@ -10,8 +11,10 @@
     "binding": "ASSETS",
     "not_found_handling": "404-page",
     "html_handling": "drop-trailing-slash",
-    "run_worker_first": ["/api/auth/*"],
+    "run_worker_first": ["/api/auth/*", "/podcast/*"],
   },
+  // The podcast's feed, cover and episodes (scripts/podcast-feed.py)
+  "r2_buckets": [{ "binding": "PODCAST", "bucket_name": "tian-podcast" }],
   // Branch builds deploy as Previews. Nothing differs from production, except
   // that previews send no sign-ins on to Convex.
   "previews": {},

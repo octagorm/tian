@@ -6,7 +6,10 @@
 // the paper they would be a snow of white specks.
 //
 //   node scripts/icons.mjs
+//   node scripts/icons.mjs --podcast   # the podcast's cover instead
 //
+// The podcast's cover (podcast/cover.jpg) is the seal over the podcast's
+// name, 3000 px square, a JPEG in sRGB without transparency as Apple asks.
 // Needs ImageMagick (brew install imagemagick) and the network, for the font.
 import { execFileSync } from 'node:child_process'
 import { mkdtempSync } from 'node:fs'
@@ -51,13 +54,16 @@ const ICONS = [
 ]
 
 const DRAW = 1024
+const PODCAST = process.argv.includes('--podcast')
+const COVER = 3000
+const INK = '#2b211a'
 const tmp = mkdtempSync(join(tmpdir(), 'tian-icons-'))
 const browser = await puppeteer.launch()
 const page = await browser.newPage()
 await page.setViewport({ width: DRAW, height: DRAW })
 await page.setContent(
   `<!doctype html><html><head>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=block" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=Ma+Shan+Zheng&display=block" />
     <style>
       html, body { margin: 0; width: ${DRAW}px; height: ${DRAW}px }
       body { display: grid; place-items: center }
@@ -71,7 +77,57 @@ const ready = await page.evaluate(async (text) => {
   return document.fonts.check(`70px "Ma Shan Zheng"`, text)
 }, TEXT)
 if (!ready) throw new Error('Ma Shan Zheng did not load')
-for (const icon of ICONS) {
+if (PODCAST) {
+  // Drawn at a third of its size, three device pixels to each
+  await page.setViewport({
+    width: COVER / 3,
+    height: COVER / 3,
+    deviceScaleFactor: 3,
+  })
+  await page.evaluate(
+    (back, ink, red) => {
+      Object.assign(document.body.style, {
+        background: back,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '18px',
+        width: '1000px',
+        height: '1000px',
+      })
+      Object.assign(document.querySelector('div').style, {
+        width: '470px',
+        height: '470px',
+      })
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        `<p style="margin:24px 0 0;font:150px/1 'Ma Shan Zheng';color:${red}">天天</p>
+         <p style="margin:0;font:600 64px/1 'Cormorant Garamond';color:${ink};letter-spacing:.02em">Mandarin with Tian</p>`,
+      )
+    },
+    PAGE,
+    INK,
+    RED,
+  )
+  await page.evaluate(() => document.fonts.ready)
+  const big = join(tmp, 'cover.png')
+  await page.screenshot({ path: big })
+  execFileSync('magick', [
+    big,
+    '-resize',
+    `${COVER}x${COVER}!`,
+    '-colorspace',
+    'sRGB',
+    '-alpha',
+    'remove',
+    '-quality',
+    '90',
+    'podcast/cover.jpg',
+  ])
+  console.log(`podcast/cover.jpg (${COVER} px)`)
+}
+for (const icon of PODCAST ? [] : ICONS) {
   const side = `${Math.round(DRAW * icon.seal)}px`
   await page.evaluate(
     (back, side) => {

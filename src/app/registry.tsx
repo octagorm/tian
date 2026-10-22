@@ -94,6 +94,15 @@ export const GAMES = [
     Page: page(() => import('./games/listen')),
   },
   {
+    id: 'podcast',
+    title: 'Podcast',
+    zh: '播客',
+    sprite: 'mic',
+    blurb:
+      'Ten minutes of talk in English and simple Chinese, made from the words you meet here.',
+    Page: page(() => import('./games/podcast')),
+  },
+  {
     id: 'rain',
     title: 'Pinyin rain',
     zh: '下雨',
