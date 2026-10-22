@@ -38,10 +38,9 @@ import sys
 import time
 from pathlib import Path
 
-# The repo: where scripts/audio.py is (the script may run from a copy)
-ROOT = next(p for p in Path(__file__).resolve().parents if (p / "scripts" / "audio.py").exists())
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
-from audio import MODEL, designed_ids, ffmpeg, load_env  # noqa: E402
+from audio import MODEL, designed_ids, ffmpeg, load_env
 
 CACHE = ROOT / ".cache" / "podcast"
 # Characters of text in one request, about a minute of speech
