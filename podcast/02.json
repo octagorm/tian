@@ -1,0 +1,334 @@
+{
+  "title": "天天 – Episode 2: A ticket, lamb skewers and the mended sky",
+  "cast": {
+    "Lin": {
+      "voice": "Lin",
+      "style": "a warm, playful podcast host, natural and lively in English; when she speaks Chinese, clear, a little slower, every tone exact"
+    },
+    "Erik": {
+      "voice": "Erik",
+      "style": "a friendly beginner on a podcast, relaxed and funny in English; his Chinese careful and a little slow, every tone as written"
+    },
+    "Storyteller": {
+      "voice": "Storyteller",
+      "style": "a master of the old storytelling halls, telling a myth in standard Mandarin Chinese, slowly and dramatically, so a beginner can follow"
+    },
+    "Iapetus": {
+      "voice": "Iapetus",
+      "style": "a brisk, matter-of-fact ticket seller at a busy Beijing railway station, in standard Mandarin Chinese, clear enough for a learner"
+    },
+    "Fenrir": {
+      "voice": "Fenrir",
+      "style": "a loud, happy street vendor at a lamb skewer grill in Xi'an, calling out in standard Mandarin Chinese, clear enough for a learner"
+    }
+  },
+  "lines": [
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "你好！ Welcome back to 天天. I'm Lin."
+    },
+    {
+      "who": "Erik",
+      "text": "And I'm Erik. 你好！ Last time I took a taxi to the bank, and the driver took the long way round. 绕路。"
+    },
+    {
+      "who": "Lin",
+      "text": "And you said: 师傅，停！ Today we leave Beijing. We're buying a train ticket, eating lamb skewers in Xi'an, and hearing the story of the goddess who mended the sky. Most of today's Chinese you've met in the last few days, so some of it will still feel new. That's fine. That's the point."
+    },
+    {
+      "who": "Erik",
+      "text": "没关系。 I'm ready. 我们 去 西安！"
+    },
+    {
+      "who": "Lin",
+      "text": "我们去西安. We're going to Xi'an. 去, to go. Put the place right after it: 去西安, go to Xi'an. 去北京, go to Beijing. No little word for 'to' in between."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Beijing West railway station. It's huge, it's busy, and Erik is at the ticket window."
+    },
+    {
+      "who": "Iapetus",
+      "text": "你好，去 哪儿？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 要 一 张 明天 去 西安 的 票。",
+      "style": "a beginner at a ticket window, concentrating hard on a long sentence, saying it slowly and carefully"
+    },
+    {
+      "who": "Iapetus",
+      "text": "明天 上午 七 点，可以 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "七 点？太 早 了！下午 有 吗？",
+      "style": "a beginner, horrified at the thought of getting up early"
+    },
+    {
+      "who": "Iapetus",
+      "text": "下午 两 点 半 有。"
+    },
+    {
+      "who": "Erik",
+      "text": "好，多少 钱？"
+    },
+    {
+      "who": "Iapetus",
+      "text": "五百一十五 块。请 给 我 你 的 护照。"
+    },
+    {
+      "who": "Erik",
+      "text": "好的，给 你。"
+    },
+    {
+      "who": "Iapetus",
+      "text": "好 了。这 是 你 的 票。一路平安！",
+      "style": "brisk and matter-of-fact, then a small warm smile on the last words"
+    },
+    {
+      "who": "Erik",
+      "text": "谢谢！"
+    },
+    {
+      "who": "Lin",
+      "text": "Well done. Let's take that first sentence apart, because it's a long one. 我要一张明天去西安的票."
+    },
+    {
+      "who": "Erik",
+      "text": "It sounds backwards to me. 'I want one tomorrow go Xi'an ticket.'"
+    },
+    {
+      "who": "Lin",
+      "text": "That's exactly how Chinese builds it. Everything that describes a thing comes before it, and 的 ties it on. 明天去西安的票: tomorrow, go to Xi'an, 的, ticket. The ticket comes last, after its whole description."
+    },
+    {
+      "who": "Erik",
+      "text": "And 张? I said 一张票, not 一个票."
+    },
+    {
+      "who": "Lin",
+      "text": "张 is the measure word for flat things. Tickets, paper, tables, photos. 一张票, one ticket. Then the time: 明天 is tomorrow, 今天 is today. 七点 is seven o'clock. 两点半, half past two. 半, half. 下午, afternoon."
+    },
+    {
+      "who": "Erik",
+      "text": "And 太早了: too early. Like 太贵了 in the taxi."
+    },
+    {
+      "who": "Lin",
+      "text": "Exactly the same pattern. And the opposite of 早 is 晚, late. Then he asked for your 护照, your passport. In China a train ticket goes with your passport. And at the end, 一路平安: have a safe journey, all the way. Say these after me."
+    },
+    {
+      "who": "Lin",
+      "text": "一张票。 明天。 下午两点半。 太早了！ 好的，给你。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Five hours or so on the high-speed train, and it's evening in Xi'an. The Muslim Quarter. Smoke from the grills, cumin in the air, and a man waving a fistful of skewers."
+    },
+    {
+      "who": "Fenrir",
+      "text": "羊肉串！好吃 的 羊肉串！"
+    },
+    {
+      "who": "Erik",
+      "text": "羊肉串 多少 钱？"
+    },
+    {
+      "who": "Fenrir",
+      "text": "五 块 一 个！"
+    },
+    {
+      "who": "Erik",
+      "text": "我 要 十 个，不 要 太 辣。"
+    },
+    {
+      "who": "Fenrir",
+      "text": "好！你 是 哪 国 人？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 是 挪威 人。"
+    },
+    {
+      "who": "Fenrir",
+      "text": "挪威？很 远 啊！来，你 的 羊肉串。五十 块。"
+    },
+    {
+      "who": "Erik",
+      "text": "我 扫 微信。"
+    },
+    {
+      "who": "Fenrir",
+      "text": "好！欢迎 再 来！"
+    },
+    {
+      "who": "Erik",
+      "text": "谢谢，再见！"
+    },
+    {
+      "who": "Lin",
+      "text": "羊肉串, lamb skewers. 羊肉 is lamb, and 串 is a skewer, a string of things. And 好吃: good to eat. Tasty."
+    },
+    {
+      "who": "Erik",
+      "text": "I said 我要十个. Ten. And I was very careful there, because I almost said 四个."
+    },
+    {
+      "who": "Lin",
+      "text": "The classic trap. 四, sì, four, falling. 十, shí, ten, rising. Get the tone wrong and you get four skewers instead of ten. Or ten instead of four, which is worse for your wallet. Which do you hear?"
+    },
+    {
+      "who": "Lin",
+      "text": "十个。 四个。 四十。 十四。",
+      "style": "a quiz host saying each Mandarin line one at a time, clearly, then staying completely silent for three full seconds before the next"
+    },
+    {
+      "who": "Erik",
+      "text": "Ten, four, forty, fourteen. I think."
+    },
+    {
+      "who": "Lin",
+      "text": "All right! Then: 不要太辣. 不要 is 'don't want'. 不要太辣, don't want it too spicy. And 辣, là, spicy, is a word you will need in Xi'an."
+    },
+    {
+      "who": "Erik",
+      "text": "He said 很远啊 when I said Norway. Very far!"
+    },
+    {
+      "who": "Lin",
+      "text": "远, far. And then you paid the way almost everyone in China pays: 我扫微信, I'll scan WeChat. 扫 is to scan, and also to sweep. And he said: 欢迎再来. 欢迎, welcome. 再, again. 来, come. Welcome to come again."
+    },
+    {
+      "who": "Erik",
+      "text": "And the money. 五块一个, five kuai each. 五十块, fifty."
+    },
+    {
+      "who": "Lin",
+      "text": "One more thing about money. A kuai is split into ten 毛. So five and a half kuai is 五块五毛, or just 五块五. And 零 is zero, for the gap in a number: 一百零五, a hundred and five. Your turn."
+    },
+    {
+      "who": "Lin",
+      "text": "羊肉串多少钱？ 我要十个。 不要太辣。 我扫微信。 欢迎再来！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Story time. You've seen this one with the shadow puppets too. Our storyteller is back."
+    },
+    {
+      "who": "Storyteller",
+      "text": "很 久 以前，有 一 个 神，她 叫 女娲。"
+    },
+    {
+      "who": "Lin",
+      "text": "Long, long ago there was a goddess called Nüwa. 女娲."
+    },
+    {
+      "who": "Storyteller",
+      "text": "女娲 做 了 很 多 人，她 很 爱 他们。"
+    },
+    {
+      "who": "Lin",
+      "text": "Nüwa made many people, and she loved them very much. In the old story she shapes them from yellow earth."
+    },
+    {
+      "who": "Storyteller",
+      "text": "有 一 天，天 上 有 了 一 个 大 洞！雨 很 大，地 上 都 是 水。",
+      "style": "a master storyteller, suddenly dark and urgent, the disaster striking"
+    },
+    {
+      "who": "Erik",
+      "text": "Oh no. A big hole in the sky. The rain is heavy, and there's water everywhere on the ground."
+    },
+    {
+      "who": "Storyteller",
+      "text": "女娲 找 了 红色、黄色、蓝色、白色 和 黑色 的 石头。她 用 石头 补 了 天 上 的 洞。"
+    },
+    {
+      "who": "Lin",
+      "text": "Nüwa found stones. Red, yellow, blue, white and black. And with the stones she mended the hole in the sky. 补, to mend, to patch."
+    },
+    {
+      "who": "Erik",
+      "text": "She patched the sky. With rocks. I can't even patch a bicycle tyre."
+    },
+    {
+      "who": "Storyteller",
+      "text": "天 好 了，雨 也 停 了。人 都 很 高兴。"
+    },
+    {
+      "who": "Lin",
+      "text": "The sky was whole again, and the rain stopped too. And everyone was happy. 停, there it is again: the rain stopped, like the taxi."
+    },
+    {
+      "who": "Storyteller",
+      "text": "下雨 以后，你 看 天 上：那 是 女娲 的 石头！",
+      "style": "a storyteller ending a tale with a hushed, wondering smile"
+    },
+    {
+      "who": "Lin",
+      "text": "After the rain, look up at the sky. Those are Nüwa's stones. All those colours, after the rain."
+    },
+    {
+      "who": "Erik",
+      "text": "A rainbow. That's lovely."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Last thing before we go. Three phrases for when it all gets too fast. Someone talks to you, quickly, and you've lost it. You say: 我不懂. I don't understand."
+    },
+    {
+      "who": "Erik",
+      "text": "我 不 懂。 I've used that one a lot."
+    },
+    {
+      "who": "Lin",
+      "text": "Then: 你会说英文吗? Can you speak English? 英文, English."
+    },
+    {
+      "who": "Erik",
+      "text": "And when they say yes, or they help you anyway, 好的. OK. And if you want to ask whether something's all right, 可以吗? Is that OK?"
+    },
+    {
+      "who": "Lin",
+      "text": "Perfect. Say them after me."
+    },
+    {
+      "who": "Lin",
+      "text": "我不懂。 你会说英文吗？ 可以吗？ 好的。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "who": "Lin",
+      "text": "很好！ That's it for today. Next time, maybe the Terracotta Army. 谢谢, Erik."
+    },
+    {
+      "who": "Erik",
+      "text": "不客气！ 一路平安！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，一路平安. Safe journey, everyone. 再见！ 天天向上。"
+    },
+    {
+      "chime": true
+    }
+  ]
+}
