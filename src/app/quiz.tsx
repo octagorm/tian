@@ -351,27 +351,26 @@ function Verdict({
     <div className="mt-4 flex min-h-[4.5rem] items-center gap-3 border-t border-dashed border-[var(--paper-2)] pt-3">
       {answered ? (
         <>
-          {/* The verdict and the word on one row, the meaning under them in
-              at most two lines: short enough for a phone */}
-          <div className="fx-rise min-w-0 flex-1">
-            <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
-              <span
-                className={`flex items-baseline gap-1 text-sm font-black ${answered.right ? 'text-[var(--jade)]' : 'text-[var(--red)]'}`}
-              >
-                {answered.right ? (
-                  <>
-                    <Ruby h="对" p="duì" className="text-xl" /> right
-                  </>
-                ) : (
-                  <>
-                    <Ruby h="不对" p="bù duì" className="text-xl" /> it is
-                  </>
-                )}
-              </span>
-              <span className={answered.right ? '' : 'fx-pop'}>
-                <Ruby h={q.w.h} p={q.w.p} className="text-2xl sm:text-3xl" />
-              </span>
-            </div>
+          {/* The verdict and the word side by side, each a column of
+              pinyin, hanzi and English, centred: short enough for a phone */}
+          <div className="fx-rise grid min-w-0 flex-1 grid-cols-[auto_minmax(0,auto)] justify-start gap-x-5 text-center">
+            <span
+              className={`self-end font-black ${answered.right ? 'text-[var(--jade)]' : 'text-[var(--red)]'}`}
+            >
+              <Ruby
+                h={answered.right ? '对' : '不对'}
+                p={answered.right ? 'duì' : 'bù duì'}
+                className="text-xl"
+              />
+            </span>
+            <span className={`self-end ${answered.right ? '' : 'fx-pop'}`}>
+              <Ruby h={q.w.h} p={q.w.p} className="text-2xl sm:text-3xl" />
+            </span>
+            <span
+              className={`mt-0.5 text-sm font-black ${answered.right ? 'text-[var(--jade)]' : 'text-[var(--red)]'}`}
+            >
+              {answered.right ? 'right' : 'it is'}
+            </span>
             <p className="mt-0.5 line-clamp-2 text-sm leading-snug text-[var(--ink-2)] sm:text-base">
               {q.w.e}
             </p>
