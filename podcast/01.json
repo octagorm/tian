@@ -1,368 +1,368 @@
 {
- "title": "天天 – Episode 1: Taxi, dumplings and the sky",
- "designed": {
-  "Lin": "A warm, witty woman in her thirties from Beijing, a bilingual podcast host: fluent, natural English with a light Beijing accent, and native standard Mandarin Chinese with crisp, exact tones. Bright, playful and encouraging, with a smile in her voice.",
-  "Erik": "A Norwegian man in his thirties speaking English with a light Scandinavian accent: a curious, friendly beginner learning Mandarin Chinese, self-deprecating and a little goofy, saying his few Chinese words slowly and carefully."
- },
- "cast": {
-  "Lin": {
-   "voice": "Lin",
-   "style": "a warm, playful podcast host, natural and lively in English; when she speaks Chinese, clear, a little slower, every tone exact"
-  },
-  "Erik": {
-   "voice": "Erik",
-   "style": "a friendly beginner on a podcast, relaxed and funny in English; his Chinese careful and a little slow, every tone as written"
-  },
-  "Orus": {
-   "voice": "Orus",
-   "style": "a relaxed Beijing taxi driver, a bit gruff, in standard Mandarin Chinese"
-  },
-  "Algenib": {
-   "voice": "Algenib",
-   "style": "a kind old man running a breakfast stall, slow and a little gravelly, warm, in standard Mandarin Chinese"
-  },
-  "Storyteller": {
-   "voice": "Storyteller",
-   "style": "a master of the old storytelling halls, telling a myth in standard Mandarin Chinese, slowly and dramatically, so a beginner can follow"
-  },
-  "Laozi": {
-   "voice": "Laozi",
-   "style": "a very old sage, slow and serene, reciting classical Chinese with long pauses"
-  }
- },
- "lines": [
-  {
-   "chime": true
-  },
-  {
-   "who": "Lin",
-   "text": "你好！ Hello, and welcome to 天天, the little podcast that grows with you, one word at a time. I'm Lin. 我是林。"
-  },
-  {
-   "who": "Erik",
-   "text": "And I'm Erik. 你好！我是挪威人。 I've been learning Chinese for about a week, so be gentle with me."
-  },
-  {
-   "who": "Lin",
-   "text": "A week ago you couldn't say a word, Erik. Now listen to you. Today's episode is built almost only from words you've already met. A taxi ride in Beijing. Breakfast with dumplings and tea. A very old story about the sky. And at the end, one line from one of the oldest books in China."
-  },
-  {
-   "who": "Erik",
-   "text": "No pressure, then."
-  },
-  {
-   "who": "Lin",
-   "text": "没关系！ It doesn't matter. Let's start where every conversation starts."
-  },
-  {
-   "chime": true
-  },
-  {
-   "who": "Lin",
-   "text": "你好。 Two third tones in a row. And what happens to two third tones?"
-  },
-  {
-   "who": "Erik",
-   "text": "The first one goes up. So it's not nǐ hǎo, it's ní hǎo. 你好。"
-  },
-  {
-   "who": "Lin",
-   "text": "很好！ Very good. And when somebody helps you?"
-  },
-  {
-   "who": "Erik",
-   "text": "谢谢。"
-  },
-  {
-   "who": "Lin",
-   "text": "And they answer: 不客气。 Listen to 不 there. On its own, 不 is fourth tone, bù. But in front of another fourth tone it goes up: bú kèqi. 不客气。"
-  },
-  {
-   "who": "Erik",
-   "text": "And when I step on someone's foot on the subway?"
-  },
-  {
-   "who": "Lin",
-   "text": "对不起。"
-  },
-  {
-   "who": "Erik",
-   "text": "And they say, 没关系. It doesn't matter. Hopefully."
-  },
-  {
-   "who": "Lin",
-   "text": "Your turn now. Say each one after me."
-  },
-  {
-   "who": "Lin",
-   "text": "你好。 谢谢。 不客气。 对不起。 没关系。",
-   "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
-  },
-  {
-   "chime": true
-  },
-  {
-   "who": "Lin",
-   "text": "So, Erik. You've just landed in Beijing, and you get into a taxi. One new word first. In Beijing you call the driver 师傅, shīfu. It means master, and it's the polite way to talk to a driver or a craftsman."
-  },
-  {
-   "who": "Erik",
-   "text": "师傅！ Okay. Here goes."
-  },
-  {
-   "who": "Erik",
-   "text": "师傅，你好！",
-   "style": "a nervous beginner getting into a Beijing taxi, saying his Mandarin carefully"
-  },
-  {
-   "who": "Orus",
-   "text": "你好。去 哪儿？"
-  },
-  {
-   "who": "Erik",
-   "text": "请问，银行 在 哪儿？我 要 去 银行。"
-  },
-  {
-   "who": "Orus",
-   "text": "银行？好。"
-  },
-  {
-   "who": "Lin",
-   "text": "He asked: 去哪儿, going where? And Erik said: 请问, may I ask, where is the bank? I want to go to the bank. 银行, yínháng, is a bank. Let's see how the ride goes."
-  },
-  {
-   "who": "Orus",
-   "text": "往 左……往 右……一直 往 前……",
-   "style": "a gruff Beijing taxi driver muttering to himself as he drives, unhurried"
-  },
-  {
-   "who": "Erik",
-   "text": "师傅，这 是 近路 吗？"
-  },
-  {
-   "who": "Orus",
-   "text": "是，是。近路，近路。",
-   "style": "a gruff taxi driver, a little too quick to agree"
-  },
-  {
-   "who": "Lin",
-   "text": "He says it's the shortcut, 近路. It is not the shortcut. It is a 绕路, a detour. Erik, I think you know what to say."
-  },
-  {
-   "who": "Erik",
-   "text": "师傅！停！停！"
-  },
-  {
-   "who": "Orus",
-   "text": "好，好。到 了。",
-   "style": "a gruff taxi driver, unbothered, pulling over"
-  },
-  {
-   "who": "Erik",
-   "text": "多少 钱？"
-  },
-  {
-   "who": "Orus",
-   "text": "八十 块。"
-  },
-  {
-   "who": "Erik",
-   "text": "八十？！太 贵 了！",
-   "style": "a beginner in comic disbelief"
-  },
-  {
-   "who": "Orus",
-   "text": "不 贵，不 贵。",
-   "style": "a gruff taxi driver, chuckling"
-  },
-  {
-   "who": "Lin",
-   "text": "Eighty kuài. 太贵了, too expensive! 太, then the word, then 了: that's how you say too much of something. And the opposite of 贵 is 便宜, cheap. Which, in that taxi, it was not."
-  },
-  {
-   "who": "Erik",
-   "text": "And the directions went by fast. 往左 is to the left. 往右, to the right. 一直往前, straight ahead."
-  },
-  {
-   "who": "Lin",
-   "text": "And look at 一 in 一直. Before a second tone, 一 becomes fourth tone: yìzhí. Then 停, tíng. Stop. Say them after me."
-  },
-  {
-   "who": "Lin",
-   "text": "往左。 往右。 一直往前。 停。 太贵了。",
-   "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
-  },
-  {
-   "chime": true
-  },
-  {
-   "who": "Lin",
-   "text": "Next morning. Breakfast. A tiny place with steam coming out of the door, and an old man behind the counter."
-  },
-  {
-   "who": "Algenib",
-   "text": "你好！你 要 什么？"
-  },
-  {
-   "who": "Erik",
-   "text": "我 要 两 个 包子，一 碗 饺子，和 一 杯 茶。"
-  },
-  {
-   "who": "Algenib",
-   "text": "好。你 是 哪 国 人？"
-  },
-  {
-   "who": "Erik",
-   "text": "我 是 挪威 人。"
-  },
-  {
-   "who": "Algenib",
-   "text": "挪威！很 好。你 会 说 中文 吗？"
-  },
-  {
-   "who": "Erik",
-   "text": "我 会 说 一点 中文。"
-  },
-  {
-   "who": "Algenib",
-   "text": "你 的 中文 很 好！",
-   "style": "a kind old man, delighted and very generous with the compliment"
-  },
-  {
-   "who": "Erik",
-   "text": "谢谢！一共 多少 钱？"
-  },
-  {
-   "who": "Algenib",
-   "text": "一共 十五 块。"
-  },
-  {
-   "who": "Lin",
-   "text": "Did you notice what he did there? 你的中文很好, your Chinese is very good. In China you will hear that after about three words. Enjoy it. Don't believe it."
-  },
-  {
-   "who": "Erik",
-   "text": "I'll take it anyway. So, I ordered 两个包子, two steamed buns. Why 两 and not 二?"
-  },
-  {
-   "who": "Lin",
-   "text": "When you count things, two is 两. 二 is for counting out loud: 一, 二, 三. And between the number and the thing there's a measure word. 个 is the everyday one, for buns and for people. 碗 is a bowl, 杯 is a cup. So: 一碗饺子, a bowl of dumplings. 一杯茶, a cup of tea."
-  },
-  {
-   "who": "Erik",
-   "text": "And then he asked 你是哪国人. Which country person are you?"
-  },
-  {
-   "who": "Lin",
-   "text": "Exactly. 国 is country. 中国, the middle country, is China. 美国, America. 英国, England. 德国, Germany. 法国, France. And some are just the sound of the name: 挪威, Norway. 瑞典, Sweden."
-  },
-  {
-   "who": "Erik",
-   "text": "So I'm 挪威人, and my neighbour is 瑞典人. That explains a lot."
-  },
-  {
-   "who": "Lin",
-   "text": "And one last thing from breakfast: 吗. Put it at the end and the sentence becomes a question. 你会说中文, you speak Chinese. 你会说中文吗? Do you speak Chinese? Your turn."
-  },
-  {
-   "who": "Lin",
-   "text": "我要两个包子。 一杯茶。 我是挪威人。 我会说一点中文。 一共多少钱？",
-   "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
-  },
-  {
-   "chime": true
-  },
-  {
-   "who": "Lin",
-   "text": "Now, a story. You've seen it with the shadow puppets. Our storyteller has come to tell it."
-  },
-  {
-   "who": "Storyteller",
-   "text": "很 久 以前，没有 天，也 没有 地。"
-  },
-  {
-   "who": "Lin",
-   "text": "Long, long ago, there was no sky, and no earth."
-  },
-  {
-   "who": "Storyteller",
-   "text": "宇宙 像 一 个 大 鸡蛋。鸡蛋 里面 有 一 个 人，他 叫 盘古。"
-  },
-  {
-   "who": "Lin",
-   "text": "The universe was like a big egg. Inside the egg was a man, and his name was Pangu. 鸡蛋, the egg. You had those at breakfast too."
-  },
-  {
-   "who": "Storyteller",
-   "text": "盘古 睡 了 一万八千 年。"
-  },
-  {
-   "who": "Erik",
-   "text": "一万八千年. Eighteen thousand years. Asleep. That's me before my first cup of tea."
-  },
-  {
-   "who": "Storyteller",
-   "text": "有 一 天，盘古 醒 了。鸡蛋 开 了！天 在 上，地 在 下。",
-   "style": "a master storyteller building to a dramatic climax, then slowing down with wonder"
-  },
-  {
-   "who": "Lin",
-   "text": "One day Pangu woke up. The egg broke open. The sky above, the earth below. 天在上，地在下. Above and below, 上 and 下, the same words you'd use for going up and down the stairs."
-  },
-  {
-   "who": "Erik",
-   "text": "And 天. Tiān. That's the sky."
-  },
-  {
-   "who": "Lin",
-   "text": "The sky, and also the day. 一天, one day. And twice: 天天, every day. Which is where the name of this podcast comes from: 天天向上, a little higher every day."
-  },
-  {
-   "chime": true
-  },
-  {
-   "who": "Lin",
-   "text": "Last stop. An old voice, and the opening line of the Dao De Jing, 道德经, the book of the Way, which tradition gives to Laozi, more than two thousand years ago."
-  },
-  {
-   "who": "Laozi",
-   "text": "道 可 道，非 常 道。"
-  },
-  {
-   "who": "Lin",
-   "text": "道 is a road, and the Way, and it can also mean to say. So, roughly: the Way that can be spoken of is not the constant Way. 常, constant. 非, is not. It's old written Chinese, very compact, and people have argued about it ever since."
-  },
-  {
-   "who": "Erik",
-   "text": "So the real Chinese can't be put into words. Great. Then I can stop studying."
-  },
-  {
-   "who": "Lin",
-   "text": "Nice try. 不, Erik. Tomorrow, your review is waiting. Before we go, numbers, fast. I say it, you say it in English in your head. Ready?"
-  },
-  {
-   "who": "Lin",
-   "text": "八。 十五。 八十。 一百。 三千。",
-   "style": "a quiz host saying numbers in Mandarin one at a time, clearly, with a three-second silence after each"
-  },
-  {
-   "who": "Erik",
-   "text": "Eight, fifteen, eighty, a hundred, three thousand. And the price of one very long taxi ride."
-  },
-  {
-   "who": "Lin",
-   "text": "很好！ That's all for today. 谢谢, Erik."
-  },
-  {
-   "who": "Erik",
-   "text": "不客气！ 再见！"
-  },
-  {
-   "who": "Lin",
-   "text": "再见！ See you tomorrow. 天天向上。"
-  },
-  {
-   "chime": true
-  }
- ]
+  "title": "天天 – Episode 1: Taxi, dumplings and the sky",
+  "designed": {
+    "Lin": "A warm, witty woman in her thirties from Beijing, a bilingual podcast host: fluent, natural English with a light Beijing accent, and native standard Mandarin Chinese with crisp, exact tones. Bright, playful and encouraging, with a smile in her voice.",
+    "Erik": "A Norwegian man in his thirties speaking English with a light Scandinavian accent: a curious, friendly beginner learning Mandarin Chinese, self-deprecating and a little goofy, saying his few Chinese words slowly and carefully."
+  },
+  "cast": {
+    "Lin": {
+      "voice": "Lin",
+      "style": "a warm, playful podcast host, natural and lively in English; when she speaks Chinese, clear, a little slower, every tone exact"
+    },
+    "Erik": {
+      "voice": "Erik",
+      "style": "a friendly beginner on a podcast, relaxed and funny in English; his Chinese careful and a little slow, every tone as written"
+    },
+    "Orus": {
+      "voice": "Orus",
+      "style": "a relaxed Beijing taxi driver, a bit gruff, in standard Mandarin Chinese"
+    },
+    "Algenib": {
+      "voice": "Algenib",
+      "style": "a kind old man running a breakfast stall, slow and a little gravelly, warm, in standard Mandarin Chinese"
+    },
+    "Storyteller": {
+      "voice": "Storyteller",
+      "style": "a master of the old storytelling halls, telling a myth in standard Mandarin Chinese, slowly and dramatically, so a beginner can follow"
+    },
+    "Laozi": {
+      "voice": "Laozi",
+      "style": "a very old sage, slow and serene, reciting classical Chinese with long pauses"
+    }
+  },
+  "lines": [
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "你好！ Hello, and welcome to 天天, the little podcast that grows with you, one word at a time. I'm Lin. 我是林。"
+    },
+    {
+      "who": "Erik",
+      "text": "And I'm Erik. 你好！我是挪威人。 I've been learning Chinese for about a week, so be gentle with me."
+    },
+    {
+      "who": "Lin",
+      "text": "A week ago you couldn't say a word, Erik. Now listen to you. Today's episode is built almost only from words you've already met. A taxi ride in Beijing. Breakfast with dumplings and tea. A very old story about the sky. And at the end, one line from one of the oldest books in China."
+    },
+    {
+      "who": "Erik",
+      "text": "No pressure, then."
+    },
+    {
+      "who": "Lin",
+      "text": "没关系！ It doesn't matter. Let's start where every conversation starts."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "你好。 Two third tones in a row. And what happens to two third tones?"
+    },
+    {
+      "who": "Erik",
+      "text": "The first one goes up. So it's not nǐ hǎo, it's ní hǎo. 你好。"
+    },
+    {
+      "who": "Lin",
+      "text": "很好！ Very good. And when somebody helps you?"
+    },
+    {
+      "who": "Erik",
+      "text": "谢谢。"
+    },
+    {
+      "who": "Lin",
+      "text": "And they answer: 不客气。 Listen to 不 there. On its own, 不 is fourth tone, bù. But in front of another fourth tone it goes up: bú kèqi. 不客气。"
+    },
+    {
+      "who": "Erik",
+      "text": "And when I step on someone's foot on the subway?"
+    },
+    {
+      "who": "Lin",
+      "text": "对不起。"
+    },
+    {
+      "who": "Erik",
+      "text": "And they say, 没关系. It doesn't matter. Hopefully."
+    },
+    {
+      "who": "Lin",
+      "text": "Your turn now. Say each one after me."
+    },
+    {
+      "who": "Lin",
+      "text": "你好。 谢谢。 不客气。 对不起。 没关系。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "So, Erik. You've just landed in Beijing, and you get into a taxi. One new word first. In Beijing you call the driver 师傅, shīfu. It means master, and it's the polite way to talk to a driver or a craftsman."
+    },
+    {
+      "who": "Erik",
+      "text": "师傅！ Okay. Here goes."
+    },
+    {
+      "who": "Erik",
+      "text": "师傅，你好！",
+      "style": "a nervous beginner getting into a Beijing taxi, saying his Mandarin carefully"
+    },
+    {
+      "who": "Orus",
+      "text": "你好。去 哪儿？"
+    },
+    {
+      "who": "Erik",
+      "text": "请问，银行 在 哪儿？我 要 去 银行。"
+    },
+    {
+      "who": "Orus",
+      "text": "银行？好。"
+    },
+    {
+      "who": "Lin",
+      "text": "He asked: 去哪儿, going where? And Erik said: 请问, may I ask, where is the bank? I want to go to the bank. 银行, yínháng, is a bank. Let's see how the ride goes."
+    },
+    {
+      "who": "Orus",
+      "text": "往 左……往 右……一直 往 前……",
+      "style": "a gruff Beijing taxi driver muttering to himself as he drives, unhurried"
+    },
+    {
+      "who": "Erik",
+      "text": "师傅，这 是 近路 吗？"
+    },
+    {
+      "who": "Orus",
+      "text": "是，是。近路，近路。",
+      "style": "a gruff taxi driver, a little too quick to agree"
+    },
+    {
+      "who": "Lin",
+      "text": "He says it's the shortcut, 近路. It is not the shortcut. It is a 绕路, a detour. Erik, I think you know what to say."
+    },
+    {
+      "who": "Erik",
+      "text": "师傅！停！停！"
+    },
+    {
+      "who": "Orus",
+      "text": "好，好。到 了。",
+      "style": "a gruff taxi driver, unbothered, pulling over"
+    },
+    {
+      "who": "Erik",
+      "text": "多少 钱？"
+    },
+    {
+      "who": "Orus",
+      "text": "八十 块。"
+    },
+    {
+      "who": "Erik",
+      "text": "八十？！太 贵 了！",
+      "style": "a beginner in comic disbelief"
+    },
+    {
+      "who": "Orus",
+      "text": "不 贵，不 贵。",
+      "style": "a gruff taxi driver, chuckling"
+    },
+    {
+      "who": "Lin",
+      "text": "Eighty kuài. 太贵了, too expensive! 太, then the word, then 了: that's how you say too much of something. And the opposite of 贵 is 便宜, cheap. Which, in that taxi, it was not."
+    },
+    {
+      "who": "Erik",
+      "text": "And the directions went by fast. 往左 is to the left. 往右, to the right. 一直往前, straight ahead."
+    },
+    {
+      "who": "Lin",
+      "text": "And look at 一 in 一直. Before a second tone, 一 becomes fourth tone: yìzhí. Then 停, tíng. Stop. Say them after me."
+    },
+    {
+      "who": "Lin",
+      "text": "往左。 往右。 一直往前。 停。 太贵了。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Next morning. Breakfast. A tiny place with steam coming out of the door, and an old man behind the counter."
+    },
+    {
+      "who": "Algenib",
+      "text": "你好！你 要 什么？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 要 两 个 包子，一 碗 饺子，和 一 杯 茶。"
+    },
+    {
+      "who": "Algenib",
+      "text": "好。你 是 哪 国 人？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 是 挪威 人。"
+    },
+    {
+      "who": "Algenib",
+      "text": "挪威！很 好。你 会 说 中文 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 会 说 一点 中文。"
+    },
+    {
+      "who": "Algenib",
+      "text": "你 的 中文 很 好！",
+      "style": "a kind old man, delighted and very generous with the compliment"
+    },
+    {
+      "who": "Erik",
+      "text": "谢谢！一共 多少 钱？"
+    },
+    {
+      "who": "Algenib",
+      "text": "一共 十五 块。"
+    },
+    {
+      "who": "Lin",
+      "text": "Did you notice what he did there? 你的中文很好, your Chinese is very good. In China you will hear that after about three words. Enjoy it. Don't believe it."
+    },
+    {
+      "who": "Erik",
+      "text": "I'll take it anyway. So, I ordered 两个包子, two steamed buns. Why 两 and not 二?"
+    },
+    {
+      "who": "Lin",
+      "text": "When you count things, two is 两. 二 is for counting out loud: 一, 二, 三. And between the number and the thing there's a measure word. 个 is the everyday one, for buns and for people. 碗 is a bowl, 杯 is a cup. So: 一碗饺子, a bowl of dumplings. 一杯茶, a cup of tea."
+    },
+    {
+      "who": "Erik",
+      "text": "And then he asked 你是哪国人. Which country person are you?"
+    },
+    {
+      "who": "Lin",
+      "text": "Exactly. 国 is country. 中国, the middle country, is China. 美国, America. 英国, England. 德国, Germany. 法国, France. And some are just the sound of the name: 挪威, Norway. 瑞典, Sweden."
+    },
+    {
+      "who": "Erik",
+      "text": "So I'm 挪威人, and my neighbour is 瑞典人. That explains a lot."
+    },
+    {
+      "who": "Lin",
+      "text": "And one last thing from breakfast: 吗. Put it at the end and the sentence becomes a question. 你会说中文, you speak Chinese. 你会说中文吗? Do you speak Chinese? Your turn."
+    },
+    {
+      "who": "Lin",
+      "text": "我要两个包子。 一杯茶。 我是挪威人。 我会说一点中文。 一共多少钱？",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Now, a story. You've seen it with the shadow puppets. Our storyteller has come to tell it."
+    },
+    {
+      "who": "Storyteller",
+      "text": "很 久 以前，没有 天，也 没有 地。"
+    },
+    {
+      "who": "Lin",
+      "text": "Long, long ago, there was no sky, and no earth."
+    },
+    {
+      "who": "Storyteller",
+      "text": "宇宙 像 一 个 大 鸡蛋。鸡蛋 里面 有 一 个 人，他 叫 盘古。"
+    },
+    {
+      "who": "Lin",
+      "text": "The universe was like a big egg. Inside the egg was a man, and his name was Pangu. 鸡蛋, the egg. You had those at breakfast too."
+    },
+    {
+      "who": "Storyteller",
+      "text": "盘古 睡 了 一万八千 年。"
+    },
+    {
+      "who": "Erik",
+      "text": "一万八千年. Eighteen thousand years. Asleep. That's me before my first cup of tea."
+    },
+    {
+      "who": "Storyteller",
+      "text": "有 一 天，盘古 醒 了。鸡蛋 开 了！天 在 上，地 在 下。",
+      "style": "a master storyteller building to a dramatic climax, then slowing down with wonder"
+    },
+    {
+      "who": "Lin",
+      "text": "One day Pangu woke up. The egg broke open. The sky above, the earth below. 天在上，地在下. Above and below, 上 and 下, the same words you'd use for going up and down the stairs."
+    },
+    {
+      "who": "Erik",
+      "text": "And 天. Tiān. That's the sky."
+    },
+    {
+      "who": "Lin",
+      "text": "The sky, and also the day. 一天, one day. And twice: 天天, every day. Which is where the name of this podcast comes from: 天天向上, a little higher every day."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Last stop. An old voice, and the opening line of the Dao De Jing, 道德经, the book of the Way, which tradition gives to Laozi, more than two thousand years ago."
+    },
+    {
+      "who": "Laozi",
+      "text": "道 可 道，非 常 道。"
+    },
+    {
+      "who": "Lin",
+      "text": "道 is a road, and the Way, and it can also mean to say. So, roughly: the Way that can be spoken of is not the constant Way. 常, constant. 非, is not. It's old written Chinese, very compact, and people have argued about it ever since."
+    },
+    {
+      "who": "Erik",
+      "text": "So the real Chinese can't be put into words. Great. Then I can stop studying."
+    },
+    {
+      "who": "Lin",
+      "text": "Nice try. 不, Erik. Tomorrow, your review is waiting. Before we go, numbers, fast. I say it, you say it in English in your head. Ready?"
+    },
+    {
+      "who": "Lin",
+      "text": "八。 十五。 八十。 一百。 三千。",
+      "style": "a quiz host saying numbers in Mandarin one at a time, clearly, with a three-second silence after each"
+    },
+    {
+      "who": "Erik",
+      "text": "Eight, fifteen, eighty, a hundred, three thousand. And the price of one very long taxi ride."
+    },
+    {
+      "who": "Lin",
+      "text": "很好！ That's all for today. 谢谢, Erik."
+    },
+    {
+      "who": "Erik",
+      "text": "不客气！ 再见！"
+    },
+    {
+      "who": "Lin",
+      "text": "再见！ See you tomorrow. 天天向上。"
+    },
+    {
+      "chime": true
+    }
+  ]
 }
