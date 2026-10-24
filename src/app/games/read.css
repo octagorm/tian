@@ -139,6 +139,12 @@ body.zh-dark .zh-btn {
   color: var(--ink);
 }
 
+/* (no pointer over the text while reading, until the mouse moves) */
+.rd-page.rd-nocursor,
+.rd-page.rd-nocursor * {
+  cursor: none !important;
+}
+
 .rd-top {
   position: sticky;
   top: 0;
@@ -231,7 +237,17 @@ body.zh-dark .zh-btn {
 }
 
 .rd-head {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
+}
+
+/* A cloud head on a thin rule, between what the text is and the text */
+.rd-divider {
+  margin: 0 auto 22px;
+  max-width: 320px;
+  font-size: 16px;
+  color: var(--red);
+  opacity: 0.55;
+  break-inside: avoid;
 }
 
 .rd-pinyin {

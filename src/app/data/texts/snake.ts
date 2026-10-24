@@ -12,7 +12,7 @@ export const SNAKE: Text = {
     'A few men have one bottle of wine between them, so they hold a race to draw a snake. In the book a strategist tells it to a general who has already won, to make him stop. Its four characters became a saying.',
   text: [
     [
-      '很 久 以前 ， 一 个 老人 给 了 几 个 人 一 瓶 酒 。',
+      '很 久 以前 ， 有 人 给 了 几 个 人 一 瓶 酒 。',
       '酒 不 多 ， 只 够 一 个 人 喝 。',
     ],
     [

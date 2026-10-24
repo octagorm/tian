@@ -14,6 +14,7 @@ import { tokens, wordIds } from '../lib/text'
 import { blip } from '../lib/audio'
 import { READ_SIZES, READ_WIDTHS, useStore } from '../lib/store'
 import { Frame, usePeek } from '../ui'
+import { CloudDivider } from '../ornament/Borders'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Text } from '../data/reader'
 import type { Bank } from '../lib/bank'
@@ -278,6 +279,14 @@ function Reader({ text }: { text: Text }) {
   const [panel, setPanel] = useState(false)
   // The title and «Aa» over the text, out of the way once reading goes on
   const [controls, setControls] = useState(true)
+  // The mouse pointer hidden while reading: from a tap on the page or a
+  // page turned or scrolled, until the mouse moves again
+  const [pointer, setPointer] = useState(true)
+  const hidAt = useRef(0)
+  const hidePointer = useCallback(() => {
+    hidAt.current = Date.now()
+    setPointer(false)
+  }, [])
   // Opened where it was left, if that was not the start
   const [resumed, setResumed] = useState(
     () => !!place && !place.done && (place.p > 0 || !!place.w),
@@ -448,6 +457,7 @@ function Reader({ text }: { text: Text }) {
       const d = window.scrollY - last
       last = window.scrollY
       way = Math.sign(d) === Math.sign(way) ? way + d : d
+      if (d) hidePointer()
       if (window.scrollY < 8 || way < -12) setControls(true)
       else if (way > 12) setControls(false)
       window.clearTimeout(timer)
@@ -464,15 +474,29 @@ function Reader({ text }: { text: Text }) {
       window.removeEventListener('scroll', onScroll)
       window.clearTimeout(timer)
     }
-  }, [paged, keep, firstIn])
+  }, [paged, keep, firstIn, hidePointer])
 
   const turn = useCallback(
     (step: number) => {
       turnTo(pager.current.index + step)
       setControls(false)
+      hidePointer()
     },
-    [turnTo],
+    [turnTo, hidePointer],
   )
+
+  // The pointer back once the mouse really moves (not the move a browser
+  // makes up after scrolling, nor a twitch just after the tap)
+  useEffect(() => {
+    if (pointer) return
+    const onMove = (e: MouseEvent) => {
+      if (!e.movementX && !e.movementY) return
+      if (Date.now() - hidAt.current < 300) return
+      setPointer(true)
+    }
+    window.addEventListener('mousemove', onMove)
+    return () => window.removeEventListener('mousemove', onMove)
+  }, [pointer])
 
   // The arrow keys turn the page
   useEffect(() => {
@@ -508,12 +532,14 @@ function Reader({ text }: { text: Text }) {
       if (!v || e.clientY < v.top || e.clientY > v.bottom) return
       if (paged && e.clientX < v.left) turn(-1)
       else if (paged && e.clientX > v.right) turn(1)
-      else if (e.clientX >= v.left && e.clientX <= v.right)
+      else if (e.clientX >= v.left && e.clientX <= v.right) {
         setControls((shown) => !shown)
+        hidePointer()
+      }
     }
     window.addEventListener('click', onClick)
     return () => window.removeEventListener('click', onClick)
-  }, [paged, turn])
+  }, [paged, turn, hidePointer])
 
   // A swipe turns the page
   const from = useRef<{ x: number; y: number } | null>(null)
@@ -570,7 +596,7 @@ function Reader({ text }: { text: Text }) {
 
   return (
     <div
-      className={`rd-page${paged ? ' paged' : ''}${controls || panel ? '' : ' rd-hidden'}`}
+      className={`rd-page${paged ? ' paged' : ''}${controls || panel ? '' : ' rd-hidden'}${pointer || panel ? '' : ' rd-nocursor'}`}
       style={
         {
           '--rd-size': `${size}px`,
@@ -693,6 +719,7 @@ function Reader({ text }: { text: Text }) {
                 <p className="rd-hint">Tap a word to see what it is.</p>
               )}
             </header>
+            <CloudDivider className="rd-divider" />
 
             <div
               className={`rd-text${helped ? '' : ' plain'}${settings.readPinyin === 'off' ? ' no-py' : ''}${settings.readEnglish === 'off' ? ' no-en' : ''}`}
