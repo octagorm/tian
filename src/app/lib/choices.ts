@@ -23,8 +23,8 @@ function shuffle<T>(xs: Array<T>, random: () => number): Array<T> {
 }
 
 // Meanings for a character, characters for a meaning, characters for a
-// word heard, and meanings for a word heard
-export type ChoiceKind = 'meaning' | 'reverse' | 'listen' | 'hear'
+// word heard, meanings for a word heard, and pinyin for a meaning
+export type ChoiceKind = 'meaning' | 'reverse' | 'listen' | 'hear' | 'say'
 
 // A word as it is said, the tone changes of 不 and 一 applied
 const spoken = (w: Word) => inContext([{ h: w.h, s: syllables(w.p) }])[0]
@@ -57,7 +57,7 @@ function likeness(w: Word, x: Word, kind: ChoiceKind): number {
   const alike =
     x.tags.some((t) => w.tags.includes(t)) || Math.abs(x.lesson - w.lesson) <= 1
   let score = alike ? (kind === 'meaning' || kind === 'hear' ? 2 : 0.5) : 0
-  if (kind === 'listen' || kind === 'hear') {
+  if (kind === 'listen' || kind === 'hear' || kind === 'say') {
     const sw = spoken(w)
     const sx = spoken(x)
     const bw = sw.map((s) => bare(s).toLowerCase())
@@ -109,8 +109,8 @@ function sharing(
 }
 
 // Four choices: the word and three others, shuffled. `pool` is the words
-// to draw from first (those met); for listening and picking the
-// character, words of the same length come from the whole vocabulary when
+// to draw from first (those met); for listening, picking the character
+// and picking the pinyin, words of the same length come from the whole vocabulary when
 // the pool has too few, and only then words a syllable longer or shorter.
 export function wordChoices(
   w: Word,

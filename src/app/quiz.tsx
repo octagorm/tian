@@ -4,7 +4,7 @@ import { WORDS } from './data/words'
 import { join, matches, syllables } from './lib/pinyin'
 import { blip } from './lib/audio'
 import { wordChoices } from './lib/choices'
-import { KNOWN, weakest } from './lib/bank'
+import { KNOWN, missRate, missRates, weakest } from './lib/bank'
 import { useStore } from './lib/store'
 import { Btn, Ruby, shuffle } from './ui'
 import {
@@ -25,7 +25,7 @@ import {
 import { Pix } from './pixel/Pix'
 import type { ReactNode } from 'react'
 import type { Word } from './data/words'
-import type { Bank, Link } from './lib/bank'
+import type { Bank, Card, Dir, Link } from './lib/bank'
 
 // A round of questions about words, shared by Learn and Review. Each
 // question asks about one link of a word (lib/bank.ts) in one way, and
@@ -40,8 +40,9 @@ import type { Bank, Link } from './lib/bank'
 
 // What a question shows and asks for: the meaning of a character, the
 // character for a meaning, the character heard, the pinyin of a
-// character typed, and the meaning of a word heard
-export type Kind = 'meaning' | 'reverse' | 'listen' | 'type' | 'hear'
+// character typed, the meaning of a word heard, and the pinyin for a
+// meaning
+export type Kind = 'meaning' | 'reverse' | 'listen' | 'type' | 'hear' | 'say'
 
 const WEIGHT: Record<Kind, number> = {
   meaning: 0.6,
@@ -49,14 +50,17 @@ const WEIGHT: Record<Kind, number> = {
   listen: 0.7,
   type: 1,
   hear: 0.6,
+  say: 0.7,
 }
 
-const LINK_OF: Record<Kind, Link> = {
-  meaning: 'hm',
-  reverse: 'hm',
-  listen: 'hs',
-  type: 'hs',
-  hear: 'sm',
+// The way of its link each asks (lib/bank.ts)
+const DIR_OF: Record<Kind, Dir> = {
+  meaning: 'h>m',
+  reverse: 'm>h',
+  listen: 's>h',
+  type: 'h>s',
+  hear: 's>m',
+  say: 'm>s',
 }
 
 // Questions played by ear: the word is said as they come up
@@ -142,7 +146,7 @@ export function Quiz({
       q.w.id,
       right,
       firstTime ? WEIGHT[q.kind] : WEIGHT[q.kind] / 2,
-      LINK_OF[q.kind],
+      DIR_OF[q.kind],
     )
     if (right) {
       if (firstTime) {
@@ -309,7 +313,18 @@ function Choice({
           className="absolute top-1.5 right-1.5 text-[var(--red)]"
         />
       )}
-      {kind === 'meaning' || kind === 'hear' ? (
+      {kind === 'say' ? (
+        <>
+          <span className="text-2xl font-semibold sm:text-3xl">
+            {join(syllables(c.p))}
+          </span>
+          {answered && (isRight || picked) && (
+            <span className="fx-rise mt-0.5 line-clamp-1 text-sm text-[var(--ink-2)]">
+              <span className="zh text-base">{c.h}</span> {c.e}
+            </span>
+          )}
+        </>
+      ) : kind === 'meaning' || kind === 'hear' ? (
         <>
           <span className="text-base leading-snug font-semibold sm:text-lg">
             {c.e}
@@ -442,10 +457,10 @@ function Prompt({
         )}
       </div>
     )
-  if (q.kind === 'reverse')
+  if (q.kind === 'reverse' || q.kind === 'say')
     return (
       <div className="text-center">
-        {label('Which is…')}
+        {label(q.kind === 'say' ? 'How do you say…' : 'Which is…')}
         <p className="mt-3 text-3xl leading-tight font-black sm:text-4xl">
           {q.w.e}
         </p>
@@ -543,29 +558,52 @@ export function EnterToContinue({ onEnter }: { onEnter: () => void }) {
   return null
 }
 
+// The ways a link is asked about, each with its share before misses are
+// counted: its character and sound by ear while that is learnt, and
+// mostly by typing the pinyin once it lasts; its character and meaning
+// either way round; its sound and meaning mostly by ear, else the pinyin
+// for a meaning
+function waysOf(link: Link, c: Card | undefined): Array<[Kind, number]> {
+  if (link === 'hs')
+    return c && c.hs.s >= KNOWN
+      ? [
+          ['type', 2],
+          ['listen', 1],
+        ]
+      : [['listen', 1]]
+  if (link === 'hm')
+    return [
+      ['meaning', 1],
+      ['reverse', 1],
+    ]
+  return [
+    ['hear', 2],
+    ['say', 1],
+  ]
+}
+
 // Questions for a set of words, one each, about the link of the word
-// that most needs practice: its character and sound by ear while that is
-// learnt, and mostly by typing the pinyin once it lasts; its character
-// and meaning either way round; its sound and meaning by ear
+// that most needs practice, asked one of its ways: more often the way
+// that is missed more, by this word, or by the player in general while
+// the word has few answers to go by (lib/bank.ts)
 export function questionsFor(
   words: Array<Word>,
   cards: Bank['cards'],
   now: number,
   random: () => number = Math.random,
 ): Array<Question> {
+  const rates = missRates(cards)
   const out: Array<Question> = []
   for (const w of words) {
     const c = cards[w.id]
     const link = c ? weakest(c, now, random) : 'hm'
-    const kinds: Array<Kind> =
-      link === 'hs'
-        ? c && c.hs.s >= KNOWN
-          ? ['type', 'type', 'listen']
-          : ['listen']
-        : link === 'hm'
-          ? ['meaning', 'reverse']
-          : ['hear']
-    out.push({ w, kind: kinds[Math.floor(random() * kinds.length)] })
+    const ways = waysOf(link, c).map(
+      ([kind, share]) =>
+        [kind, share * (missRate(c, DIR_OF[kind], rates) + 0.15)] as const,
+    )
+    let r = random() * ways.reduce((sum, [, x]) => sum + x, 0)
+    const [kind] = ways.find(([, x]) => (r -= x) < 0) ?? ways[ways.length - 1]
+    out.push({ w, kind })
   }
   return shuffle(out)
 }

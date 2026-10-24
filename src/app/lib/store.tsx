@@ -10,9 +10,11 @@ import {
 import { useConvexAuth, useMutation, useQuery } from 'convex/react'
 import { api } from '../../../convex/_generated/api'
 import {
+  LINK_OF_DIR,
   answerCard,
   dayKey,
   emptyBank,
+  isDir,
   known,
   level,
   merge,
@@ -21,7 +23,7 @@ import {
 } from './bank'
 import { setRate } from './audio'
 import type { ReactNode } from 'react'
-import type { Bank, Level, Link, Path } from './bank'
+import type { Bank, Dir, Level, Link, Path } from './bank'
 
 // The word bank and the settings as React state, for every game at once.
 // Both are kept in localStorage; signed in, the bank is also kept on
@@ -141,8 +143,9 @@ interface Store {
 
 // What an answer tested: a link of the word, or some, or the word read
 // as the page shows it, its meaning taken from the character when it
-// stands alone and from the pinyin over it while it is being learnt
-export type How = Link | Array<Link> | 'read'
+// stands alone and from the pinyin over it while it is being learnt; or
+// a link asked one way (lib/bank.ts), which is counted too
+export type How = Link | Array<Link> | 'read' | Dir
 
 // Seals just earned on this device, for the toaster
 type SealListener = (ids: Array<string>) => void
@@ -196,15 +199,18 @@ export function BankProvider({ children }: { children: ReactNode }) {
       update((b) => {
         const now = Date.now()
         const card = b.cards[id]
+        const dir = typeof how === 'string' && isDir(how) ? how : undefined
         const links =
           how === 'read'
             ? [level(card, now) === 2 ? ('hm' as const) : ('sm' as const)]
-            : typeof how === 'string'
-              ? [how]
-              : how
+            : dir
+              ? [LINK_OF_DIR[dir]]
+              : typeof how === 'string'
+                ? [how as Link]
+                : how
         const cards = {
           ...b.cards,
-          [id]: answerCard(card, links, right, now, weight),
+          [id]: answerCard(card, links, right, now, weight, dir),
         }
         const days = right
           ? { ...b.days, [today()]: (b.days[today()] ?? 0) + 1 }

@@ -22,6 +22,33 @@ export type Link = 'hs' | 'hm' | 'sm'
 
 export const LINKS: Array<Link> = ['hs', 'hm', 'sm']
 
+// Each link is asked about one way or the other: from what is shown to
+// what is asked for. The character to its sound (h>s, its pinyin typed)
+// and back (s>h, the character heard picked), the character to its
+// meaning (h>m) and back (m>h), and the sound to its meaning (s>m) and
+// back (m>s, the pinyin for a meaning picked). One memory per link is
+// kept, but how often each way is missed is counted too, so that a link
+// is asked the way that is missed more (questionsFor in quiz.tsx).
+export type Dir = 'h>s' | 's>h' | 'h>m' | 'm>h' | 's>m' | 'm>s'
+
+export const LINK_OF_DIR: Record<Dir, Link> = {
+  'h>s': 'hs',
+  's>h': 'hs',
+  'h>m': 'hm',
+  'm>h': 'hm',
+  's>m': 'sm',
+  'm>s': 'sm',
+}
+
+export const DIRS = Object.keys(LINK_OF_DIR) as Array<Dir>
+
+export const isDir = (how: string): how is Dir => how in LINK_OF_DIR
+
+// Misses and answers one way, each weighed as its answer is and fading by
+// a quarter with each answer after it, so the last few count; and when
+// last answered, ms
+export type Tally = [x: number, n: number, t: number]
+
 export interface Memory {
   // Stability, in days
   s: number
@@ -43,6 +70,8 @@ export interface Card {
   x: number
   // Met, ms
   i: number
+  // How often each way of a link was missed, for the ways asked about
+  d?: Partial<Record<Dir, Tally>>
 }
 
 export interface Bank {
@@ -189,18 +218,70 @@ export const newCard = (now: number, s = FIRST): Card => ({
   i: now,
 })
 
-// A card after an answer about some of its links
+const FADE = 0.75
+const round2 = (n: number) => Math.round(n * 100) / 100
+
+// A tally after an answer one way
+export function tally(
+  was: Tally | undefined,
+  right: boolean,
+  now: number,
+  weight = 1,
+): Tally {
+  const [x, n] = was ?? [0, 0]
+  return [
+    round2(x * FADE + (right ? 0 : weight)),
+    round2(n * FADE + weight),
+    now,
+  ]
+}
+
+// A card after an answer about some of its links, and the way it was
+// asked, when the question had one
 export function answerCard(
   card: Card | undefined,
   links: Array<Link>,
   right: boolean,
   now: number,
   weight = 1,
+  dir?: Dir,
 ): Card {
   const c = { ...(card ?? newCard(now)), t: now, n: (card?.n ?? 0) + 1 }
   if (!right) c.x++
   for (const l of links) c[l] = answer(c[l], right, now, weight)
+  if (dir) c.d = { ...c.d, [dir]: tally(c.d?.[dir], right, now, weight) }
   return c
+}
+
+// How often the player misses each way, over all the words: what a word
+// answered seldom one way is taken to be like. Near a fifth until there
+// are answers to go by.
+export function missRates(cards: Bank['cards']): Record<Dir, number> {
+  const sum = Object.fromEntries(DIRS.map((d) => [d, [0.4, 2]])) as Record<
+    Dir,
+    [number, number]
+  >
+  for (const c of Object.values(cards))
+    for (const d of DIRS) {
+      const t = c?.d?.[d]
+      if (!t) continue
+      sum[d][0] += t[0]
+      sum[d][1] += t[1]
+    }
+  return Object.fromEntries(
+    DIRS.map((d) => [d, sum[d][0] / sum[d][1]]),
+  ) as Record<Dir, number>
+}
+
+// How often a word is missed one way: its own answers, leaning on the
+// player's rate that way while it has few
+export function missRate(
+  card: Card | undefined,
+  dir: Dir,
+  rates: Record<Dir, number>,
+): number {
+  const [x, n] = card?.d?.[dir] ?? [0, 0]
+  return (x + 2 * rates[dir]) / (n + 2)
 }
 
 // One link set by hand: known, lasting four days, as a word the player says
@@ -249,6 +330,7 @@ function upgrade(c: Saved): Card {
     n: c.n ?? 0,
     x: c.x ?? 0,
     i: c.i ?? c.t,
+    ...(c.d ? { d: c.d } : {}),
   }
 }
 
@@ -334,7 +416,8 @@ const keysOf = (...rs: Array<object | undefined>) =>
   new Set(rs.flatMap((r) => (r ? Object.keys(r) : [])))
 
 // Two banks made one, for a player with an account on two devices: for
-// each link of a word the memory answered last, for days and scores the
+// each link of a word the memory answered last (and of each way it was
+// asked, the tally answered last), for days and scores the
 // larger, seals from both (each at the earlier date), and of two days'
 // sessions the later day's, or of the same day's the one further on; of
 // two places in a text the later, and a text once read to the end stays
@@ -378,14 +461,29 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
 
 const later = (a: Memory, b: Memory) => (a.t >= b.t ? a : b)
 
+// Of two tallies one way, the one answered last
+function laterWays(x: Card, y: Card): Card['d'] {
+  if (!x.d || !y.d) return x.d ?? y.d
+  const d: Card['d'] = {}
+  for (const k of DIRS) {
+    const a = x.d[k]
+    const b = y.d[k]
+    const last = !a ? b : !b ? a : b[2] > a[2] ? b : a
+    if (last) d[k] = last
+  }
+  return d
+}
+
 function both(x: Card, y: Card): Card {
   const last = x.t >= y.t ? x : y
+  const d = laterWays(x, y)
   return {
     ...last,
     hs: later(x.hs, y.hs),
     hm: later(x.hm, y.hm),
     sm: later(x.sm, y.sm),
     i: Math.min(x.i, y.i),
+    ...(d ? { d } : {}),
   }
 }
 

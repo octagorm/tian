@@ -33,7 +33,7 @@ import {
   pick,
   weakest,
 } from '../src/app/lib/bank'
-import type { Bank } from '../src/app/lib/bank'
+import type { Bank, Card } from '../src/app/lib/bank'
 
 // Tian: the words, the trip's scripts and the helpers they rely on
 
@@ -280,6 +280,54 @@ describe('bank', () => {
     const down = setMemory(card, 'sm', false, 1000)
     expect(down.sm).toEqual({ s: 0.3, t: 1000 })
     expect(holds(down.sm, 1000)).toBe(false)
+  })
+
+  test('each way of a link is tallied, faded, and merged by the later', async () => {
+    const { missRate, missRates } = await import('../src/app/lib/bank')
+    let c = newCard(0, 5)
+    c = answerCard(c, ['hm'], false, H, 1, 'm>h')
+    c = answerCard(c, ['hm'], true, 2 * H, 1, 'h>m')
+    expect(c.d?.['m>h']).toEqual([1, 1, H])
+    expect(c.d?.['h>m']).toEqual([0, 1, 2 * H])
+    c = answerCard(c, ['hm'], true, 3 * H, 1, 'm>h')
+    expect(c.d?.['m>h']).toEqual([0.75, 1.75, 3 * H])
+    const rates = missRates({ a: c })
+    expect(missRate(c, 'm>h', rates)).toBeGreaterThan(missRate(c, 'h>m', rates))
+    // a way never asked leans on the player's rate that way
+    expect(missRate(undefined, 'h>s', rates)).toBeCloseTo(rates['h>s'])
+    const a = emptyBank()
+    const b = emptyBank()
+    a.cards['你好'] = { ...newCard(0), t: 9, d: { 'h>m': [1, 1, 9] } }
+    b.cards['你好'] = {
+      ...newCard(0),
+      t: 5,
+      d: { 'h>m': [0, 3, 5], 's>m': [1, 2, 5] },
+    }
+    expect(merge(a, b).cards['你好']?.d).toEqual({
+      'h>m': [1, 1, 9],
+      's>m': [1, 2, 5],
+    })
+  })
+
+  test('a link is asked more often the way it is missed', async () => {
+    const { questionsFor } = await import('../src/app/quiz')
+    const w = WORDS.find((x) => x.h === '谢谢')!
+    // the character and its meaning is the weakest link
+    const card = {
+      ...newCard(0, 9),
+      hm: { s: 0.2, t: 0 },
+      d: { 'm>h': [3, 4, 0], 'h>m': [0, 4, 0] } as Card['d'],
+    }
+    let seed = 1
+    const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
+    const kinds = Array.from(
+      { length: 400 },
+      () => questionsFor([w], { [w.id]: card }, D, random)[0].kind,
+    )
+    const reverse = kinds.filter((k) => k === 'reverse').length
+    expect(kinds.every((k) => k === 'reverse' || k === 'meaning')).toBe(true)
+    expect(reverse).toBeGreaterThan(300)
+    expect(reverse).toBeLessThan(400)
   })
 
   test('a card saved before the links has its one memory in each', () => {
