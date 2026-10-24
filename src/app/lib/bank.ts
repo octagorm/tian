@@ -14,9 +14,10 @@ import type { Word } from '../data/words.ts'
 // wrong one cuts it down. Games weigh their evidence: typing a word's
 // pinyin says more than picking its meaning from four.
 //
-// How a word is shown follows from its links to the character: not met
-// yet, in English; met, in hanzi with pinyin; known (both lasting a day
-// and a half or more, and not faded much), in hanzi alone.
+// How a word is shown follows from its links (stage, below): always in
+// hanzi, with pinyin and English while it is learnt, and alone once known
+// (both links to the character lasting a day and a half or more, and not
+// faded much).
 
 export type Link = 'hs' | 'hm' | 'sm'
 
@@ -186,18 +187,19 @@ export function level(card: Card | undefined, now: number): Level {
   return holds(card.hs, now) && holds(card.hm, now) ? 2 : 1
 }
 
-// How a word is shown, as one number: not met, in English (0); learning,
-// in hanzi with its pinyin over it and its English under it (1); its
-// meaning held, in hanzi and pinyin, the English gone once the character
-// brings back the meaning (2); and known, in hanzi alone, once it brings
-// back the sound too (3). A word whose sound comes before its meaning
-// keeps all three until the meaning holds.
+// How much help a word is shown with, as one number. It is always in
+// hanzi: not met (0) and learning (1), with its pinyin over it and its
+// English under it; its meaning held, from the character or from the
+// sound (2), with the pinyin alone; and known, once the character brings
+// back both its meaning and its sound (3), in hanzi alone. A word whose
+// character brings back its sound before its meaning keeps all three
+// until its meaning holds.
 export type Stage = 0 | 1 | 2 | 3
 
 export function stage(card: Card | undefined, now: number): Stage {
   if (!card) return 0
   if (level(card, now) === 2) return 3
-  return holds(card.hm, now) ? 2 : 1
+  return holds(card.hm, now) || holds(card.sm, now) ? 2 : 1
 }
 
 // A memory after an answer. `weight` (0–1] is how much the answer says.

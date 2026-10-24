@@ -26,6 +26,16 @@ import type { Token } from './lib/text'
 export const LEVEL_NAME = ['New', 'Learning', 'Known'] as const
 export const LEVEL_COLOR = ['#9a8f84', '#2f7d6d', '#c8372d'] as const
 
+// The same, a step finer (lib/bank.ts): learning in two, with its English
+// and with its pinyin alone
+export const STAGE_NAME = [
+  'New',
+  'Learning',
+  'Meaning learnt',
+  'Known',
+] as const
+export const STAGE_COLOR = ['#9a8f84', '#5f9f8f', '#2f7d6d', '#c8372d'] as const
+
 // The three links of a word (lib/bank.ts), named by their ends: 字 the
 // character, 音 its sound, 义 its meaning
 export const LINK_NAME: Record<Link, { zh: string; en: string }> = {
@@ -107,15 +117,6 @@ export function LinkBars({
 
 // --- Mixed text ---
 
-const EN_PUNCT: Record<string, string> = {
-  '，': ',',
-  '。': '.',
-  '！': '!',
-  '？': '?',
-  '、': ',',
-  '：': ':',
-}
-
 export function tokenLevel(t: Token, levelOf: (id: string) => Level): Level {
   if (t.id) return levelOf(t.id)
   if (t.parts?.length)
@@ -132,11 +133,50 @@ export function tokenStage(t: Token, stageOf: (id: string) => Stage): Stage {
   return 3
 }
 
-// A line in Chinese order, each word as the player knows it: in English
-// if not met, in hanzi with pinyin over it and English under it while
-// learning, with the pinyin alone once its meaning holds, in hanzi alone
-// if known. A tap opens the word. `fresh` words glow, as just met, with
-// their English under them.
+// A word in hanzi with as much help as its stage needs: pinyin over it
+// until it is known, and English under it (`under`, when the line has a
+// row for it) until its meaning holds. Not met, the help is in the brown
+// of an old gloss; being learnt, in jade.
+function Helped({
+  h,
+  pinyin,
+  gloss,
+  stage: st,
+  font,
+  under,
+}: {
+  h: string
+  pinyin: string
+  gloss: string
+  stage: Stage
+  font: string
+  under?: string
+}) {
+  const tone = st === 0 ? 'text-[var(--gold-2)]' : 'text-[var(--jade)]'
+  return (
+    <>
+      {st < 3 ? (
+        <ruby className={`zh ${font} ${st === 0 ? 'zh-unmet' : ''}`}>
+          {h}
+          <rt>{pinyin}</rt>
+        </ruby>
+      ) : (
+        <span className={`zh ${font}`}>{h}</span>
+      )}
+      {under !== undefined && (
+        <span
+          className={`block pt-0.5 text-center leading-tight font-normal italic ${tone} ${under}`}
+        >
+          {st < 2 ? gloss : '\u00a0'}
+        </span>
+      )}
+    </>
+  )
+}
+
+// A line in Chinese order, every word in hanzi, each with the help its
+// stage needs (Helped, above). A tap opens the word. `fresh` words glow,
+// as just met.
 export function Mixed({
   line,
   className = '',
@@ -149,59 +189,42 @@ export function Mixed({
   className?: string
   fresh?: Set<string>
   size?: 'sm' | 'md' | 'lg'
-  // Force every word to one level, as for the answer shown in full (and
-  // then with no English under it)
-  all?: Level
+  // Show every word at one stage, as for the answer shown in full
+  all?: Stage
   // Words that cannot be tapped, inside something that is itself a button
   still?: boolean
 }) {
-  const { settings, levelOf, stageOf } = useStore()
+  const { settings, stageOf } = useStore()
   const peek = usePeek()
   const toks = tokens(line, { home: settings.home })
   const font = { sm: 'text-lg', md: 'text-2xl', lg: 'text-3xl' }[size]
   const under = { sm: 'text-[0.65rem]', md: 'text-xs', lg: 'text-sm' }[size]
-  // The English under a word learnt, while its meaning does not hold yet
-  const english = (t: Token) =>
-    !all &&
-    !t.punct &&
-    (t.id && fresh?.has(t.id)
-      ? tokenStage(t, stageOf) <= 1
-      : tokenStage(t, stageOf) === 1)
-  // with a row under every word of a line that has any, so it stays even
-  const anyUnder = toks.some(english)
-  const row = (t: Token) =>
-    anyUnder && (
-      <span
-        className={`block pt-0.5 text-center leading-tight font-normal text-[var(--ink-2)] ${under}`}
-      >
-        {english(t) ? t.gloss : '\u00a0'}
-      </span>
-    )
-  let prevEnglish = false
+  // Words just met count as being learnt even before the bank says so
+  const stageOfToken = (t: Token): Stage =>
+    t.punct
+      ? 3
+      : (all ??
+        (t.id && fresh?.has(t.id)
+          ? (Math.max(1, tokenStage(t, stageOf)) as Stage)
+          : tokenStage(t, stageOf)))
+  // a row for English under every word of a line that has any, so it
+  // stays even
+  const row = toks.some((t) => stageOfToken(t) < 2) ? under : undefined
   return (
     <span
       className={`inline-flex flex-wrap items-end gap-x-1.5 gap-y-1 leading-none ${className}`}
     >
       {toks.map((t, i) => {
-        if (t.punct) {
-          const p = prevEnglish ? (EN_PUNCT[t.h] ?? t.h) : t.h
+        if (t.punct)
           return (
             <span
               key={i}
-              className={`zh -ml-1 ${anyUnder ? 'inline-flex flex-col' : ''} ${prevEnglish ? 'text-base' : font} text-[var(--ink-2)]`}
+              className={`zh -ml-1 ${row ? 'inline-flex flex-col' : ''} ${font} text-[var(--ink-2)]`}
             >
-              {p}
-              {row(t)}
+              {t.h}
+              {row && <span className={`block pt-0.5 ${row}`}>{'\u00a0'}</span>}
             </span>
           )
-        }
-        // Words just met show in Chinese even before the bank says so
-        const lv =
-          all ??
-          (t.id && fresh?.has(t.id)
-            ? (Math.max(1, tokenLevel(t, levelOf)) as Level)
-            : tokenLevel(t, levelOf))
-        prevEnglish = lv === 0
         const glow = t.id && fresh?.has(t.id) ? 'zh-new' : ''
         const Tag = still ? 'span' : 'button'
         return (
@@ -209,24 +232,16 @@ export function Mixed({
             key={i}
             type={still ? undefined : 'button'}
             onClick={still ? undefined : () => peek(t)}
-            className={`rounded-md px-0.5 transition ${anyUnder ? 'inline-flex flex-col items-center' : ''} ${still ? '' : 'hover:bg-[var(--paper-2)]'} ${glow}`}
+            className={`rounded-md px-0.5 transition ${row ? 'inline-flex flex-col items-center' : ''} ${still ? '' : 'hover:bg-[var(--paper-2)]'} ${glow}`}
           >
-            {lv === 0 ? (
-              <ruby className="zh-gloss text-base text-[var(--ink-2)]">
-                <span className="italic underline decoration-[var(--gold)] decoration-dotted underline-offset-4">
-                  {t.gloss}
-                </span>
-                <rt>{join(t.pinyin)}</rt>
-              </ruby>
-            ) : lv === 1 ? (
-              <ruby className={`zh ${font}`}>
-                {t.h}
-                <rt>{join(t.pinyin)}</rt>
-              </ruby>
-            ) : (
-              <span className={`zh ${font}`}>{t.h}</span>
-            )}
-            {row(t)}
+            <Helped
+              h={t.h}
+              pinyin={join(t.pinyin)}
+              gloss={t.gloss}
+              stage={stageOfToken(t)}
+              font={font}
+              under={row}
+            />
           </Tag>
         )
       })}
@@ -234,8 +249,9 @@ export function Mixed({
   )
 }
 
-// English with words of the bank in it, written {id}: each shown as the
-// player knows it, as in mixed text. {id=gloss} gives one use a better gloss
+// English with words of the bank in it, written {id}: each in hanzi with
+// the help its stage needs, as in mixed text. {id=gloss} gives one use a
+// better gloss
 export function Sprinkled({
   text,
   className = '',
@@ -243,7 +259,7 @@ export function Sprinkled({
   text: string
   className?: string
 }) {
-  const { levelOf } = useStore()
+  const { stageOf } = useStore()
   const peek = usePeek()
   const parts = text.split(/(\{[^}]+\})/)
   return (
@@ -254,29 +270,22 @@ export function Sprinkled({
         const [id, gloss] = m[1].split('=') as [string, string | undefined]
         const w = WORD[id]
         if (!w) return <span key={i}>{id}</span>
-        const lv = levelOf(w.id)
+        const st = stageOf(w.id)
         return (
           <button
             key={i}
             type="button"
             onClick={() => peek(w.id)}
-            className="rounded px-0.5 hover:bg-[var(--paper-2)]"
+            className={`rounded px-0.5 align-baseline hover:bg-[var(--paper-2)] ${st < 2 ? 'inline-flex flex-col items-center leading-none' : ''}`}
           >
-            {lv === 0 ? (
-              <ruby className="zh-gloss">
-                <span className="italic underline decoration-[var(--gold)] decoration-dotted underline-offset-4">
-                  {gloss ?? w.g}
-                </span>
-                <rt>{join(syllables(w.p))}</rt>
-              </ruby>
-            ) : lv === 1 ? (
-              <ruby className="zh text-[1.3em]">
-                {w.h}
-                <rt>{join(syllables(w.p))}</rt>
-              </ruby>
-            ) : (
-              <span className="zh text-[1.3em]">{w.h}</span>
-            )}
+            <Helped
+              h={w.h}
+              pinyin={join(syllables(w.p))}
+              gloss={gloss ?? w.g}
+              stage={st}
+              font="text-[1.3em]"
+              under={st < 2 ? 'text-[0.7em]' : undefined}
+            />
           </button>
         )
       })}

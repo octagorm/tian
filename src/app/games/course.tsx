@@ -39,7 +39,7 @@ import {
   takeWanted,
 } from '../lib/course'
 import { todays } from '../lib/today'
-import { Btn, Frame, LEVEL_COLOR, Mixed, Ruby, shuffle, usePeek } from '../ui'
+import { Btn, Frame, Mixed, Ruby, STAGE_COLOR, shuffle, usePeek } from '../ui'
 import { EnterToContinue, Quiz } from '../quiz'
 import { Seal } from '../ornament'
 import { MeetCard } from './today'
@@ -56,7 +56,7 @@ import {
 import type { ReactNode } from 'react'
 import type { Day, Glyph, Part, Screen, Show } from '../data/course'
 import type { Question } from '../quiz'
-import type { Level } from '../lib/bank'
+import type { Stage } from '../lib/bank'
 
 // First steps (入门): the beginner's course of data/course.ts. The page
 // lists the seven days and their parts; a part plays its screens one at
@@ -963,7 +963,7 @@ function Lines({ zh }: { zh: Array<string> }) {
   )
 }
 
-const LEVEL_LABEL = ['Not met yet', 'Learning', 'Known']
+const STAGE_LABEL = ['Not met yet', 'Learning', 'Meaning learnt', 'Known']
 
 function Levels({ zh }: { zh: string }) {
   const { home, name } = useHome()
@@ -971,15 +971,15 @@ function Levels({ zh }: { zh: string }) {
   return (
     <div className="rounded-2xl bg-[var(--paper)] p-3 sm:p-4">
       <div className="space-y-3">
-        {([0, 1, 2] as Array<Level>).map((lv) => (
-          <div key={lv} className="flex flex-wrap items-end gap-x-3 gap-y-1">
+        {([0, 1, 2, 3] as Array<Stage>).map((st) => (
+          <div key={st} className="flex flex-wrap items-end gap-x-3 gap-y-1">
             <span
-              className="mb-1 w-24 shrink-0 rounded-full px-2 py-0.5 text-center text-[11px] font-bold tracking-wide text-white uppercase"
-              style={{ background: LEVEL_COLOR[lv] }}
+              className="mb-1 w-28 shrink-0 rounded-full px-2 py-0.5 text-center text-[11px] font-bold tracking-wide text-white uppercase"
+              style={{ background: STAGE_COLOR[st] }}
             >
-              {LEVEL_LABEL[lv]}
+              {STAGE_LABEL[st]}
             </span>
-            <Mixed line={zh} all={lv} />
+            <Mixed line={zh} all={st} />
           </div>
         ))}
       </div>
@@ -1735,7 +1735,7 @@ function BuildLine({
               )}
             </p>
             {!result.ok && (
-              <Mixed line={zh} all={1} size="sm" className="mt-1" />
+              <Mixed line={zh} all={2} size="sm" className="mt-1" />
             )}
           </div>
           {!result.ok && (

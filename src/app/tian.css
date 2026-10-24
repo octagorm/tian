@@ -66,19 +66,16 @@
 
 .zh ruby rt,
 ruby.zh rt,
-ruby.py rt,
-ruby.zh-gloss rt {
+ruby.py rt {
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.5em;
   color: var(--jade);
   letter-spacing: 0;
 }
 
-/* The pinyin over an English gloss, a word not yet met: as large as over
-   hanzi, though the gloss is smaller, and upright */
-ruby.zh-gloss rt {
-  font-size: 0.75em;
-  font-style: normal;
+/* The pinyin over a word not yet met: the brown of an old gloss */
+ruby.zh-unmet rt {
+  color: var(--gold-2);
 }
 
 .zh-card {

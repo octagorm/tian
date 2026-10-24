@@ -268,13 +268,13 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'Words as you know them',
-            text: 'Every game here writes a word by how well you know it. A word you have not met is in English, with its pinyin above. A word you are learning is in characters with pinyin. A word you know, whose character brings back both its sound and its meaning, is in characters alone.',
+            text: 'Every game here writes a word in characters, with as much help as you need. A word you have not met, or are learning, has its pinyin above and its English below: brown until you meet it. Once its meaning comes back to you, the English goes. A word you know, whose character brings back both its sound and its meaning, is in characters alone.',
             show: { k: 'levels', zh: '请 给 我=me 你 的 护照 。' },
           },
           {
             k: 'read',
             title: 'In Chinese order',
-            text: "The English keeps the Chinese word order, so you read a sentence the way it is built. 请 please, 给 give, 我 me, 你的 your, 护照 passport. 的 works like the English 's, so 你的 is your.\n\nAs each word becomes yours, it turns Chinese wherever it is written. Tap any word to hear it and see what it means.",
+            text: "The English under the words keeps the Chinese word order, so you read a sentence the way it is built. 请 please, 给 give, 我 me, 你的 your, 护照 passport. 的 works like the English 's, so 你的 is your.\n\nAs each word becomes yours, its help falls away wherever it is written. Tap any word to hear it and see what it means.",
             show: { k: 'lines', zh: ['请 给 我=me 你 的 护照 。'] },
           },
           {

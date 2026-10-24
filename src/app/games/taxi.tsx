@@ -42,7 +42,6 @@ import {
 import { ANCHOR, taxiScene } from './taxiScene'
 import type { Move, Path, Point, Ride, Spot } from '../lib/taxi'
 import type { TaxiScene, TaxiView } from './taxiScene'
-import type { Level } from '../lib/bank'
 
 // Taxi: a passenger gets in and says where to, then how to get there, one
 // instruction at a time and by ear: turn left, at the second crossing
@@ -153,7 +152,8 @@ const standing = (spot: Spot) =>
   pathOf({ edges: [spot.edge], moves: [], d0: spot.d, dEnd: spot.d })
 
 // One word as the player knows it, small, for a sign or a button: in
-// English if not met, hanzi with pinyin while learning, hanzi once known
+// hanzi, with its pinyin and English while learning (brown if not met),
+// its pinyin alone once its meaning holds, alone once known
 function Word({
   id,
   className = '',
@@ -163,20 +163,31 @@ function Word({
   className?: string
   big?: boolean
 }) {
-  const { levelOf } = useStore()
+  const { stageOf } = useStore()
   const w = WORD[id]
   if (!w) return null
-  const lv: Level = levelOf(id)
+  const st = stageOf(id)
   const font = big ? 'text-xl' : 'text-[15px]'
-  return lv === 0 ? (
-    <span className={`text-sm leading-none italic ${className}`}>{w.g}</span>
-  ) : lv === 1 ? (
-    <ruby className={`zh leading-none ${font} ${className}`}>
-      {w.h}
-      <rt className="text-[10px]">{join(syllables(w.p))}</rt>
-    </ruby>
+  const hanzi =
+    st < 3 ? (
+      <ruby className={`zh leading-none ${font} ${st === 0 ? 'zh-unmet' : ''}`}>
+        {w.h}
+        <rt className="text-[10px]">{join(syllables(w.p))}</rt>
+      </ruby>
+    ) : (
+      <span className={`zh leading-none ${font}`}>{w.h}</span>
+    )
+  return st < 2 ? (
+    <span className={`inline-flex flex-col items-center ${className}`}>
+      {hanzi}
+      <span
+        className={`mt-0.5 text-[10px] leading-none italic ${st === 0 ? 'text-[var(--gold-2)]' : 'text-[var(--jade)]'}`}
+      >
+        {w.g}
+      </span>
+    </span>
   ) : (
-    <span className={`zh leading-none ${font} ${className}`}>{w.h}</span>
+    <span className={className}>{hanzi}</span>
   )
 }
 

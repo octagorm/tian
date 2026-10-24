@@ -208,6 +208,7 @@ describe('bank', () => {
     expect(stage(undefined, H)).toBe(0)
     expect(stage(c, H)).toBe(1)
     expect(stage({ ...c, hm: { s: 4, t: 0 } }, H)).toBe(2)
+    expect(stage({ ...c, sm: { s: 4, t: 0 } }, H)).toBe(2)
     // the sound held before the meaning keeps both shown
     expect(stage({ ...c, hs: { s: 4, t: 0 } }, H)).toBe(1)
     expect(stage(newCard(0, 4), H)).toBe(3)

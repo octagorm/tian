@@ -12,6 +12,7 @@ import {
   LINK_NAME,
   LinkBars,
   Ruby,
+  STAGE_COLOR,
   usePeek,
 } from '../ui'
 import { Key, useKeys } from './fx'
@@ -376,17 +377,17 @@ function Summary({ stages }: { stages: Array<number> }) {
     { n: stages[3], color: LEVEL_COLOR[2], label: 'known', sub: 'hanzi alone' },
     {
       n: stages[2],
-      color: LEVEL_COLOR[1],
+      color: STAGE_COLOR[2],
       label: 'meaning learnt',
       sub: 'hanzi and pinyin',
     },
     {
       n: stages[1],
-      color: '#86b8ab',
+      color: STAGE_COLOR[1],
       label: 'learning',
       sub: 'with English',
     },
-    { n: stages[0], color: '#d8cdb8', label: 'to meet', sub: 'in English' },
+    { n: stages[0], color: '#d8cdb8', label: 'to meet', sub: 'not met yet' },
   ]
   return (
     <div className="zh-card fx-rise p-5">

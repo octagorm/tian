@@ -457,7 +457,7 @@ export default function Order() {
               {result.ok ? 'Right' : 'The trip says it like this:'}
             </p>
             <div className="mt-2">
-              <Mixed line={line.zh} all={1} />
+              <Mixed line={line.zh} all={2} />
             </div>
             <Btn onClick={next} className="mt-4">
               Next{' '}
