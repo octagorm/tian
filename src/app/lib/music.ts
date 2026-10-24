@@ -93,14 +93,23 @@ interface Player {
 
 let player: Player | null = null
 let ducked = false
+// Silent for a while, the setting kept: in the reader, which is for reading
+let hushed = false
+
+// The music silenced while a page that wants quiet is open, and back after
+export function hushMusic(on: boolean) {
+  hushed = on
+  setLevel()
+}
 
 const BASE = 1.5
 
-// The music's level: volume, ducked under speech, silent when off
+// The music's level: volume, ducked under speech, silent when off or hushed
 function setLevel() {
   if (!player) return
   const { c, bus } = player
-  const target = sound.music ? BASE * sound.volume * (ducked ? 0.22 : 1) : 0
+  const target =
+    sound.music && !hushed ? BASE * sound.volume * (ducked ? 0.22 : 1) : 0
   bus.gain.cancelScheduledValues(c.currentTime)
   bus.gain.setTargetAtTime(target, c.currentTime, ducked ? 0.08 : 0.6)
 }

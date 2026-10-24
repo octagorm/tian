@@ -12,6 +12,7 @@ import { holds } from '../lib/bank'
 import { join } from '../lib/pinyin'
 import { tokens, wordIds } from '../lib/text'
 import { blip } from '../lib/audio'
+import { hushMusic } from '../lib/music'
 import { READ_SIZES, READ_WIDTHS, useStore } from '../lib/store'
 import { Frame, usePeek } from '../ui'
 import { CloudDivider } from '../ornament/Borders'
@@ -48,6 +49,11 @@ export default function ReadPage() {
     return () => window.removeEventListener('hashchange', change)
   }, [])
   const dark = useDark()
+  // No music while reading
+  useEffect(() => {
+    hushMusic(true)
+    return () => hushMusic(false)
+  }, [])
   const text = TEXT[id]
   return (
     <div className={`rd${dark ? ' rd-dark' : ''}`}>
