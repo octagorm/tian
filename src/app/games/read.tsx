@@ -291,10 +291,12 @@ function Reader({ text }: { text: Text }) {
     hidAt.current = Date.now()
     setPointer(false)
   }, [])
-  // Opened where it was left, if that was not the start
+  // Opened where it was left, if that was not the start, and the paragraph
+  // that was (the place kept moves on as the text is read)
   const [resumed, setResumed] = useState(
     () => !!place && !place.done && (place.p > 0 || !!place.w),
   )
+  const [resumedAt] = useState(() => place?.p)
   // Read to the end, with the words counted as read
   const [credited, setCredited] = useState<number | null>(null)
 
@@ -735,7 +737,7 @@ function Reader({ text }: { text: Text }) {
                     paras.current[i] = el
                   }}
                 >
-                  {resumed && i === place?.p && (
+                  {resumed && i === resumedAt && (
                     <span className="rd-resumed">
                       You stopped here last time.{' '}
                       <button
