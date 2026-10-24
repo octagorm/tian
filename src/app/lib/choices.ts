@@ -3,9 +3,12 @@
 // the only one of two among the choices, nor a short line the only short
 // one. So wrong answers are as long as the right one where the pool has
 // enough of them, and by ear they sound alike: they share syllables or
-// tones with the word, so the choice is made by listening.
+// tones with the word, so the choice is made by listening. By ear they
+// also share its characters in the same place: hearing bù first, 不客气
+// should not be the only choice that begins with 不.
 
 import { WORDS } from '../data/words'
+import { DECOYS } from '../data/decoys'
 import { bare, inContext, syllables, toneOf } from './pinyin'
 import { toHanzi } from './numbers'
 import type { Word } from '../data/words'
@@ -70,6 +73,41 @@ function likeness(w: Word, x: Word, kind: ChoiceKind): number {
   return score
 }
 
+// Up to three words of the same length with a character of the word in
+// the same place, so that a character the listener knows, heard where it
+// stands, does not point to the answer alone. Each place shared for the
+// first time counts most, so a word's characters are each matched before
+// one is matched twice; words met come before the rest of the vocabulary,
+// and both before words never taught (data/decoys.ts).
+function sharing(
+  w: Word,
+  candidates: Array<Word>,
+  pool: Array<Word>,
+  random: () => number,
+): Array<Word> {
+  const chars = [...w.h]
+  const places = (x: Word) =>
+    [...x.h].flatMap((c, i) => (c === chars[i] ? [i] : []))
+  const left = candidates
+    .map((x) => ({ x, at: places(x), r: random() }))
+    .filter((c) => c.at.length > 0)
+  const covered = new Set<number>()
+  const picked: Array<Word> = []
+  while (picked.length < 3 && left.length > 0) {
+    const score = (c: (typeof left)[number]) =>
+      c.at.reduce((s, i) => s + (covered.has(i) ? 1 : 4), 0) +
+      (pool.includes(c.x) ? 1.5 : c.x.lesson > 0 ? 0.75 : 0) +
+      c.r
+    let best = 0
+    for (let i = 1; i < left.length; i++)
+      if (score(left[i]) > score(left[best])) best = i
+    const [c] = left.splice(best, 1)
+    picked.push(c.x)
+    for (const i of c.at) covered.add(i)
+  }
+  return picked
+}
+
 // Four choices: the word and three others, shuffled. `pool` is the words
 // to draw from first (those met); for listening and picking the
 // character, words of the same length come from the whole vocabulary when
@@ -93,13 +131,31 @@ export function wordChoices(
   if (kind === 'meaning' || kind === 'hear') picked = ranked(others).slice(0, 3)
   else {
     const n = length(w)
+    const sameLength = [
+      ...others.filter((x) => length(x) === n),
+      ...WORDS.filter((x) => length(x) === n && fair(x) && !pool.includes(x)),
+    ]
+    picked =
+      kind === 'listen'
+        ? sharing(
+            w,
+            [
+              ...sameLength,
+              ...DECOYS.filter((x) => length(x) === n && fair(x)),
+            ],
+            pool,
+            random,
+          )
+        : []
     const tiers = [
-      others.filter((x) => length(x) === n),
-      WORDS.filter((x) => length(x) === n && fair(x) && !pool.includes(x)),
+      sameLength,
       others.filter((x) => Math.abs(length(x) - n) === 1),
       others.filter((x) => Math.abs(length(x) - n) > 1),
     ]
-    picked = tiers.flatMap(ranked).slice(0, 3)
+    picked = [
+      ...picked,
+      ...tiers.flatMap(ranked).filter((x) => !picked.includes(x)),
+    ].slice(0, 3)
   }
   return shuffle([w, ...picked], random)
 }

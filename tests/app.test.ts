@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { COUNTRIES, WORDS } from '../src/app/data/words'
+import { DECOYS } from '../src/app/data/decoys'
 import { CITIES, SCENES } from '../src/app/data/trip'
 import {
   join,
@@ -2042,6 +2043,38 @@ describe('choices', () => {
         expect(len(c)).toBe(len(w))
         if (c.id !== w.id) expect(soundsSame(c, w)).toBe(false)
       }
+    }
+  })
+
+  test('by ear, a character is not the answer alone in its place', () => {
+    const pool = WORDS.slice(0, 60)
+    const fair = (w: (typeof WORDS)[number], x: (typeof WORDS)[number]) =>
+      x.id !== w.id && x.g !== w.g && x.h !== w.h && !soundsSame(x, w)
+    const inPlace = (w: { h: string }, x: { h: string }) =>
+      [...x.h].filter((c, i) => c === w.h[i]).length
+    for (const w of WORDS) {
+      const partners = [...WORDS, ...DECOYS].filter(
+        (x) => fair(w, x) && len(x) === len(w) && inPlace(w, x) > 0,
+      )
+      const cs = wordChoices(w, pool, 'listen').filter((c) => c.id !== w.id)
+      const shared = cs.filter((c) => inPlace(w, c) > 0)
+      expect(shared.length, w.h).toBe(Math.min(3, partners.length))
+    }
+    const thanks = WORDS.find((x) => x.h === '不客气')!
+    const cs = wordChoices(thanks, pool, 'listen')
+    expect(cs.filter((c) => c.h.startsWith('不')).length).toBe(3)
+  })
+
+  test('words only offered as wrong answers are real, new and well formed', () => {
+    const taught = new Set(WORDS.map((w) => w.h))
+    const seen = new Set<string>()
+    for (const d of DECOYS) {
+      expect(taught.has(d.h), d.h).toBe(false)
+      expect(seen.has(d.h), d.h).toBe(false)
+      seen.add(d.h)
+      expect(syllables(d.p).length, `${d.h} ${d.p}`).toBe([...d.h].length)
+      for (const syl of syllables(d.p)) expect(syl, d.h).toMatch(PINYIN)
+      expect(d.e, d.h).not.toBe('')
     }
   })
 
