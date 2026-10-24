@@ -1,10 +1,11 @@
 import { LESSONS, WORD, WORDS } from './words.ts'
 import type { Word } from './words.ts'
 
-// Topics to choose (games/topics.tsx), as many as the player likes: the
-// words of the topics chosen are met first, in Today's new words and in
-// Learn, a few from each in turn, and the rest after them in the usual
-// order (toMeet in lib/bank.ts). A topic is one or more lessons of
+// Topics to choose (games/topics.tsx), as many as the player likes, each
+// at a priority from 1 to 3: the words of the topics chosen are met
+// first, in Today's new words and in Learn, taken in rounds of as many
+// from each as its priority, and the rest after them in the usual order
+// (toMeet in lib/bank.ts). A topic is one or more lessons of
 // data/words.ts, with words from other lessons it needs (`also`, met
 // before the lessons' own).
 
@@ -30,6 +31,58 @@ export interface TopicGroup {
 }
 
 export const TOPIC_GROUPS: Array<TopicGroup> = [
+  {
+    id: 'travel',
+    title: 'Travel in China',
+    zh: '旅行',
+    py: 'lǚxíng',
+    topics: [
+      {
+        id: 'food',
+        title: 'Food and drink',
+        zh: '吃喝',
+        py: 'chīhē',
+        about:
+          'Breakfast at a stall, ordering in a restaurant, the dishes worth knowing, how spicy, no coriander, and taking the rest away.',
+        lessons: ['Breakfast', 'Eating out', 'Food'],
+        also: '吃 喝 好吃 菜单 烤鸭 甜 牛奶',
+      },
+      {
+        id: 'shopping',
+        title: 'Shopping and paying',
+        zh: '购物',
+        py: 'gòuwù',
+        about:
+          'Prices and money, clothes and sizes, haggling at a market, paying by phone or card, souvenirs, and taking things back.',
+        lessons: ['Money', 'Shopping', 'The market', 'Shops'],
+        also: '现金 扫 微信 付 超市 价格',
+      },
+      {
+        id: 'transport',
+        title: 'Taxis, trains and the metro',
+        zh: '交通',
+        py: 'jiāotōng',
+        about:
+          'Asking the way, telling the driver where to stop, tickets for the high-speed train, the metro and the airport, and a delay.',
+        lessons: [
+          'Getting around',
+          'Trains and planes',
+          'Around town',
+          'Transport',
+        ],
+      },
+      {
+        id: 'stay',
+        title: 'Hotels and health',
+        zh: '住宿',
+        py: 'zhùsù',
+        about:
+          'Checking in and out, what the room is missing, charging a phone, and what to say at a pharmacy or when something goes wrong.',
+        lessons: ['The hotel', 'Staying well'],
+        also: '酒店 医院 医生 药 生病 救命',
+      },
+    ],
+  },
   {
     id: 'work',
     title: 'Work',

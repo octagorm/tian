@@ -52,7 +52,6 @@ const RAW = `
 早安|zǎo ān|good morning
 菜刀|cài dāo|kitchen knife
 菜园|cài yuán|vegetable garden
-猪肉|zhū ròu|pork
 小吃|xiǎo chī|snack
 难吃|nán chī|tastes bad
 茶杯|chá bēi|teacup
@@ -64,7 +63,6 @@ const RAW = `
 分数|fēn shù|score, mark
 汽车|qì chē|car
 开车|kāi chē|to drive
-地图|dì tú|map
 西方|xī fāng|the West
 京都|jīng dū|Kyoto
 树林|shù lín|woods
@@ -172,7 +170,6 @@ const RAW = `
 海边|hǎi biān|seaside
 哪里|nǎ lǐ|where
 不对|bù duì|wrong
-不要|bù yào|don't
 近来|jìn lái|lately
 近视|jìn shì|short-sighted
 吃惊|chī jīng|surprised
@@ -200,7 +197,6 @@ const RAW = `
 国王|guó wáng|king
 爬山|pá shān|to climb a mountain
 发现|fā xiàn|to discover
-发烧|fā shāo|to have a fever
 经过|jīng guò|to pass by
 不会|bù huì|cannot; will not
 机会|jī huì|chance

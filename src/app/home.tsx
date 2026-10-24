@@ -437,7 +437,7 @@ function Today({
     zh: '学',
     pinyin: 'xué',
     title: 'Learn five new words',
-    text: `${toMeet} words still to meet, ${bank.topics.ids.length ? 'those of your topics first' : 'in the order the trip uses them'}.`,
+    text: `${toMeet} words still to meet, ${bank.topics.on.length ? 'those of your topics first' : 'in the order the trip uses them'}.`,
     go: 'Start',
     art: <SpriteArt name="sprout" />,
   }
@@ -861,7 +861,12 @@ function Words({
 
 // The topics chosen, whose words are met first, and the way to change them
 function Chosen({ bank }: { bank: Bank }) {
-  const chosen = bank.topics.ids.flatMap((id) => TOPIC[id] ?? [])
+  const chosen = bank.topics.on
+    .flatMap((x) => {
+      const t = TOPIC[x.id]
+      return t ? [{ ...t, p: x.p }] : []
+    })
+    .sort((a, b) => b.p - a.p)
   return (
     <a
       href="#topics"
@@ -874,20 +879,36 @@ function Chosen({ bank }: { bank: Bank }) {
           {chosen.map((t) => (
             <span
               key={t.id}
-              className="rounded-full bg-[var(--paper-2)] px-2.5 py-0.5 font-bold text-[var(--ink)]"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[var(--paper-2)] px-2.5 py-0.5 font-bold text-[var(--ink)]"
+              title={`Priority ${t.p} of 3`}
             >
               {t.title}
+              <Pips p={t.p} />
             </span>
           ))}
         </>
       ) : (
         <span>
-          Choose topics, and their words come first: work, software, philosophy,
-          history, myths, the sky…
+          Choose topics, and their words come first: food, taxis, work,
+          software, philosophy, history, myths, the sky…
         </span>
       )}
       <ArrowRight size={14} className="ml-auto font-bold" />
     </a>
+  )
+}
+
+// A topic's priority, as one to three dots
+function Pips({ p }: { p: number }) {
+  return (
+    <span className="inline-flex gap-0.5" aria-label={`priority ${p}`}>
+      {[1, 2, 3].map((i) => (
+        <span
+          key={i}
+          className={`h-1.5 w-1.5 rounded-full ${i <= p ? 'bg-[var(--jade)]' : 'bg-[var(--paper-3)]'}`}
+        />
+      ))}
+    </span>
   )
 }
 

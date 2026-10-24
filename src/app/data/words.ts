@@ -1095,6 +1095,123 @@ const RAW: Array<[string, string, string]> = [
 宇航员|yǔ háng yuán|astronaut
 `,
   ],
+  [
+    'Food',
+    '中国菜',
+    `
+推荐|tuī jiàn|recommend
+特色菜|tè sè cài|speciality|the speciality of the house or the place||food
+炒|chǎo|stir-fried|to stir-fry; stir-fried
+炒饭|chǎo fàn|fried rice||food
+小笼包|xiǎo lóng bāo|soup dumplings|xiaolongbao, little steamed buns with soup inside||food
+馄饨|hún tun|wontons|wontons, in soup||food
+豆腐|dòu fu|tofu||food
+麻婆豆腐|má pó dòu fu|mapo tofu|mapo tofu, tofu in a hot, numbing Sichuan sauce||food
+宫保鸡丁|gōng bǎo jī dīng|kung pao chicken|kung pao chicken: diced chicken with peanuts and chilli||food
+猪肉|zhū ròu|pork||food
+蔬菜|shū cài|vegetables||food
+辣椒|là jiāo|chilli||food
+香菜|xiāng cài|coriander||food
+不要|bù yào|don't want|don't want; no … please (不要香菜 = no coriander, please)
+微辣|wēi là|mildly spicy
+麻|má|numbing|numbing, the tingle of Sichuan pepper
+酸|suān|sour
+咸|xián|salty
+素|sù|vegetarian|vegetarian, without meat
+过敏|guò mǐn|allergic|to be allergic
+饮料|yǐn liào|drink|drink, beverage||drink
+果汁|guǒ zhī|juice||drink
+热水|rè shuǐ|hot water||drink
+冰|bīng|ice|ice; iced
+打包|dǎ bāo|take away|to pack up (leftovers, a meal) to take away
+外卖|wài mài|takeaway|takeaway, food delivered
+`,
+  ],
+  [
+    'Shops',
+    '商店',
+    `
+商店|shāng diàn|shop
+商场|shāng chǎng|mall|shopping centre, mall
+营业|yíng yè|be open|to be open for business
+关门|guān mén|close|to close (for the day)
+排队|pái duì|queue|to queue
+纪念品|jì niàn pǐn|souvenir
+特产|tè chǎn|local speciality|local speciality, to buy and take home
+质量|zhì liàng|quality
+真的|zhēn de|real|real, genuine; really
+假|jiǎ|fake|fake, false
+大小|dà xiǎo|size
+合适|hé shì|fit|suitable; to fit
+换|huàn|change|to change, to exchange
+退|tuì|return|to return (goods), to give back
+打折|dǎ zhé|discount|to give a discount (打八折 = 20 % off)
+袋子|dài zi|bag
+刷卡|shuā kǎ|pay by card|to pay by card
+支付宝|Zhī fù bǎo|Alipay|Alipay, the other big way to pay by phone||name
+二维码|èr wéi mǎ|QR code
+零钱|líng qián|small change
+小票|xiǎo piào|receipt|receipt, from the till
+发票|fā piào|invoice|official receipt, invoice (for expenses)
+`,
+  ],
+  [
+    'Transport',
+    '交通',
+    `
+打车|dǎ chē|take a taxi|to take a taxi, to get a ride
+司机|sī jī|driver
+地址|dì zhǐ|address
+地图|dì tú|map
+导航|dǎo háng|navigation|navigation, the phone's directions
+堵车|dǔ chē|traffic jam|to be stuck in traffic
+靠边|kào biān|pull over|to pull over to the side
+停车|tíng chē|stop the car|to stop (a car); to park
+公交车|gōng jiāo chē|bus
+共享单车|gòng xiǎng dān chē|shared bike|shared bike, unlocked with a phone
+出口|chū kǒu|exit
+入口|rù kǒu|entrance
+换乘|huàn chéng|change|to change (trains, metro lines)
+高铁|gāo tiě|high-speed train
+身份证|shēn fèn zhèng|ID card
+安检|ān jiǎn|security check
+座位|zuò wèi|seat
+行李|xíng li|luggage
+单程|dān chéng|one-way|one way (a ticket)
+往返|wǎng fǎn|return|there and back, return (a ticket)
+航班|háng bān|flight
+登机|dēng jī|board|to board (a plane)
+晚点|wǎn diǎn|delayed|late, delayed (a train, a flight)
+到达|dào dá|arrive
+`,
+  ],
+  [
+    'Staying well',
+    '住宿和看病',
+    `
+入住|rù zhù|check in|to check in (at a hotel)
+退房|tuì fáng|check out|to check out (of a hotel)
+押金|yā jīn|deposit
+空调|kōng tiáo|air conditioning
+毛巾|máo jīn|towel
+洗澡|xǐ zǎo|shower|to take a shower or a bath
+洗手间|xǐ shǒu jiān|toilet|toilet, restroom
+充电|chōng diàn|charge|to charge (a phone)
+充电器|chōng diàn qì|charger
+插座|chā zuò|socket|power socket
+舒服|shū fu|comfortable|comfortable, well (不舒服 = unwell)
+疼|téng|hurt|to hurt, to ache
+头疼|tóu téng|headache|to have a headache
+发烧|fā shāo|fever|to have a fever
+感冒|gǎn mào|cold|a cold; to catch a cold
+拉肚子|lā dù zi|diarrhoea|to have diarrhoea
+药店|yào diàn|pharmacy
+帮忙|bāng máng|help|to help, to do a favour
+丢|diū|lose|to lose (a thing)
+警察|jǐng chá|police|police, police officer
+紧急|jǐn jí|urgent|urgent; an emergency
+`,
+  ],
 ]
 
 export const LESSONS: Array<Lesson> = RAW.map(([title, zh], i) => ({

@@ -25,7 +25,7 @@ import {
 import { setRate } from './audio'
 import { retopic } from './today'
 import type { ReactNode } from 'react'
-import type { Bank, Dir, Level, Link, Path, Stage } from './bank'
+import type { Bank, Dir, Level, Link, Path, Stage, TopicChoice } from './bank'
 
 // The word bank and the settings as React state, for every game at once.
 // Both are kept in localStorage; signed in, the bank is also kept on
@@ -143,9 +143,10 @@ interface Store {
   // How far a text in the reader is read: the paragraph and the word in
   // it, and whether it was read to the end
   setPlace: (text: string, p: number, done?: boolean, w?: number) => void
-  // The topics chosen (data/topics.ts), in the order chosen: today's new
-  // words are taken again from them if not yet begun on
-  setTopics: (ids: Array<string>) => void
+  // The topics chosen (data/topics.ts), in the order chosen, each with its
+  // priority: today's new words are taken again from them if not yet
+  // begun on
+  setTopics: (on: Array<TopicChoice>) => void
 }
 
 // What an answer tested: a link of the word, or some, or the word read
@@ -378,9 +379,9 @@ export function BankProvider({ children }: { children: ReactNode }) {
   )
 
   const setTopics = useCallback(
-    (ids: Array<string>) =>
+    (on: Array<TopicChoice>) =>
       update((b) => {
-        const next = { ...b, topics: { ids, t: Date.now() } }
+        const next = { ...b, topics: { on, t: Date.now() } }
         const p = b.path
         return p && p.d === today() ? { ...next, path: retopic(p, next) } : next
       }),

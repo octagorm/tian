@@ -147,7 +147,7 @@ export default function Learn() {
 
   const unmet = toLearn(bank)
   const upcoming = unmet.slice(0, BATCH)
-  const topics = bank.topics.ids.flatMap((id) => TOPIC[id]?.title ?? [])
+  const topics = bank.topics.on.flatMap((x) => TOPIC[x.id]?.title ?? [])
   return (
     <Frame title="Learn" zh="学">
       <div className="zh-card relative mb-6 overflow-hidden p-5 sm:p-6">

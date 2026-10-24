@@ -101,9 +101,15 @@ export interface Bank {
   garden: Record<string, number | undefined>
   // How far each text in the reader (data/reader.ts) is read, by id
   place: Record<string, Place | undefined>
-  // The topics chosen (data/topics.ts), in the order chosen, and when the
-  // choice was last changed: their words are met first
-  topics: { ids: Array<string>; t: number }
+  // The topics chosen (data/topics.ts), in the order chosen, each with its
+  // priority (1–3), and when the choice was last changed: their words are
+  // met first
+  topics: { on: Array<TopicChoice>; t: number }
+}
+
+export interface TopicChoice {
+  id: string
+  p: 1 | 2 | 3
 }
 
 export interface Place {
@@ -165,7 +171,7 @@ export const emptyBank = (): Bank => ({
   daily: {},
   garden: {},
   place: {},
-  topics: { ids: [], t: 0 },
+  topics: { on: [], t: 0 },
 })
 
 const DAY = 86_400_000
@@ -393,20 +399,27 @@ export function due(
 }
 
 // The words in the order they are met: those of the topics chosen first,
-// one from each in turn, in the order chosen, then the rest in lesson order
+// in rounds of as many from each as its priority, in the order chosen,
+// then the rest in lesson order
 export function toMeet(bank: Bank): Array<Word> {
-  const lists = bank.topics.ids
-    .map((id) => TOPIC[id])
-    .filter((t) => !!t)
-    .map((t) => topicWords(t).filter((w) => !bank.cards[w.id]))
+  const lists = bank.topics.on
+    .filter((x) => TOPIC[x.id])
+    .map((x) => ({
+      p: x.p,
+      ws: topicWords(TOPIC[x.id]!).filter((w) => !bank.cards[w.id]),
+      at: 0,
+    }))
   const first: Array<Word> = []
   const seen = new Set<string>()
-  for (let i = 0; lists.some((l) => i < l.length); i++)
-    for (const l of lists) {
-      if (i >= l.length || seen.has(l[i].id)) continue
-      seen.add(l[i].id)
-      first.push(l[i])
-    }
+  while (lists.some((l) => l.at < l.ws.length))
+    for (const l of lists)
+      for (let n = 0; n < l.p && l.at < l.ws.length;) {
+        const w = l.ws[l.at++]
+        if (seen.has(w.id)) continue
+        seen.add(w.id)
+        first.push(w)
+        n++
+      }
   return first.length
     ? [...first, ...WORDS.filter((w) => !seen.has(w.id))]
     : WORDS
@@ -497,8 +510,8 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
     const done = Math.max(x?.done ?? 0, y?.done ?? 0)
     if (last) out.place[id] = done ? { ...last, done } : last
   }
-  const ta = a.topics ?? out.topics
-  const tb = b.topics ?? out.topics
+  const ta = a.topics?.on ? a.topics : out.topics
+  const tb = b.topics?.on ? b.topics : out.topics
   out.topics = tb.t > ta.t ? tb : ta
   return out
 }

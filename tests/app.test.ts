@@ -1407,7 +1407,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
       expect(inTopic.has(l.title), l.title).toBe(true)
   })
 
-  test('the topics chosen are met first, one from each in turn, and a later choice wins a merge', async () => {
+  test('the topics chosen are met first, as many a round as their priority, and a later choice wins a merge', async () => {
     const { TOPIC, topicWords } = await import('../src/app/data/topics')
     const { toMeet, unmet } = await import('../src/app/lib/bank')
     const { plan, retopic } = await import('../src/app/lib/today')
@@ -1415,21 +1415,49 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(unmet(b)[0].id).toBe(WORDS[0].id)
     const office = topicWords(TOPIC.office!)
     const sky = topicWords(TOPIC.astronomy!)
-    b.topics = { ids: ['office', 'astronomy'], t: NOON }
+    b.topics = {
+      on: [
+        { id: 'office', p: 1 },
+        { id: 'astronomy', p: 2 },
+      ],
+      t: NOON,
+    }
     b.cards[office[0].id] = newCard(NOON - D)
     expect(
       unmet(b)
-        .slice(0, 4)
+        .slice(0, 6)
         .map((w) => w.id),
-    ).toEqual([office[1].id, sky[0].id, office[2].id, sky[1].id])
+    ).toEqual(
+      [office[1], sky[0], sky[1], office[2], sky[2], sky[3]].map((w) => w.id),
+    )
     // every word still comes, once
     expect(toMeet(b).length).toBe(WORDS.length)
     expect(new Set(toMeet(b).map((w) => w.id)).size).toBe(WORDS.length)
+    // a word in two topics comes once, and its place goes to the next
+    const soft = topicWords(TOPIC.software!)
+    const both = {
+      ...b,
+      topics: {
+        on: [
+          { id: 'software', p: 3 as const },
+          { id: 'office', p: 3 as const },
+        ],
+        t: NOON,
+      },
+    }
+    const order = unmet(both)
+      .slice(0, 60)
+      .map((w) => w.id)
+    expect(new Set(order).size).toBe(60)
+    expect(order.slice(0, 3)).toEqual(soft.slice(0, 3).map((w) => w.id))
     // today's new words are taken again when the topics change, if not begun
     const p = plan(b, NOON)
     const fresh = p.steps.find((s) => s.k === 'new')!
     expect(fresh.ids?.[0]).toBe(office[1].id)
-    const c = { ...b, topics: { ids: ['astronomy'], t: NOON + H } }
+    const c = {
+      ...b,
+      topics: { on: [{ id: 'astronomy', p: 1 as const }], t: NOON + H },
+    }
     const q = retopic(p, c)
     expect(q.steps.find((s) => s.k === 'new')?.ids?.[0]).toBe(sky[0].id)
     const begun = {
@@ -1437,9 +1465,9 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
       steps: p.steps.map((s) => (s.k === 'new' ? { ...s, got: ['x'] } : s)),
     }
     expect(retopic(begun, c)).toBe(begun)
-    expect(merge(b, c).topics.ids).toEqual(['astronomy'])
-    expect(merge(c, b).topics.ids).toEqual(['astronomy'])
-    expect(merge({ cards: {} }, emptyBank()).topics.ids).toEqual([])
+    expect(merge(b, c).topics.on).toEqual([{ id: 'astronomy', p: 1 }])
+    expect(merge(c, b).topics.on).toEqual([{ id: 'astronomy', p: 1 }])
+    expect(merge({ cards: {} }, emptyBank()).topics.on).toEqual([])
   })
 
   test('Today plans the fading words, new ones, the trip or words to shore up, and listening', async () => {

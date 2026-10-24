@@ -32,7 +32,7 @@ export const GAMES = [
     zh: '话题',
     sprite: 'cards',
     blurb:
-      'Choose what to learn about: work, software, philosophy, history, myths, the sky. Their words come first.',
+      'Choose what to learn about, from 1 to 3: food, taxis, work, software, philosophy, history, myths, the sky. Their words come first.',
     Page: page(() => import('./games/topics')),
   },
   {
