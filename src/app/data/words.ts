@@ -549,7 +549,7 @@ const RAW: Array<[string, string, string]> = [
 牛|niú|ox|ox, cow
 兔子|tù zi|rabbit
 匹|pǐ|(horse)|measure word for horses|mw
-里|lǐ|li|li, a Chinese half-kilometre
+里|lǐ|li|li, a Chinese half-kilometre; also in, inside (田里, in the field)
 跟头|gēn tou|somersault
 金箍棒|jīn gū bàng|golden cudgel|the Monkey King's golden-banded staff
 佛|Fó|Buddha|the Buddha||name
@@ -888,6 +888,27 @@ const RAW: Array<[string, string, string]> = [
 恭喜|gōng xǐ|congratulations
 升职|shēng zhí|be promoted|to be promoted
 万|wàn|ten thousand||num
+`,
+  ],
+  [
+    // The words the reader's texts need beyond the rest (data/reader.ts),
+    // last, so that they are met in the reader before Learn comes to them
+    'Reading',
+    '阅读',
+    `
+一样|yī yàng|the same|the same, alike
+农民|nóng mín|farmer|farmer, peasant
+田|tián|field|field (for crops)
+棵|kē|(tree)|measure word for trees and plants|mw
+撞|zhuàng|bump into|to bump into, to crash into
+笑|xiào|laugh at|to laugh, to smile; to laugh at
+守株待兔|shǒu zhū dài tù|wait by the stump|"guard the stump, wait for rabbits": to wait for luck instead of working (an idiom)
+酒|jiǔ|wine|wine, alcohol||drink
+够|gòu|enough|enough; to be enough
+蛇|shé|snake
+先|xiān|first|first, before the others
+开始|kāi shǐ|start|to start, to begin
+画蛇添足|huà shé tiān zú|legs on a snake|"draw a snake and add feet": to spoil something by adding what it does not need (an idiom)
 `,
   ],
 ]

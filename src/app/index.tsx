@@ -16,8 +16,9 @@ import './tian.css'
 // lib/store.tsx), so a word practised in one is known in all. The games are
 // listed in registry.tsx.
 
+// (what follows a slash is the game's own: /#read/beijing)
 const fromHash = (): GameId | null => {
-  const h = window.location.hash.slice(1)
+  const h = window.location.hash.slice(1).split('/')[0]
   return GAMES.find((g) => g.id === h)?.id ?? null
 }
 

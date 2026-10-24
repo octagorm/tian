@@ -44,7 +44,31 @@ export interface Settings {
   // A daily reminder to do Today's session (lib/reminder.ts), at 'HH:MM'
   remind: boolean
   remindAt: string
+  // The reader (games/read.tsx): the size of its text, a step of
+  // READ_SIZES; how wide it may be, a step of READ_WIDTHS; a page at a
+  // time, turned sideways, or one long page to scroll; the pinyin and the
+  // English with each word: none, until the word's link to it is known
+  // (lib/bank.ts), or always; and its colours, dark or light or as the
+  // system has them
+  readSize: number
+  readWidth: number
+  readPaged: boolean
+  readPinyin: Help
+  readEnglish: Help
+  readTheme: 'auto' | 'light' | 'dark'
 }
+
+export type Help = 'off' | 'new' | 'all'
+
+// The reader's sizes, in pixels for a character
+export const READ_SIZES = [22, 26, 30, 35, 40]
+
+// How wide the reader's text may be, whatever its size
+export const READ_WIDTHS = [
+  { name: 'Narrow', px: 540 },
+  { name: 'Medium', px: 700 },
+  { name: 'Wide', px: 900 },
+]
 
 const DEFAULTS: Settings = {
   home: '挪威',
@@ -54,6 +78,12 @@ const DEFAULTS: Settings = {
   perScene: 3,
   remind: false,
   remindAt: '18:00',
+  readSize: 1,
+  readWidth: 0,
+  readPaged: true,
+  readPinyin: 'new',
+  readEnglish: 'new',
+  readTheme: 'auto',
 }
 
 const BANK_KEY = 'tian:bank:v1'
@@ -101,6 +131,9 @@ interface Store {
   setPath: (f: (p: Path | null) => Path | null) => void
   // A day's session finished, with points for it; only once a day
   finishDay: (day: string, bonus?: number) => void
+  // How far a text in the reader is read: the paragraph and the word in
+  // it, and whether it was read to the end
+  setPlace: (text: string, p: number, done?: boolean, w?: number) => void
 }
 
 // What an answer tested: a link of the word, or some, or the word read
@@ -290,6 +323,30 @@ export function BankProvider({ children }: { children: ReactNode }) {
     [update],
   )
 
+  const setPlace = useCallback(
+    (text: string, p: number, done = false, w = 0) =>
+      update((b) => {
+        const was = b.place[text]
+        if (was && was.p === p && (was.w ?? 0) === w && (!done || was.done))
+          return b
+        const now = Date.now()
+        const end = was?.done ?? (done ? now : undefined)
+        return {
+          ...b,
+          place: {
+            ...b.place,
+            [text]: {
+              p,
+              t: now,
+              ...(w ? { w } : {}),
+              ...(end ? { done: end } : {}),
+            },
+          },
+        }
+      }),
+    [update],
+  )
+
   const setSettings = useCallback(
     (s: Partial<Settings>) => setAll((old) => ({ ...old, ...s })),
     [],
@@ -318,6 +375,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       account,
       setPath,
       finishDay,
+      setPlace,
     }),
     [
       bank,
@@ -336,6 +394,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       account,
       setPath,
       finishDay,
+      setPlace,
     ],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

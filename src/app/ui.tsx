@@ -355,6 +355,11 @@ function Sheet({ token, onClose }: { token: Token; onClose: () => void }) {
             {join(token.pinyin)}
           </div>
           <p className="mt-1 text-lg leading-snug">{w?.e ?? token.gloss}</p>
+          {token.note && (
+            <p className="mt-2 rounded-lg bg-[var(--paper-2)] px-3 py-2 text-sm leading-snug text-[var(--ink-2)]">
+              {token.note}
+            </p>
+          )}
           <div className="mt-2 flex items-center gap-2 text-xs font-bold">
             <span
               className="rounded-full px-2 py-0.5 tracking-wide text-white uppercase"

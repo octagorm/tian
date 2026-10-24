@@ -258,6 +258,18 @@ describe('bank', () => {
     expect(m.best.rain).toBe(10)
   })
 
+  test('merging keeps the later place in a text, and a text read stays read', () => {
+    const a = emptyBank()
+    const b = emptyBank()
+    a.place.snake = { p: 3, t: 10, done: 8 }
+    b.place.snake = { p: 1, w: 4, t: 20 }
+    b.place.stump = { p: 2, t: 5 }
+    const m = merge(a, b)
+    expect(m.place.snake).toEqual({ p: 1, w: 4, t: 20, done: 8 })
+    expect(m.place.stump).toEqual({ p: 2, t: 5 })
+    expect(merge({ cards: {} }, emptyBank()).place).toEqual({})
+  })
+
   test('a card saved before the links has its one memory in each', () => {
     const old = { s: 4, t: 7, n: 3, x: 1, i: 2 }
     const bank = { cards: { 你好: old } } as unknown as Partial<Bank>
@@ -301,6 +313,21 @@ describe('the other games', () => {
         expect(() => tokens(zh, { home: '挪威' }), zh).not.toThrow()
       for (const q of st.questions) expect(q.options.length, q.q).toBe(4)
     }
+  })
+
+  test("the reader's texts are known words, their notes are there, and the Reading lesson is all used", async () => {
+    const { TEXTS, sentencesOf } = await import('../src/app/data/reader')
+    const reading = WORDS.find((w) => w.h === '一样')!.lesson
+    const used = new Set<string>()
+    for (const t of TEXTS)
+      for (const s of sentencesOf(t))
+        for (const k of tokens(s, { home: '挪威' })) {
+          if (k.id) used.add(k.id)
+          if (k.note) expect(t.notes[k.note], `${t.id}: ${k.note}`).toBeTruthy()
+        }
+    const unused = WORDS.filter((w) => w.lesson === reading && !used.has(w.id))
+    expect(unused.map((w) => w.id)).toEqual([])
+    expect(new Set(TEXTS.map((t) => t.id)).size).toBe(TEXTS.length)
   })
 
   test('the quest only names words in the bank', async () => {

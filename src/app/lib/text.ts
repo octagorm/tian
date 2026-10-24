@@ -16,6 +16,9 @@ export interface Token {
   gloss: string
   pinyin: Array<string>
   punct?: boolean
+  // A note on the word where it stands, by the key after # in the line
+  // (the reader's texts, data/reader.ts), or once looked up, its text
+  note?: string
 }
 
 const PUNCT = new Set([...'，。！？、：；…“”《》'])
@@ -28,7 +31,8 @@ export interface Vars {
 export function tokens(line: string, vars: Vars): Array<Token> {
   const raw = line.replaceAll('{home}', vars.home).split(' ').filter(Boolean)
   const base = raw.map((t) => {
-    const [h, override] = t.split('=') as [string, string | undefined]
+    const [body, note] = t.split('#') as [string, string | undefined]
+    const [h, override] = body.split('=') as [string, string | undefined]
     if (PUNCT.has(h))
       return { h, gloss: h, s: [] as Array<string>, punct: true }
     if (isNumber(h))
@@ -41,7 +45,13 @@ export function tokens(line: string, vars: Vars): Array<Token> {
       }
     const w = WORD[h]
     if (!w) throw new Error(`Not in the word bank: ${h} (in "${line}")`)
-    return { h, id: w.id, gloss: override ?? w.g, s: syllables(w.p) }
+    return {
+      h,
+      id: w.id,
+      gloss: override ?? w.g,
+      s: syllables(w.p),
+      ...(note ? { note } : {}),
+    }
   })
   const words = base.filter((b) => !('punct' in b && b.punct))
   const sylls = inContext(words)
@@ -52,7 +62,13 @@ export function tokens(line: string, vars: Vars): Array<Token> {
     const pinyin = sylls[k++]
     return 'parts' in b
       ? { h: b.h, gloss: b.gloss, pinyin, parts: b.parts }
-      : { h: b.h, id: (b as { id: string }).id, gloss: b.gloss, pinyin }
+      : {
+          h: b.h,
+          id: (b as { id: string }).id,
+          gloss: b.gloss,
+          pinyin,
+          ...('note' in b && b.note ? { note: b.note } : {}),
+        }
   })
 }
 
@@ -62,7 +78,7 @@ export const plain = (line: string, vars: Vars) =>
     .replaceAll('{home}', vars.home)
     .split(' ')
     .filter(Boolean)
-    .map((t) => t.split('=')[0])
+    .map((t) => t.split('#')[0].split('=')[0])
     .join('')
 
 // The word ids in a line, numbers by their parts

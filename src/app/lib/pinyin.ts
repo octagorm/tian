@@ -62,10 +62,19 @@ export function numbered(syllable: string): string {
 export const syllables = (p: string) => p.split(' ').filter(Boolean)
 
 // A word as it is written: syllables joined, with an apostrophe before a
-// syllable that starts with a vowel (Xī'ān)
+// syllable that starts with a vowel (Xī'ān), and a space before one with a
+// capital, which begins a name of its own (Xiǎo Lǐ, Sūn Wùkōng)
 export function join(sylls: Array<string>): string {
   return sylls
-    .map((s, i) => (i > 0 && /^[aeoāáǎàēéěèōóǒò]/i.test(s) ? `'${s}` : s))
+    .map((s, i) =>
+      i === 0
+        ? s
+        : /^\p{Lu}/u.test(s)
+          ? ` ${s}`
+          : /^[aeoāáǎàēéěèōóǒò]/i.test(s)
+            ? `'${s}`
+            : s,
+    )
     .join('')
 }
 

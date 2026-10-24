@@ -69,6 +69,15 @@ export const GAMES = [
     Page: page(() => import('./games/quest')),
   },
   {
+    id: 'read',
+    title: 'Reader',
+    zh: '阅读',
+    sprite: 'book',
+    blurb:
+      'Short texts in characters, with pinyin and English that fade as you learn each word.',
+    Page: page(() => import('./games/read')),
+  },
+  {
     id: 'stories',
     title: 'Stories',
     zh: '故事',

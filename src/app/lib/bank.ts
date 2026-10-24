@@ -68,6 +68,19 @@ export interface Bank {
   // What has grown in the garden (data/garden.ts), by lesson: 1 a
   // sapling or a start, 2 grown. It never shrinks back.
   garden: Record<string, number | undefined>
+  // How far each text in the reader (data/reader.ts) is read, by id
+  place: Record<string, Place | undefined>
+}
+
+export interface Place {
+  // The paragraph read up to, from 0
+  p: number
+  // The word in it, from 0
+  w?: number
+  // When, ms
+  t: number
+  // Read to the end, ms: once
+  done?: number
 }
 
 // One day's session: made on the day's first visit to Today, kept so it
@@ -117,6 +130,7 @@ export const emptyBank = (): Bank => ({
   path: null,
   daily: {},
   garden: {},
+  place: {},
 })
 
 const DAY = 86_400_000
@@ -133,7 +147,8 @@ export function recall(m: Memory, now: number): number {
 }
 
 // A link known: lasting a day and a half or more, and not faded much
-const holds = (m: Memory, now: number) => m.s >= KNOWN && recall(m, now) >= 0.8
+export const holds = (m: Memory, now: number) =>
+  m.s >= KNOWN && recall(m, now) >= 0.8
 
 // Hanzi alone once the character brings back both the sound and the
 // meaning
@@ -307,7 +322,9 @@ const keysOf = (...rs: Array<object | undefined>) =>
 // Two banks made one, for a player with an account on two devices: for
 // each link of a word the memory answered last, for days and scores the
 // larger, seals from both (each at the earlier date), and of two days'
-// sessions the later day's, or of the same day's the one further on. A
+// sessions the later day's, or of the same day's the one further on; of
+// two places in a text the later, and a text once read to the end stays
+// so. A
 // bank saved before a field existed (from an older page, or the
 // account's copy) is read as having it empty, and a card saved before
 // the links as having its one memory in each.
@@ -335,6 +352,13 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
     out.seals[id] = x === undefined ? y : y === undefined ? x : Math.min(x, y)
   }
   out.path = laterPath(a.path ?? null, b.path ?? null)
+  for (const id of keysOf(a.place, b.place)) {
+    const x = a.place?.[id]
+    const y = b.place?.[id]
+    const last = !x ? y : !y ? x : y.t > x.t ? y : x
+    const done = Math.max(x?.done ?? 0, y?.done ?? 0)
+    if (last) out.place[id] = done ? { ...last, done } : last
+  }
   return out
 }
 
