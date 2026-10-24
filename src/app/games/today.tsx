@@ -4,6 +4,7 @@ import {
   Check,
   Flame,
   Gamepad2,
+  Layers,
   Play,
   SkipForward,
   X,
@@ -29,8 +30,8 @@ import {
   plan,
   playedHere,
   share,
+  shoreInstead,
   summary,
-  swap,
 } from '../lib/today'
 import {
   Btn,
@@ -49,7 +50,7 @@ import { Ring } from '../daily/Ring'
 import { Seal } from '../daily/Seal'
 import { thud } from '../daily/SealToaster'
 import { GardenBand, GardenMini } from '../daily/GardenMini'
-import { DAILY_GAMES_HERE, describe, gameOf } from '../daily/steps'
+import { describe, gameOf } from '../daily/steps'
 import { usePlay, useToday } from '../daily/useToday'
 import { Key, PlayButton, useKeys, useSpeaker } from './fx'
 import type { ArcState } from '../daily/Ring'
@@ -58,16 +59,17 @@ import type { Word } from '../data/words'
 import '../daily/daily.css'
 
 // Today: the day's session, about ten minutes in a few steps, around a
-// ring that fills as they are done. Review, new words and listening are
-// played here; the parts of First steps, the trip and the games on their
-// own pages, and are found done on the way back. The plan is kept in the
-// bank, with each answer as it is given, so the session can be left at
-// any point, even halfway through a step, and taken up again the same
-// day, on any device.
+// ring that fills as they are done. Review, new words, shoring up and
+// listening are played here; the parts of First steps and the trip on
+// their own pages, and are found done on the way back. The plan is kept
+// in the bank, with each answer as it is given, so the session can be
+// left at any point, even halfway through a step, and taken up again the
+// same day, on any device.
 
 // Points for finishing a step played here
 const BONUS: Partial<Record<StepKind, number>> = {
   review: 3,
+  shore: 3,
   new: 5,
   listen: 2,
 }
@@ -89,13 +91,13 @@ export default function Today() {
   const play = usePlay()
 
   const start = () => {
-    const p = plan(bank, Date.now(), DAILY_GAMES_HERE)
+    const p = plan(bank, Date.now())
     setPath(() => p)
     open(p, 0)
   }
 
   // Steps played here open in the page, and a part of the course on its
-  // own; the trip and the games wait on their card, to be swapped
+  // own; the trip waits on its card, to be put off
   const open = (p: Path, i: number) => {
     if (playedHere(p.steps[i])) setActive(i)
     else if (p.steps[i].k === 'course') return play(p, i)
@@ -172,10 +174,7 @@ function Overview({
   const { bank, setPath } = useStore()
   const play = usePlay()
   const now = Date.now()
-  const preview = useMemo(
-    () => path ?? plan(bank, now, DAILY_GAMES_HERE),
-    [path, bank],
-  )
+  const preview = useMemo(() => path ?? plan(bank, now), [path, bank])
   const at = current(preview)
   const days = streak(bank, now)
   const arcs: Array<ArcState> = preview.steps.map((s, i) =>
@@ -259,7 +258,16 @@ function Overview({
             onOpen={() => onOpen(i)}
             onPlay={() => path && play(path, i)}
             onDone={(skip) => onDone(i, skip)}
-            onSwap={(step) => setPath((p) => (p ? swap(p, i, step) : p))}
+            onShore={
+              path &&
+              s.k === 'trip' &&
+              shoreInstead(path, i, bank, now) !== path
+                ? () =>
+                    setPath((p) =>
+                      p ? shoreInstead(p, i, bank, Date.now()) : p,
+                    )
+                : undefined
+            }
           />
         ))}
       </ol>
@@ -281,7 +289,7 @@ function StepRow({
   onOpen,
   onPlay,
   onDone,
-  onSwap,
+  onShore,
 }: {
   step: PathStep
   n: number
@@ -292,11 +300,13 @@ function StepRow({
   // Off to its own page
   onPlay: () => void
   onDone: (skip?: boolean) => void
-  onSwap: (step: PathStep) => void
+  // Words to shore up instead of the trip, if enough are met
+  onShore?: () => void
 }) {
   const t = describe(step)
-  // The trip and the games wait on a card of their own, to be played,
-  // swapped or skipped; the rest open with a button
+  // The trip waits on a card of its own, to be played, put off or
+  // skipped, and so does a game from a session planned before games gave
+  // way to shoring up; the rest open with a button
   const elsewhere = step.k === 'trip' || step.k === 'game'
   // Left partway: how far it got
   const part = step.done ? 0 : share(step)
@@ -309,14 +319,6 @@ function StepRow({
     return () => clearTimeout(tm)
     // once, as it is shown
   }, [])
-
-  // Another game than the one planned, or a game instead of the trip
-  const another = () => {
-    const games = DAILY_GAMES_HERE
-    const i = step.k === 'game' ? games.indexOf(step.arg ?? '') : -1
-    const next = games[(i + 1 + games.length) % games.length]
-    onSwap({ k: 'game', arg: next })
-  }
 
   return (
     <li className="relative">
@@ -409,10 +411,11 @@ function StepRow({
                   <Check size={16} /> I played it
                 </Btn>
               )}
-              <Btn kind="ghost" onClick={another}>
-                <Gamepad2 size={16} />{' '}
-                {step.k === 'trip' ? 'A game instead' : 'Another game'}
-              </Btn>
+              {onShore && (
+                <Btn kind="ghost" onClick={onShore}>
+                  <Layers size={16} /> Words instead
+                </Btn>
+              )}
               <Btn kind="ghost" onClick={() => onDone(true)}>
                 <SkipForward size={16} /> Skip
               </Btn>
@@ -480,7 +483,7 @@ function StepPlayer({
           <X size={22} />
         </button>
       </header>
-      {step.k === 'review' ? (
+      {step.k === 'review' || step.k === 'shore' ? (
         <ReviewStep step={step} words={words} onGot={got} onDone={onDone} />
       ) : step.k === 'new' ? (
         <NewStep step={step} words={words} onGot={got} onDone={onDone} />

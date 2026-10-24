@@ -13,7 +13,7 @@ import { Account } from './account'
 import { GAMES } from './registry'
 import { CourseStrip, GardenMini, SealStrip } from './daily'
 import { Ring } from './daily/Ring'
-import { DAILY_GAMES_HERE, describe } from './daily/steps'
+import { describe } from './daily/steps'
 import { usePlay, useToday } from './daily/useToday'
 import { current, finished, plan, share } from './lib/today'
 import { dayOf, partOf, partsDone } from './lib/course'
@@ -443,10 +443,7 @@ function Today({
   // Today's guided ten minutes (games/today.tsx) come first until they are
   // done; then the one thing most worth doing next
   const path = useToday()
-  const preview = useMemo(
-    () => path ?? plan(bank, Date.now(), DAILY_GAMES_HERE),
-    [path, bank],
-  )
+  const preview = useMemo(() => path ?? plan(bank, Date.now()), [path, bank])
   const at = current(preview)
   const sessionDone = finished(preview)
   const arcs: Array<ArcState> = preview.steps.map((s, i) =>

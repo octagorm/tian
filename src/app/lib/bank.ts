@@ -85,11 +85,13 @@ export interface Path {
   s0: Record<string, number | undefined>
 }
 
-export type StepKind = 'review' | 'new' | 'course' | 'trip' | 'game' | 'listen'
+// 'game' is no longer planned, but is kept for sessions saved before
+export type StepKind =
+  'review' | 'new' | 'course' | 'trip' | 'shore' | 'game' | 'listen'
 
 export interface PathStep {
   k: StepKind
-  // The words it is about (review, new)
+  // The words it is about (review, new, shore)
   ids?: Array<string>
   // A part of First steps, a scene of the trip, or a game, by id
   arg?: string

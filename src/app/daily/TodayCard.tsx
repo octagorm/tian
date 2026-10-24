@@ -4,7 +4,7 @@ import { useStore } from '../lib/store'
 import { current, finished, plan, share, summary } from '../lib/today'
 import { streak } from '../lib/bank'
 import { Ring } from './Ring'
-import { DAILY_GAMES_HERE, describe } from './steps'
+import { describe } from './steps'
 import { useToday } from './useToday'
 import type { ArcState } from './Ring'
 import './daily.css'
@@ -18,10 +18,7 @@ export function TodayCard({ className = '' }: { className?: string }) {
   const now = Date.now()
   const path = useToday()
 
-  const preview = useMemo(
-    () => path ?? plan(bank, now, DAILY_GAMES_HERE),
-    [path, bank],
-  )
+  const preview = useMemo(() => path ?? plan(bank, now), [path, bank])
   const at = current(preview)
   const done = finished(preview)
   const days = streak(bank, now)

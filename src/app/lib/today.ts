@@ -7,8 +7,9 @@ import type { Bank, Link, Path, PathStep, StepKind } from './bank.ts'
 // Today: a session of about ten minutes, made once a day from the bank
 // and kept in it (bank.path), so it can be taken up again where it was
 // left, on any device, even halfway through a step. In order: the words
-// that are fading, a few new ones, the next scene of the trip or a game
-// picked for variety, and a little listening; then a summary. For a
+// that are fading, a few new ones, the next scene of the trip or a second
+// round of the words slipping most, and a little listening; then a
+// summary. For a
 // beginner taking First steps (lib/course.ts), the parts of the course's
 // day stand in for all but the review, so the course is the session.
 
@@ -21,32 +22,17 @@ export const STEP: Record<
   // A part's own minutes are in data/course.ts
   course: { title: 'First steps', zh: '入门', minutes: 4, glyph: '入' },
   trip: { title: 'The trip', zh: '旅行', minutes: 4, glyph: '旅' },
+  shore: { title: 'Shore up', zh: '巩固', minutes: 3, glyph: '固' },
   game: { title: 'A game', zh: '游戏', minutes: 3, glyph: '玩' },
   listen: { title: 'Listening', zh: '听力', minutes: 1, glyph: '听' },
 }
 
-// Games the session picks from, one a day in turn; the page leaves out any
-// that are not in the registry. Brush is not one: writing is not a link
-// the bank keeps.
-export const DAILY_GAMES = [
-  'mahjong',
-  'rain',
-  'shop',
-  'market',
-  'taxi',
-  'office',
-  'tones',
-  'numbers',
-  'order',
-  'parts',
-  'stories',
-  'quest',
-  'bridge',
-  'sayings',
-]
-
 // Words to review: those fading, the most faded first
 const REVIEW = 8
+// Words to shore up, after those reviewed: the next most faded, each
+// asked about its weakest link; fewer than SHORE_MIN and there is no step
+const SHORE = 8
+const SHORE_MIN = 4
 // Below this chance of remembering, a word is fading
 export const FADING = 0.85
 // A scene or a game counts as played after this many points from it
@@ -61,12 +47,28 @@ const dayNumber = (now: number) => {
   return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY)
 }
 
-// The day's plan, made from the bank as it is now
-export function plan(
+// The step shoring up words: the most faded by their weakest link, after
+// those the review has, whether fading yet or not (then it is 'warm');
+// none if too few are met
+export function shoreUp(
   bank: Bank,
   now: number,
-  games: Array<string> = DAILY_GAMES,
-): Path {
+  reviewed: Array<string>,
+): PathStep | null {
+  const skip = new Set(reviewed)
+  const list = due(bank, now)
+    .filter((d) => !skip.has(d.w.id))
+    .slice(0, SHORE)
+  if (list.length < SHORE_MIN) return null
+  return {
+    k: 'shore',
+    ids: list.map((d) => d.w.id),
+    ...(list[0].r < FADING ? {} : { arg: 'warm' }),
+  }
+}
+
+// The day's plan, made from the bank as it is now
+export function plan(bank: Bank, now: number): Path {
   const list = due(bank, now)
   const fading = list.filter((d) => d.r < FADING)
   // At least a few words to warm up with, even when none are fading
@@ -90,9 +92,18 @@ export function plan(
   const n = dayNumber(now)
   const next = SCENES.find((s) => !bank.scenes[s.id])
   // The trip two days in three while it lasts, and every day while fewer
-  // than thirty words are met, as it is where words are met in use
+  // than thirty words are met, as it is where words are met in use. On
+  // the other days, a second round of the words that are slipping, played
+  // here, in place of a game: a game played on its own page has no end
+  // to lead back from, and the listening after it was easily missed.
   const trip = next && (list.length < 30 || n % 3 !== 2)
-  const game = games.length ? games[n % games.length] : undefined
+  const shore = trip
+    ? null
+    : shoreUp(
+        bank,
+        now,
+        review.map((w) => w.id),
+      )
 
   const steps: Array<PathStep> = []
   if (review.length)
@@ -107,14 +118,18 @@ export function plan(
   else {
     if (fresh.length) steps.push({ k: 'new', ids: fresh.map((w) => w.id) })
     if (trip) steps.push({ k: 'trip', arg: next.id })
-    else if (game) steps.push({ k: 'game', arg: game })
+    else if (shore) steps.push(shore)
     steps.push({ k: 'listen' })
   }
 
   // How long each link of the words reviewed, and of those the course
   // meets that are met already, lasted before
   const s0: Record<string, number> = {}
-  for (const id of [...review.map((w) => w.id), ...course.flatMap(wordsOf)]) {
+  for (const id of [
+    ...review.map((w) => w.id),
+    ...(shore?.ids ?? []),
+    ...course.flatMap(wordsOf),
+  ]) {
     const c = bank.cards[id]
     if (c) for (const l of LINKS) s0[partKey(id, l)] = c[l].s
   }
@@ -230,20 +245,44 @@ export const markDone = (
   ),
 })
 
-// A step changed for another (a game instead of the trip), not done
+// A step changed for another (words to shore up instead of the trip),
+// not done
 export const swap = (p: Path, i: number, step: PathStep): Path => ({
   ...p,
   steps: p.steps.map((s, j) => (j === i ? step : s)),
 })
 
+// The trip put off for a round of the words slipping most, with how long
+// each link of them lasted before, for the summary; the same plan when
+// there are too few
+export function shoreInstead(
+  p: Path,
+  i: number,
+  bank: Bank,
+  now: number,
+): Path {
+  const reviewed = p.steps.flatMap((s) =>
+    s.k === 'review' ? (s.ids ?? []) : [],
+  )
+  const step = shoreUp(bank, now, reviewed)
+  if (!step) return p
+  const s0 = { ...p.s0 }
+  for (const id of step.ids ?? []) {
+    const c = bank.cards[id]
+    if (c) for (const l of LINKS) s0[partKey(id, l)] ??= c[l].s
+  }
+  return { ...swap(p, i, step), s0 }
+}
+
 // The steps played in Today itself keep what has been answered in `got`,
 // so they can be left at any point and taken up again, a few words at a
-// time. Review keeps each word answered; new words each word met and its
+// time. Review and shoring up keep each word answered; new words each
+// word met and its
 // two questions ("你好 met", "你好 meaning", "你好 listen"); listening each
 // line or word heard.
 
 export const playedHere = (s: PathStep) =>
-  s.k === 'review' || s.k === 'new' || s.k === 'listen'
+  s.k === 'review' || s.k === 'shore' || s.k === 'new' || s.k === 'listen'
 
 // Lines or words to hear in the listening step
 export const LISTEN = 4
@@ -258,7 +297,7 @@ export function progressOf(s: PathStep): { done: number; of: number } {
   if (s.k === 'listen') return { done: Math.min(got.size, LISTEN), of: LISTEN }
   const ids = (s.ids ?? []).filter((id) => WORD[id])
   const keys =
-    s.k === 'review'
+    s.k === 'review' || s.k === 'shore'
       ? ids
       : s.k === 'new'
         ? ids.flatMap((id) => NEW_PARTS.map((p) => partKey(id, p)))
@@ -309,6 +348,7 @@ export interface Summary {
 export function summary(p: Path, bank: Bank, now: number): Summary {
   const ids = new Set([
     ...(p.steps.find((s) => s.k === 'review')?.ids ?? []),
+    ...(p.steps.find((s) => s.k === 'shore' && !s.skip)?.ids ?? []),
     ...(p.steps.find((s) => s.k === 'new')?.ids ?? []),
     ...p.steps.flatMap((s) => {
       const part = s.k === 'course' && !s.skip ? partOf(s.arg) : undefined

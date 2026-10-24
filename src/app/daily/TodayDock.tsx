@@ -7,7 +7,8 @@ import { useToday } from './useToday'
 import type { ArcState } from './Ring'
 
 // A small way back to Today, while one of its steps is played on its own
-// page (a part of the course, the trip, or a game): it shows on that page
+// page (a part of the course, the trip, or a game from a session planned
+// before games gave way to shoring up words): it shows on that page
 // only, and turns gold once the step counts as played. Mount it once,
 // beside the SealToaster.
 

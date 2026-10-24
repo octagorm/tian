@@ -22,6 +22,7 @@ import { WORD, WORDS } from '../data/words'
 import { english, plain, tokens, wordIds } from '../lib/text'
 import { blip, say, stop } from '../lib/audio'
 import { useStore } from '../lib/store'
+import { todays } from '../lib/today'
 import {
   Btn,
   Frame,
@@ -293,6 +294,10 @@ function Play({
   const homeName = WORD[settings.home]?.g ?? settings.home
   const art = TRIP_ART[scene.id]
   const city = cityOf(scene.id)
+  // A step of today's session, opened from there
+  const inToday = !!todays(bank, Date.now())?.steps.some(
+    (s) => s.k === 'trip' && s.arg === scene.id && s.pts !== undefined,
+  )
 
   // The scene's words, and the ones to meet now: unmet, in lesson order
   const fresh = useMemo(() => {
@@ -591,6 +596,7 @@ function Play({
               mistakes={mistakes}
               words={fresh}
               next={nextScene}
+              inToday={inToday}
               onExit={onExit}
               onAgain={() => onNext(scene.id)}
               onNext={onNext}
@@ -959,6 +965,7 @@ function Result({
   mistakes,
   words,
   next,
+  inToday,
   onExit,
   onAgain,
   onNext,
@@ -968,6 +975,8 @@ function Result({
   // the words this scene brought into Chinese
   words: Array<string>
   next: Scene | undefined
+  // Opened from today's session: back to it, to go on from there
+  inToday: boolean
   onExit: () => void
   onAgain: () => void
   onNext: (id: string) => void
@@ -1021,9 +1030,19 @@ function Result({
           <RotateCcw size={16} /> Again
         </Btn>
         {next && (
-          <Btn onClick={() => onNext(next.id)}>
-            Next: {next.title} <ChevronRight size={16} />
+          <Btn
+            kind={inToday ? 'ghost' : undefined}
+            onClick={() => onNext(next.id)}
+          >
+            Next: {next.title} {!inToday && <ChevronRight size={16} />}
           </Btn>
+        )}
+        {inToday && (
+          <a href="#today">
+            <Btn>
+              Back to Today <ChevronRight size={16} />
+            </Btn>
+          </a>
         )}
       </div>
     </div>

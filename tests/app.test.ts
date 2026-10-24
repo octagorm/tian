@@ -1284,7 +1284,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     return b
   }
 
-  test('Today plans the fading words, new ones, the trip or a game, and listening', async () => {
+  test('Today plans the fading words, new ones, the trip or words to shore up, and listening', async () => {
     const { plan, settle, summary, current, finished, markDone } =
       await import('../src/app/lib/today')
     // a first visit: no words yet, so nothing to review
@@ -1440,17 +1440,56 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(dockStep(p, 'trip', null, NOON + H)).toBe(-1)
   })
 
-  test('Today takes turns between the trip and the games', async () => {
-    const { plan } = await import('../src/app/lib/today')
+  test('Today takes turns between the trip and shoring up the words slipping', async () => {
+    const { plan, shoreInstead, shoreUp, summary, markDone } =
+      await import('../src/app/lib/today')
     const b = emptyBank()
-    for (const w of WORDS.slice(0, 60)) b.cards[w.id] = newCard(NOON - D, 3)
-    const played = Array.from({ length: 6 }, (_, k) =>
-      plan(b, NOON + k * D, ['mahjong', 'rain']).steps.find(
-        (s) => s.k === 'trip' || s.k === 'game',
-      ),
+    b.scenes['start-hidden'] = NOON - 2 * D
+    // the words met long ago are the most faded
+    WORDS.slice(0, 60).forEach((w, i) => {
+      b.cards[w.id] = newCard(NOON - D - i * H, 3)
+    })
+    const plans = Array.from({ length: 6 }, (_, k) => plan(b, NOON + k * D))
+    const third = plans.map((p) =>
+      p.steps.find((s) => s.k === 'trip' || s.k === 'shore' || s.k === 'game'),
     )
-    expect(played.filter((s) => s?.k === 'game').length).toBe(2)
-    expect(played.filter((s) => s?.k === 'trip').length).toBe(4)
+    expect(third.filter((s) => s?.k === 'game').length).toBe(0)
+    expect(third.filter((s) => s?.k === 'trip').length).toBe(4)
+    expect(third.filter((s) => s?.k === 'shore').length).toBe(2)
+    // shoring up takes the next most faded after those reviewed, and is
+    // played here, before the listening
+    const p = plans[third.findIndex((s) => s?.k === 'shore')]
+    expect(p.steps.map((s) => s.k)).toEqual([
+      'review',
+      'new',
+      'shore',
+      'listen',
+    ])
+    const review = p.steps[0].ids ?? []
+    const shore = p.steps[2].ids ?? []
+    expect(shore.length).toBe(8)
+    expect(p.steps[2].arg).toBeUndefined()
+    // a day after, none are fading yet: a warm-up
+    expect(shoreUp(b, NOON, [])?.arg).toBe('warm')
+    expect(shore.some((id) => review.includes(id))).toBe(false)
+    expect(shore).toContain(WORDS[59 - review.length].id)
+    expect(p.s0[`${shore[0]} hm`]).toBe(3)
+    // its words are in the summary
+    const done = p.steps.reduce((q, _, i) => markDone(q, i, NOON + H), p)
+    const ids = summary(done, b, NOON + H).words.map((w) => w.id)
+    expect(ids).toContain(shore[0])
+    // the trip can be put off for it
+    const t = plans[0]
+    const at = t.steps.findIndex((s) => s.k === 'trip')
+    const put = shoreInstead(t, at, b, NOON)
+    expect(put.steps[at].k).toBe('shore')
+    expect(put.steps[at].ids?.length).toBe(8)
+    expect(put.s0[`${put.steps[at].ids?.[0]} hs`]).toBe(3)
+    // with too few words met, there is nothing to shore up
+    const few = noCourse()
+    for (const w of WORDS.slice(0, 6)) few.cards[w.id] = newCard(NOON - D, 3)
+    const f = plan(few, NOON)
+    expect(shoreInstead(f, 1, few, NOON)).toBe(f)
   })
 
   test('mahjong deals can always be cleared', async () => {

@@ -1,8 +1,7 @@
 import { SCENES } from '../data/trip'
-import { DAILY_GAMES, STEP, partKey, progressOf } from '../lib/today'
+import { STEP, partKey, progressOf } from '../lib/today'
 import { dayOf, partOf } from '../lib/course'
 import { GAMES } from '../registry'
-import { touchOnly } from '../lib/device'
 import type { PathStep } from '../lib/bank'
 
 // A step of the day's session in words, for the ring, the card and the
@@ -17,13 +16,6 @@ export interface StepText {
 }
 
 export const gameOf = (id: string | undefined) => GAMES.find((g) => g.id === id)
-
-// The games the session takes turns with, of those this page has, but
-// not one that needs a keyboard on a phone
-export const DAILY_GAMES_HERE = DAILY_GAMES.filter((id) => {
-  const g = gameOf(id)
-  return g && !(touchOnly() && 'keyboard' in g)
-})
 
 export function describe(step: PathStep): StepText {
   const base = STEP[step.k]
@@ -44,23 +36,30 @@ export function describe(step: PathStep): StepText {
         : step.arg === 'warm'
           ? `${words} to warm up with`
           : `${words} that are fading`
-      : step.k === 'new'
-        ? !started
-          ? `${words} to meet`
-          : done === met
-            ? `Met ${met} of ${n}, then a short quiz`
-            : `A short quiz on them: ${of - done} of ${2 * n} left`
-        : step.k === 'course'
-          ? part && day
-            ? `First steps, day ${day.n} · part ${day.parts.indexOf(part) + 1} of ${day.parts.length}`
-            : 'The next part'
-          : step.k === 'trip'
-            ? (SCENES.find((s) => s.id === step.arg)?.title ?? 'The next scene')
-            : step.k === 'game'
-              ? (gameOf(step.arg)?.title ?? 'A game')
-              : started
-                ? `${of - done} of ${of} still to hear`
-                : 'Hear it, and pick what it means'
+      : step.k === 'shore'
+        ? started
+          ? `${of - done} of ${words} left`
+          : step.arg === 'warm'
+            ? `${words} more, each by its weakest link`
+            : `${words} slipping, each by its weakest link`
+        : step.k === 'new'
+          ? !started
+            ? `${words} to meet`
+            : done === met
+              ? `Met ${met} of ${n}, then a short quiz`
+              : `A short quiz on them: ${of - done} of ${2 * n} left`
+          : step.k === 'course'
+            ? part && day
+              ? `First steps, day ${day.n} · part ${day.parts.indexOf(part) + 1} of ${day.parts.length}`
+              : 'The next part'
+            : step.k === 'trip'
+              ? (SCENES.find((s) => s.id === step.arg)?.title ??
+                'The next scene')
+              : step.k === 'game'
+                ? (gameOf(step.arg)?.title ?? 'A game')
+                : started
+                  ? `${of - done} of ${of} still to hear`
+                  : 'Hear it, and pick what it means'
   // A part of the course goes by its own title
   return {
     ...base,
