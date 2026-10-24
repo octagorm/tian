@@ -23,6 +23,7 @@ import {
   stage,
 } from './bank'
 import { setRate } from './audio'
+import { retopic } from './today'
 import type { ReactNode } from 'react'
 import type { Bank, Dir, Level, Link, Path, Stage } from './bank'
 
@@ -142,6 +143,9 @@ interface Store {
   // How far a text in the reader is read: the paragraph and the word in
   // it, and whether it was read to the end
   setPlace: (text: string, p: number, done?: boolean, w?: number) => void
+  // The topics chosen (data/topics.ts), in the order chosen: today's new
+  // words are taken again from them if not yet begun on
+  setTopics: (ids: Array<string>) => void
 }
 
 // What an answer tested: a link of the word, or some, or the word read
@@ -373,6 +377,16 @@ export function BankProvider({ children }: { children: ReactNode }) {
     [update],
   )
 
+  const setTopics = useCallback(
+    (ids: Array<string>) =>
+      update((b) => {
+        const next = { ...b, topics: { ids, t: Date.now() } }
+        const p = b.path
+        return p && p.d === today() ? { ...next, path: retopic(p, next) } : next
+      }),
+    [update],
+  )
+
   const setSettings = useCallback(
     (s: Partial<Settings>) => setAll((old) => ({ ...old, ...s })),
     [],
@@ -404,6 +418,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       setPath,
       finishDay,
       setPlace,
+      setTopics,
     }),
     [
       bank,
@@ -424,6 +439,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       setPath,
       finishDay,
       setPlace,
+      setTopics,
     ],
   )
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>

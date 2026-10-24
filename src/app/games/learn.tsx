@@ -3,7 +3,8 @@ import { Check, RotateCcw } from 'lucide-react'
 import { LESSONS, WORDS } from '../data/words'
 import { SCENES } from '../data/trip'
 import { wordIds } from '../lib/text'
-import { level } from '../lib/bank'
+import { level, unmet as toLearn } from '../lib/bank'
+import { TOPIC } from '../data/topics'
 import { useStore } from '../lib/store'
 import { Btn, Frame, Mixed, Ruby, shuffle } from '../ui'
 import { Quiz, RoundDone } from '../quiz'
@@ -48,8 +49,8 @@ export default function Learn() {
   const now = Date.now()
 
   const start = (lesson?: number) => {
-    const pool = WORDS.filter(
-      (w) => !bank.cards[w.id] && (lesson === undefined || w.lesson === lesson),
+    const pool = toLearn(bank).filter(
+      (w) => lesson === undefined || w.lesson === lesson,
     )
     const next = pool.slice(0, BATCH)
     if (!next.length) return
@@ -144,8 +145,9 @@ export default function Learn() {
       </Frame>
     )
 
-  const unmet = WORDS.filter((w) => !bank.cards[w.id])
+  const unmet = toLearn(bank)
   const upcoming = unmet.slice(0, BATCH)
+  const topics = bank.topics.ids.flatMap((id) => TOPIC[id]?.title ?? [])
   return (
     <Frame title="Learn" zh="学">
       <div className="zh-card relative mb-6 overflow-hidden p-5 sm:p-6">
@@ -189,8 +191,16 @@ export default function Learn() {
             </p>
             <p className="text-sm text-[var(--ink-2)]">
               {unmet.length
-                ? `${unmet.length} words still to meet, in the order the trip uses them. Each is a card: its sound, then what it means.`
-                : 'Review keeps them fresh, and the word bank shows how each is doing.'}
+                ? `${unmet.length} words still to meet, ${topics.length ? `those of your topics first (${topics.join(', ')})` : 'in the order the trip uses them'}. Each is a card: its sound, then what it means.`
+                : 'Review keeps them fresh, and the word bank shows how each is doing.'}{' '}
+              {unmet.length > 0 && (
+                <a
+                  href="#topics"
+                  className="font-bold whitespace-nowrap text-[var(--red)] underline underline-offset-2"
+                >
+                  {topics.length ? 'Change topics' : 'Choose topics'}
+                </a>
+              )}
             </p>
           </div>
           <Btn

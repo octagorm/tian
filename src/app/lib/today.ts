@@ -149,6 +149,19 @@ export function counts(bank: Bank, now: number) {
   return { met, known }
 }
 
+// The day's plan with its new words taken again, in the order the topics
+// chosen now give, if none of them has been begun on
+export function retopic(p: Path, bank: Bank): Path {
+  const i = p.steps.findIndex((s) => s.k === 'new')
+  if (i < 0) return p
+  const s = p.steps[i]
+  if (s.done || s.got?.length) return p
+  const ids = unmet(bank)
+    .slice(0, s.ids?.length ?? 0)
+    .map((w) => w.id)
+  return { ...p, steps: p.steps.map((x, j) => (j === i ? { ...x, ids } : x)) }
+}
+
 // The day's plan if one has been made today
 export const todays = (bank: Bank, now: number): Path | null =>
   bank.path && bank.path.d === dayKey(now) ? bank.path : null

@@ -1384,6 +1384,64 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     return b
   }
 
+  test('topics name lessons and words that exist, and every topic lesson is in one', async () => {
+    const { TOPICS, topicWords } = await import('../src/app/data/topics')
+    const { LESSONS, WORD } = await import('../src/app/data/words')
+    const ids = new Set<string>()
+    for (const t of TOPICS) {
+      expect(ids.has(t.id), t.id).toBe(false)
+      ids.add(t.id)
+      for (const l of t.lessons)
+        expect(
+          LESSONS.some((x) => x.title === l),
+          `${t.id}: ${l}`,
+        ).toBe(true)
+      for (const id of (t.also ?? '').split(' ').filter(Boolean))
+        expect(WORD[id], `${t.id}: ${id}`).toBeTruthy()
+      const ws = topicWords(t).map((w) => w.id)
+      expect(new Set(ws).size, t.id).toBe(ws.length)
+    }
+    const inTopic = new Set(TOPICS.flatMap((t) => t.lessons))
+    const software = LESSONS.findIndex((l) => l.title === 'Software')
+    for (const l of LESSONS.slice(software))
+      expect(inTopic.has(l.title), l.title).toBe(true)
+  })
+
+  test('the topics chosen are met first, one from each in turn, and a later choice wins a merge', async () => {
+    const { TOPIC, topicWords } = await import('../src/app/data/topics')
+    const { toMeet, unmet } = await import('../src/app/lib/bank')
+    const { plan, retopic } = await import('../src/app/lib/today')
+    const b = noCourse()
+    expect(unmet(b)[0].id).toBe(WORDS[0].id)
+    const office = topicWords(TOPIC.office!)
+    const sky = topicWords(TOPIC.astronomy!)
+    b.topics = { ids: ['office', 'astronomy'], t: NOON }
+    b.cards[office[0].id] = newCard(NOON - D)
+    expect(
+      unmet(b)
+        .slice(0, 4)
+        .map((w) => w.id),
+    ).toEqual([office[1].id, sky[0].id, office[2].id, sky[1].id])
+    // every word still comes, once
+    expect(toMeet(b).length).toBe(WORDS.length)
+    expect(new Set(toMeet(b).map((w) => w.id)).size).toBe(WORDS.length)
+    // today's new words are taken again when the topics change, if not begun
+    const p = plan(b, NOON)
+    const fresh = p.steps.find((s) => s.k === 'new')!
+    expect(fresh.ids?.[0]).toBe(office[1].id)
+    const c = { ...b, topics: { ids: ['astronomy'], t: NOON + H } }
+    const q = retopic(p, c)
+    expect(q.steps.find((s) => s.k === 'new')?.ids?.[0]).toBe(sky[0].id)
+    const begun = {
+      ...p,
+      steps: p.steps.map((s) => (s.k === 'new' ? { ...s, got: ['x'] } : s)),
+    }
+    expect(retopic(begun, c)).toBe(begun)
+    expect(merge(b, c).topics.ids).toEqual(['astronomy'])
+    expect(merge(c, b).topics.ids).toEqual(['astronomy'])
+    expect(merge({ cards: {} }, emptyBank()).topics.ids).toEqual([])
+  })
+
   test('Today plans the fading words, new ones, the trip or words to shore up, and listening', async () => {
     const { plan, settle, summary, current, finished, markDone } =
       await import('../src/app/lib/today')
@@ -2145,6 +2203,7 @@ describe('choices', () => {
     }
   })
 
+  // Every word against every other: slow
   test('by ear, a character is not the answer alone in its place', () => {
     const pool = WORDS.slice(0, 60)
     const fair = (w: (typeof WORDS)[number], x: (typeof WORDS)[number]) =>
@@ -2162,7 +2221,7 @@ describe('choices', () => {
     const thanks = WORDS.find((x) => x.h === '不客气')!
     const cs = wordChoices(thanks, pool, 'listen')
     expect(cs.filter((c) => c.h.startsWith('不')).length).toBe(3)
-  })
+  }, 20_000)
 
   test('words only offered as wrong answers are real, new and well formed', () => {
     const taught = new Set(WORDS.map((w) => w.h))

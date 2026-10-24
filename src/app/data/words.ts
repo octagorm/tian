@@ -877,6 +877,7 @@ const RAW: Array<[string, string, string]> = [
 生日|shēng rì|birthday
 周末|zhōu mò|weekend
 后天|hòu tiān|day after tomorrow|the day after tomorrow
+前天|qián tiān|day before yesterday|the day before yesterday
 重要|zhòng yào|important
 需要|xū yào|need
 计划|jì huà|plan|plan; to plan
@@ -892,7 +893,8 @@ const RAW: Array<[string, string, string]> = [
   ],
   [
     // The words the reader's texts need beyond the rest (data/reader.ts),
-    // last, so that they are met in the reader before Learn comes to them
+    // after the trip's and the games', so that they are met in the reader
+    // before Learn comes to them
     'Reading',
     '阅读',
     `
@@ -909,6 +911,188 @@ const RAW: Array<[string, string, string]> = [
 先|xiān|first|first, before the others
 开始|kāi shǐ|start|to start, to begin
 画蛇添足|huà shé tiān zú|legs on a snake|"draw a snake and add feet": to spoil something by adding what it does not need (an idiom)
+`,
+  ],
+  // Topic lessons (data/topics.ts): met first when their topic is chosen,
+  // otherwise after everything else
+  [
+    'Software',
+    '软件开发',
+    `
+大家|dà jiā|everyone|everyone, everybody (大家好 = hello everyone)
+请多指教|qǐng duō zhǐ jiào|please guide me|"please give me much guidance": said on joining a team, to be modest
+同事|tóng shì|colleague
+团队|tuán duì|team
+项目|xiàng mù|project
+产品|chǎn pǐn|product
+产品经理|chǎn pǐn jīng lǐ|product manager
+软件|ruǎn jiàn|software
+开发|kāi fā|develop|to develop (software, a product)
+程序|chéng xù|program|(computer) program
+程序员|chéng xù yuán|programmer
+全栈|quán zhàn|full-stack|full-stack (全 whole, 栈 stack)
+前端|qián duān|front end
+后端|hòu duān|back end
+代码|dài mǎ|code|(program) code
+功能|gōng néng|feature|feature, function
+需求|xū qiú|requirement|requirement (what a feature must do); demand
+设计|shè jì|design|design; to design
+测试|cè shì|test|to test; a test
+上线|shàng xiàn|go live|to go live, to launch (a site, a feature)
+数据|shù jù|data
+数据库|shù jù kù|database
+服务器|fú wù qì|server
+网站|wǎng zhàn|website
+网络|wǎng luò|network|network; the internet
+应用|yìng yòng|app|app, application; to apply
+用户|yòng hù|user
+界面|jiè miàn|interface|(user) interface, screen
+登录|dēng lù|log in
+接口|jiē kǒu|API|interface, API
+版本|bǎn běn|version
+更新|gēng xīn|update|to update; an update
+安装|ān zhuāng|install
+下载|xià zài|download
+上传|shàng chuán|upload
+错误|cuò wù|error|error, mistake
+调试|tiáo shì|debug
+崩溃|bēng kuì|crash|to crash, to break down
+提交|tí jiāo|commit|to submit; to commit (code)
+分支|fēn zhī|branch|branch (of code)
+合并|hé bìng|merge
+部署|bù shǔ|deploy
+代码审查|dài mǎ shěn chá|code review
+文档|wén dàng|docs|document, documentation
+截图|jié tú|screenshot|screenshot; to take a screenshot
+完成|wán chéng|complete|to complete, to finish
+截止日期|jié zhǐ rì qī|deadline
+简单|jiǎn dān|simple|simple, easy
+复杂|fù zá|complicated
+人工智能|rén gōng zhì néng|AI|artificial intelligence
+`,
+  ],
+  [
+    'Philosophy',
+    '诸子百家',
+    `
+儒家|Rú jiā|Confucians|the Confucians, Confucianism
+道家|Dào jiā|Daoists|the Daoists, Daoism
+法家|Fǎ jiā|Legalists|the Legalists, who held that strict laws make order
+佛教|Fó jiào|Buddhism
+论语|Lún yǔ|the Analects|the Analects, the sayings of Confucius||name
+孟子|Mèng zǐ|Mencius|Mencius, Confucius's great follower||name
+墨子|Mò zǐ|Mozi|Mozi, who taught care for all alike||name
+韩非子|Hán Fēi zǐ|Han Feizi|Han Feizi, the Legalist||name
+仁|rén|benevolence|benevolence, humaneness (Confucius's chief virtue)
+礼|lǐ|rites|rites, ritual; good manners
+义|yì|righteousness|righteousness, what is right
+德|dé|virtue|virtue; moral power
+孝|xiào|filial piety|filial piety: care and respect for one's parents
+君子|jūn zǐ|gentleman|the gentleman, the noble person (in Confucius)
+小人|xiǎo rén|petty person|the petty person, the opposite of the 君子
+天下|tiān xià|all under heaven|all under heaven: the world, the realm
+阴阳|yīn yáng|yin and yang
+无为|wú wéi|non-action|non-action: acting without forcing (in Daoism)
+善|shàn|good|good, kind
+恶|è|evil|evil, wicked
+人性|rén xìng|human nature
+学习|xué xí|study|to study, to learn
+思考|sī kǎo|think|to think hard, to reflect
+知识|zhī shi|knowledge
+智慧|zhì huì|wisdom
+真理|zhēn lǐ|truth
+意义|yì yì|meaning|meaning, significance
+自由|zì yóu|freedom|free; freedom
+存在|cún zài|exist|to exist; existence
+`,
+  ],
+  [
+    'History',
+    '中国历史',
+    `
+古代|gǔ dài|ancient times|ancient times, antiquity
+现代|xiàn dài|modern|modern, modern times
+世纪|shì jì|century
+朝代|cháo dài|dynasty
+商朝|Shāng cháo|the Shang|the Shang dynasty (about 1600–1046 BC)||name
+周朝|Zhōu cháo|the Zhou|the Zhou dynasty (1046–256 BC)||name
+秦朝|Qín cháo|the Qin|the Qin dynasty (221–206 BC), which first united China||name
+汉朝|Hàn cháo|the Han|the Han dynasty (206 BC – AD 220)||name
+唐朝|Táng cháo|the Tang|the Tang dynasty (618–907)||name
+宋朝|Sòng cháo|the Song|the Song dynasty (960–1279)||name
+元朝|Yuán cháo|the Yuan|the Yuan dynasty (1271–1368), of the Mongols||name
+明朝|Míng cháo|the Ming|the Ming dynasty (1368–1644)||name
+清朝|Qīng cháo|the Qing|the Qing dynasty (1644–1912), the last||name
+统一|tǒng yī|unite|to unite, to unify; united
+帝国|dì guó|empire
+甲骨文|jiǎ gǔ wén|oracle bones|oracle bone script, the earliest Chinese writing
+文字|wén zì|writing|writing, script
+文化|wén huà|culture
+丝绸之路|Sī chóu zhī lù|the Silk Road||place
+印刷|yìn shuā|printing|to print (with a press); printing
+指南针|zhǐ nán zhēn|compass
+火药|huǒ yào|gunpowder
+革命|gé mìng|revolution
+共和国|gòng hé guó|republic
+考古|kǎo gǔ|archaeology|archaeology; to dig up the past
+博物馆|bó wù guǎn|museum
+`,
+  ],
+  [
+    'Myths',
+    '神话',
+    `
+神话|shén huà|myth
+神仙|shén xiān|immortal|immortal, a being of the heavens
+仙女|xiān nǚ|fairy|fairy, a woman immortal
+天宫|tiān gōng|heavenly palace|the palace of heaven
+玉帝|Yù Dì|the Jade Emperor|the Jade Emperor, ruler of heaven||name
+黄帝|Huáng Dì|the Yellow Emperor|the Yellow Emperor, a legendary first ruler||name
+伏羲|Fú xī|Fuxi|Fuxi, Nüwa's brother, who taught people to fish and hunt||name
+大禹|Dà Yǔ|Yu the Great|Yu the Great, who tamed the floods||name
+洪水|hóng shuǐ|flood
+治水|zhì shuǐ|tame the waters|to control floods
+夸父|Kuā fù|Kuafu|Kuafu, the giant who chased the sun||name
+精卫|Jīng wèi|Jingwei|Jingwei, the bird who tried to fill the sea||name
+哪吒|Né zhā|Nezha|Nezha, the boy god||name
+凤凰|fèng huáng|phoenix
+麒麟|qí lín|qilin|qilin, a beast of good omen
+鬼|guǐ|ghost
+山海经|Shān hǎi jīng|Classic of Mountains and Seas|the Classic of Mountains and Seas, an old book of strange lands and beasts||name
+`,
+  ],
+  [
+    'Astronomy',
+    '天文',
+    `
+天文学|tiān wén xué|astronomy
+天文学家|tiān wén xué jiā|astronomer
+夜空|yè kōng|night sky
+观察|guān chá|observe|to observe, to watch closely
+望远镜|wàng yuǎn jìng|telescope
+光|guāng|light
+光年|guāng nián|light year
+行星|xíng xīng|planet
+恒星|héng xīng|star|star (a sun, not a planet)
+卫星|wèi xīng|satellite|satellite; a moon of a planet
+太阳系|tài yáng xì|solar system
+银河系|Yín hé xì|the Milky Way|the Milky Way galaxy
+星系|xīng xì|galaxy
+星座|xīng zuò|constellation|constellation; star sign
+北极星|Běi jí xīng|the Pole Star
+北斗七星|Běi dǒu qī xīng|the Big Dipper|the Big Dipper, the Northern Ladle
+水星|Shuǐ xīng|Mercury|Mercury (the planet)
+金星|Jīn xīng|Venus|Venus (the planet)
+天王星|Tiān wáng xīng|Uranus
+海王星|Hǎi wáng xīng|Neptune
+彗星|huì xīng|comet
+流星|liú xīng|shooting star|meteor, shooting star
+日食|rì shí|solar eclipse
+月食|yuè shí|lunar eclipse
+引力|yǐn lì|gravity
+轨道|guǐ dào|orbit
+黑洞|hēi dòng|black hole
+宇航员|yǔ háng yuán|astronaut
 `,
   ],
 ]

@@ -49,7 +49,7 @@ export const SEALS: Array<SealDef> = [
     title: 'Through the gate',
     how: 'Finish the seven days of First steps.',
     group: 'words',
-    note: '入门 rùmén, to come in at the gate, is to make a start. A beginner\'s book is called an 入门.',
+    note: "入门 rùmén, to come in at the gate, is to make a start. A beginner's book is called an 入门.",
   },
   {
     id: 'first',

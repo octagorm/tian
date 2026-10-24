@@ -7,6 +7,7 @@ import { WORDS } from './data/words'
 import { CITIES, SCENES } from './data/trip'
 import { QUEST } from './data/quest'
 import { STORIES } from './data/stories'
+import { TOPIC } from './data/topics'
 import { dayKey, level, recallOf, streak, unmet } from './lib/bank'
 import { Pix } from './pixel/Pix'
 import { Account } from './account'
@@ -62,7 +63,16 @@ const GROUPS = [
     title: 'Practice',
     zh: '练习',
     pinyin: 'liànxí',
-    ids: ['learn', 'review', 'read', 'listen', 'podcast', 'order', 'quiz'],
+    ids: [
+      'learn',
+      'topics',
+      'review',
+      'read',
+      'listen',
+      'podcast',
+      'order',
+      'quiz',
+    ],
   },
   {
     id: 'skills',
@@ -427,7 +437,7 @@ function Today({
     zh: '学',
     pinyin: 'xué',
     title: 'Learn five new words',
-    text: `${toMeet} words still to meet, in the order the trip uses them.`,
+    text: `${toMeet} words still to meet, ${bank.topics.ids.length ? 'those of your topics first' : 'in the order the trip uses them'}.`,
     go: 'Start',
     art: <SpriteArt name="sprout" />,
   }
@@ -630,6 +640,7 @@ function Today({
         </div>
       </div>
       <Words known={known} learning={learning} fading={fading} />
+      <Chosen bank={bank} />
     </section>
   )
 }
@@ -845,6 +856,38 @@ function Words({
         </a>
       </div>
     </div>
+  )
+}
+
+// The topics chosen, whose words are met first, and the way to change them
+function Chosen({ bank }: { bank: Bank }) {
+  const chosen = bank.topics.ids.flatMap((id) => TOPIC[id] ?? [])
+  return (
+    <a
+      href="#topics"
+      className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1.5 text-sm text-[var(--ink-2)] hover:text-[var(--ink)]"
+    >
+      <span className="zh text-[var(--red)]">话题</span>
+      {chosen.length ? (
+        <>
+          <span>New words from</span>
+          {chosen.map((t) => (
+            <span
+              key={t.id}
+              className="rounded-full bg-[var(--paper-2)] px-2.5 py-0.5 font-bold text-[var(--ink)]"
+            >
+              {t.title}
+            </span>
+          ))}
+        </>
+      ) : (
+        <span>
+          Choose topics, and their words come first: work, software, philosophy,
+          history, myths, the sky…
+        </span>
+      )}
+      <ArrowRight size={14} className="ml-auto font-bold" />
+    </a>
   )
 }
 

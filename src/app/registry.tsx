@@ -27,6 +27,15 @@ export const GAMES = [
     Page: page(() => import('./games/learn')),
   },
   {
+    id: 'topics',
+    title: 'Topics',
+    zh: '话题',
+    sprite: 'cards',
+    blurb:
+      'Choose what to learn about: work, software, philosophy, history, myths, the sky. Their words come first.',
+    Page: page(() => import('./games/topics')),
+  },
+  {
     id: 'review',
     title: 'Review',
     zh: '复习',

@@ -60,7 +60,6 @@ const RAW = `
 买卖|mǎi mai|business, trade
 买菜|mǎi cài|to buy groceries
 正在|zhèng zài|in the middle of
-存在|cún zài|to exist
 分开|fēn kāi|to separate
 分数|fēn shù|score, mark
 汽车|qì chē|car
@@ -77,7 +76,6 @@ const RAW = `
 高山|gāo shān|high mountain
 味道|wèi dao|taste
 街道|jiē dào|street
-学习|xué xí|to study
 长大|zhǎng dà|to grow up
 恋爱|liàn ài|to be in love
 热爱|rè ài|to love deeply
@@ -103,7 +101,6 @@ const RAW = `
 这次|zhè cì|this time
 曾经|céng jīng|once, formerly
 神经|shén jīng|nerve
-统一|tǒng yī|to unify
 唯一|wéi yī|only, sole
 太太|tài tai|wife; Mrs
 月份|yuè fèn|month
@@ -112,7 +109,6 @@ const RAW = `
 大火|dà huǒ|big fire
 生火|shēng huǒ|to light a fire
 开心|kāi xīn|happy
-同事|tóng shì|colleague
 大学|dà xué|university
 数学|shù xué|mathematics
 理想|lǐ xiǎng|ideal
@@ -202,7 +198,6 @@ const RAW = `
 今年|jīn nián|this year
 明年|míng nián|next year
 国王|guó wáng|king
-大家|dà jiā|everyone
 爬山|pá shān|to climb a mountain
 发现|fā xiàn|to discover
 发烧|fā shāo|to have a fever
@@ -262,7 +257,6 @@ const RAW = `
 道教徒|dào jiào tú|Taoist
 道歉信|dào qiàn xìn|letter of apology
 金刚经|jīn gāng jīng|the Diamond Sutra
-山海经|shān hǎi jīng|Classic of Mountains and Seas
 猪排饭|zhū pái fàn|pork cutlet rice
 猪肉包|zhū ròu bāo|pork bun
 十八岁|shí bā suì|eighteen years old

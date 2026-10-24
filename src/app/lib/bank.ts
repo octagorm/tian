@@ -1,4 +1,5 @@
 import { WORDS } from '../data/words.ts'
+import { TOPIC, topicWords } from '../data/topics.ts'
 import type { Word } from '../data/words.ts'
 
 // The word bank: what the player knows, shared by every game. A word is
@@ -100,6 +101,9 @@ export interface Bank {
   garden: Record<string, number | undefined>
   // How far each text in the reader (data/reader.ts) is read, by id
   place: Record<string, Place | undefined>
+  // The topics chosen (data/topics.ts), in the order chosen, and when the
+  // choice was last changed: their words are met first
+  topics: { ids: Array<string>; t: number }
 }
 
 export interface Place {
@@ -161,6 +165,7 @@ export const emptyBank = (): Bank => ({
   daily: {},
   garden: {},
   place: {},
+  topics: { ids: [], t: 0 },
 })
 
 const DAY = 86_400_000
@@ -387,8 +392,28 @@ export function due(
     .sort((a, b) => a.r - b.r)
 }
 
-// The next words to meet, in lesson order
-export const unmet = (bank: Bank, words: Array<Word> = WORDS) =>
+// The words in the order they are met: those of the topics chosen first,
+// one from each in turn, in the order chosen, then the rest in lesson order
+export function toMeet(bank: Bank): Array<Word> {
+  const lists = bank.topics.ids
+    .map((id) => TOPIC[id])
+    .filter((t) => !!t)
+    .map((t) => topicWords(t).filter((w) => !bank.cards[w.id]))
+  const first: Array<Word> = []
+  const seen = new Set<string>()
+  for (let i = 0; lists.some((l) => i < l.length); i++)
+    for (const l of lists) {
+      if (i >= l.length || seen.has(l[i].id)) continue
+      seen.add(l[i].id)
+      first.push(l[i])
+    }
+  return first.length
+    ? [...first, ...WORDS.filter((w) => !seen.has(w.id))]
+    : WORDS
+}
+
+// The next words to meet, in the order they are met
+export const unmet = (bank: Bank, words: Array<Word> = toMeet(bank)) =>
   words.filter((w) => !bank.cards[w.id])
 
 // Words for a round of a game: up to `n` of them, weighted towards those
@@ -472,6 +497,9 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
     const done = Math.max(x?.done ?? 0, y?.done ?? 0)
     if (last) out.place[id] = done ? { ...last, done } : last
   }
+  const ta = a.topics ?? out.topics
+  const tb = b.topics ?? out.topics
+  out.topics = tb.t > ta.t ? tb : ta
   return out
 }
 
