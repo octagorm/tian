@@ -22,7 +22,10 @@ out in a less exact tone. A list that does not cut cleanly is asked for
 again in halves. The jobs are noted in .cache, so a run cut short picks
 them up again. --remake <names> makes those
 voices' lines again, or every line with `lines`, as after a change in
-the cast.
+the cast, or words and lines named by their text (哪,只). A word of the
+bank is asked for in its pinyin, so a character with more than one
+reading comes out in the one meant; scripts/hear.py listens for those
+that did not.
 
 Without --job, each request reads many lines, as requests are few (a
 handful a day on the free tier; on the paid tier this model stopped
@@ -75,10 +78,33 @@ LINE_STYLE = "natural and friendly, at a calm pace a learner can follow, every w
 TONE_SAID = {1: "first tone, high and level", 2: "second tone, rising", 3: "third tone, low and dipping", 4: "fourth tone, falling"}
 
 
+def tone_of(syllable: str) -> str:
+    return next((TONE_SAID[n] for n, marks in enumerate(["āēīōūǖ", "áéíóúǘ", "ǎěǐǒǔǚ", "àèìòùǜ"], 1) if any(m in syllable for m in marks)), "")
+
+
+def reading(it) -> str:
+    """For a word of the bank, the reading meant, spelt out. A character
+    with more than one reading can come out in the other (只 as zhī), and
+    one often said with an r gets it where it has none (哪 as nǎr, as in
+    哪儿); a word with the r of erhua is asked to keep it."""
+    pinyin = it.get("pinyin")
+    if not pinyin:
+        return ""
+    syllables = pinyin.split()
+    tone = (", " + (tone_of(pinyin) or "neutral tone, light and short")) if len(syllables) == 1 else ""
+    erhua = any(s.endswith("r") and s[:-1].lower() not in "eēéěè" for s in syllables)
+    r = (
+        ", with the r of erhua at the end" if erhua
+        else "" if any(s.endswith("r") for s in syllables)
+        else ", with no r sound added at the end"
+    )
+    return f" Say {it['text']} as {pinyin}{tone}, exactly so{r}."
+
+
 def syllable_style(it) -> str:
     """How a syllable of the pinyin chart is said, its pinyin and tone
     spelt out (the character read, if any, has no other reading)"""
-    tone = next((TONE_SAID[n] for n, marks in enumerate(["āēīōūǖ", "áéíóúǘ", "ǎěǐǒǔǚ", "àèìòùǜ"], 1) if any(m in it["text"] for m in marks)), "")
+    tone = tone_of(it["text"])
     return (
         f"a patient Mandarin teacher saying {it['text']}, {tone}, exactly so: p, t, k, q, ch and c "
         "with a strong puff of air, b, d, g, j, zh and z with none; clear and a little slow"
@@ -147,7 +173,7 @@ def list_style(it, style_of) -> str:
     """How an item is asked for among others: said once, then a long
     silence"""
     if it["kind"] == "word":
-        return STYLE["word"]
+        return STYLE["word"] + reading(it)
     if it["kind"] == "syllable":
         return (
             f"Standard Mandarin Chinese, {syllable_style(it)}. Read it once, "
@@ -368,7 +394,7 @@ def casting(cast, designed, ids):
 
     def style_of(it):
         if it["kind"] == "word":
-            return WORD_STYLE
+            return WORD_STYLE + "." + reading(it)
         if it["kind"] == "syllable":
             return syllable_style(it)
         # Without "every word as written" a voice in character now and
@@ -590,7 +616,7 @@ def main():
     parser.add_argument("--batch", type=int, default=BATCH, help="most lines in one request")
     parser.add_argument("--pause", type=float, default=0, help="seconds between requests, for per-minute limits")
     parser.add_argument("--job", action="store_true", help="ask in batch jobs, a request per line")
-    parser.add_argument("--remake", default="", help="voices to make again, by name, comma-separated, or `words`, `lines` or `syllables` for every one of them")
+    parser.add_argument("--remake", default="", help="voices to make again, by name, comma-separated, or `words`, `lines` or `syllables` for every one of them, or words and lines by their text (哪,只)")
     parser.add_argument("--retrim", action="store_true", help="trim again every item made in batch mode, from its recording")
     args = parser.parse_args()
     load_env()
@@ -607,7 +633,7 @@ def main():
     has = lambda it: (OUT / f"{file_id(it['voice'], it['text'])}.mp3").exists()
     todo = [
         it for it in items
-        if not has(it) or it["voice"] in remake or f"{it['kind']}s" in remake
+        if not has(it) or it["voice"] in remake or f"{it['kind']}s" in remake or it["text"] in remake
     ]
     for key in list(manifest):
         if key not in wanted:

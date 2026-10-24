@@ -19,6 +19,10 @@ export interface SpeechItem {
   kind: 'word' | 'line' | 'syllable'
   // What the voice reads, where not the text: a syllable's character
   read?: string
+  // A bank word's pinyin, so that the voice says the reading meant: a
+  // character on its own may otherwise come out in another reading, or
+  // with an r (哪 as nǎr)
+  pinyin?: string
 }
 
 export const speechKey = (voice: string, text: string) => `${voice}|${text}`
@@ -31,13 +35,20 @@ export function speechItems(): Array<SpeechItem> {
     text: string,
     kind: SpeechItem['kind'],
     read?: string,
+    pinyin?: string,
   ) => {
     const key = speechKey(voice, text)
     if (seen.has(key)) return
     seen.add(key)
-    items.push(read ? { voice, text, kind, read } : { voice, text, kind })
+    items.push({
+      voice,
+      text,
+      kind,
+      ...(read ? { read } : {}),
+      ...(pinyin ? { pinyin } : {}),
+    })
   }
-  for (const w of WORDS) add(WORD_VOICE, w.h, 'word')
+  for (const w of WORDS) add(WORD_VOICE, w.h, 'word', undefined, w.p)
   for (const s of SCENES)
     for (const step of s.steps) {
       const said =
