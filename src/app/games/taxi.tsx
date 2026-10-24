@@ -181,7 +181,7 @@ function Word({
     <span className={`inline-flex flex-col items-center ${className}`}>
       {hanzi}
       <span
-        className={`mt-0.5 text-[10px] leading-none italic ${st === 0 ? 'text-[var(--gold-2)]' : 'text-[var(--jade)]'}`}
+        className={`text-[10px] leading-none italic ${st === 0 ? 'text-[var(--gold-2)]' : 'text-[var(--jade)]'}`}
       >
         {w.g}
       </span>

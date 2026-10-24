@@ -165,7 +165,7 @@ function Helped({
       )}
       {under !== undefined && (
         <span
-          className={`block pt-0.5 text-center leading-tight font-normal italic ${tone} ${under}`}
+          className={`-mt-[0.4em] block text-center leading-tight font-normal italic ${tone} ${under}`}
         >
           {st < 2 ? gloss : '\u00a0'}
         </span>
@@ -212,7 +212,7 @@ export function Mixed({
   const row = toks.some((t) => stageOfToken(t) < 2) ? under : undefined
   return (
     <span
-      className={`inline-flex flex-wrap items-end gap-x-1.5 gap-y-1 leading-none ${className}`}
+      className={`inline-flex flex-wrap items-end gap-x-1.5 ${row ? 'gap-y-3' : 'gap-y-1'} leading-none ${className}`}
     >
       {toks.map((t, i) => {
         if (t.punct)
@@ -222,7 +222,9 @@ export function Mixed({
               className={`zh -ml-1 ${row ? 'inline-flex flex-col' : ''} ${font} text-[var(--ink-2)]`}
             >
               {t.h}
-              {row && <span className={`block pt-0.5 ${row}`}>{'\u00a0'}</span>}
+              {row && (
+                <span className={`-mt-[0.4em] block ${row}`}>{'\u00a0'}</span>
+              )}
             </span>
           )
         const glow = t.id && fresh?.has(t.id) ? 'zh-new' : ''
