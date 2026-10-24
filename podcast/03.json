@@ -1,0 +1,407 @@
+{
+  "title": "天天 – Episode 3: A day at the office, full stack",
+  "cast": {
+    "Lin": {
+      "voice": "Lin",
+      "style": "a warm, playful podcast host, natural and lively in English; when she speaks Chinese, clear, a little slower, every tone exact"
+    },
+    "Erik": {
+      "voice": "Erik",
+      "style": "a friendly beginner on a podcast, relaxed and funny in English; his Chinese careful and a little slow, every tone as written"
+    },
+    "Xiao Chen": {
+      "voice": "Umbriel",
+      "style": "a chatty young back-end developer at a Chinese tech company, casual and cheerful, in standard Mandarin Chinese, clear enough for a learner"
+    },
+    "Manager Liu": {
+      "voice": "Callirrhoe",
+      "style": "a busy product manager at a Chinese tech company, brisk but kind, in standard Mandarin Chinese, clear enough for a learner"
+    },
+    "Director Wang": {
+      "voice": "Charon",
+      "style": "a senior company director, calm, warm and assured, in standard Mandarin Chinese, clear enough for a learner"
+    }
+  },
+  "lines": [
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "你好！ Welcome back to 天天. I'm Lin."
+    },
+    {
+      "who": "Erik",
+      "text": "And I'm Erik. 你好！ And I have news. I've left the lamb skewers behind. I'm going to work with Chinese colleagues. On a software project."
+    },
+    {
+      "who": "Lin",
+      "text": "A programmer! So today is a different kind of episode, and a bit longer. Office Chinese, and developer Chinese. How to introduce yourself to the team, how to get through the morning meeting, how to debug with a colleague, what to write in the team chat, and how to go home at the end of the day. Lots of new words today, so we'll say each one more than once."
+    },
+    {
+      "who": "Erik",
+      "text": "And the good news, I hear, is that some of the words are English."
+    },
+    {
+      "who": "Lin",
+      "text": "Some of them, yes. In Chinese tech companies people often just say bug, API or PR in the middle of a Chinese sentence. But the sentence around it is Chinese, and that's what we're here for."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Day one. A video call with the whole team. Erik has to introduce himself. Erik, try it."
+    },
+    {
+      "who": "Erik",
+      "text": "大家 好！我 叫 Erik。我 是 全栈 工程师。我 在 挪威 工作。我 的 中文 不 太 好，请 多 指教！",
+      "style": "a nervous beginner introducing himself to a new team, slowly and carefully, every tone as written"
+    },
+    {
+      "who": "Xiao Chen",
+      "text": "欢迎 欢迎！你 的 中文 很 好 啊！我 是 小 陈，我 是 后端 工程师。",
+      "style": "a chatty young developer, warm and cheerful, welcoming a new colleague"
+    },
+    {
+      "who": "Erik",
+      "text": "There it is again. 你的中文很好."
+    },
+    {
+      "who": "Lin",
+      "text": "Never believe it. Let's take your introduction apart. 大家好, hello everyone. 大家 is everybody. 我是全栈工程师. 工程师 is an engineer. And 全栈 is full stack: 全, whole, all of it, and 栈, a stack."
+    },
+    {
+      "who": "Erik",
+      "text": "全栈工程师. Full-stack engineer. That sounds very serious."
+    },
+    {
+      "who": "Lin",
+      "text": "It is. And the two halves of the stack: 前端 and 后端. 前, front, which you know from 往前. 后, back. And 端, an end. 前端, the front end. 后端, the back end. Xiao Chen said 我是后端工程师: I'm a back-end engineer."
+    },
+    {
+      "who": "Erik",
+      "text": "And 小陈? Little Chen?"
+    },
+    {
+      "who": "Lin",
+      "text": "小, little, before a surname, is how you call a younger colleague in a friendly way. Chen is his surname. An older or more senior person might be 老陈, old Chen, and that's friendly too. And then you said 我在挪威工作, I work in Norway. 在, at or in, then the place, then the verb. 工作, to work."
+    },
+    {
+      "who": "Erik",
+      "text": "And the last bit. 我的中文不太好，请多指教."
+    },
+    {
+      "who": "Lin",
+      "text": "不太好, not too good. A gentle way to say not very good. And 请多指教 is the thing you say when you join a team: please give me lots of guidance. People say it to be modest, even when they don't really need guidance. Your colleagues will like it. Say it all after me."
+    },
+    {
+      "who": "Lin",
+      "text": "大家好！ 我是全栈工程师。 我在挪威工作。 前端。 后端。 请多指教！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Next morning. The team meeting. The product manager, Manager Liu, runs it. 刘经理. 经理 is manager, and you put the title after the surname."
+    },
+    {
+      "who": "Manager Liu",
+      "text": "大家 好。我们 十 点 开会。",
+      "style": "a busy product manager, brisk but kind, starting a team meeting"
+    },
+    {
+      "who": "Lin",
+      "text": "开会, to have a meeting. 开, which you know from opening things, and 会, a meeting."
+    },
+    {
+      "who": "Manager Liu",
+      "text": "Erik，昨天 你 做 了 什么？今天 做 什么？"
+    },
+    {
+      "who": "Erik",
+      "text": "昨天 我 写 了 代码。今天 我 改 bug。",
+      "style": "a beginner reporting at a stand-up meeting, careful and a little proud"
+    },
+    {
+      "who": "Manager Liu",
+      "text": "好。这个 功能 什么 时候 可以 上线？"
+    },
+    {
+      "who": "Erik",
+      "text": "明天 测试，后天 上线。"
+    },
+    {
+      "who": "Manager Liu",
+      "text": "好的，没 问题。谢谢！"
+    },
+    {
+      "who": "Lin",
+      "text": "Very good. Yesterday, what did you do, today, what will you do. 昨天, yesterday. 今天, today. 写了代码: wrote code. 写 is to write, 代码 is code, and the 了 after the verb says it's done."
+    },
+    {
+      "who": "Erik",
+      "text": "And 改bug. Change the bug."
+    },
+    {
+      "who": "Lin",
+      "text": "改 is to change or to correct. People also say 修bug, to repair a bug. Then she asked: 这个功能什么时候可以上线? When can this feature go live? 功能 is a feature, a function. 什么时候, what time, when. And 上线, literally to get on the line: to go live, to launch."
+    },
+    {
+      "who": "Erik",
+      "text": "And I said 明天测试，后天上线. Test tomorrow, go live the day after."
+    },
+    {
+      "who": "Lin",
+      "text": "测试, to test. 后天, the day after tomorrow. 前天 is the day before yesterday. And she said 没问题: no problem. You'll hear that one a hundred times a day. Your turn."
+    },
+    {
+      "who": "Lin",
+      "text": "我们十点开会。 我写了代码。 今天我改bug。 什么时候上线？ 明天测试，后天上线。 没问题！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Afternoon. Something is broken, and Xiao Chen sends a message."
+    },
+    {
+      "who": "Xiao Chen",
+      "text": "Erik，你 有空 吗？我 的 代码 有 一 个 bug。",
+      "style": "a young developer, a little stressed, asking a colleague for help"
+    },
+    {
+      "who": "Erik",
+      "text": "有空。我 看 一下。"
+    },
+    {
+      "who": "Xiao Chen",
+      "text": "前端 没 问题。后端 也 没 问题。"
+    },
+    {
+      "who": "Erik",
+      "text": "数据库 呢？"
+    },
+    {
+      "who": "Xiao Chen",
+      "text": "数据库 也 没 问题！我 不 懂！",
+      "style": "a young developer, frustrated and baffled"
+    },
+    {
+      "who": "Erik",
+      "text": "服务器 呢？"
+    },
+    {
+      "who": "Xiao Chen",
+      "text": "服务器……啊！服务器 没 开！",
+      "style": "a young developer realising something embarrassing, then laughing at himself"
+    },
+    {
+      "who": "Erik",
+      "text": "哈哈，没 关系！",
+      "style": "laughing kindly"
+    },
+    {
+      "who": "Lin",
+      "text": "The oldest bug in the world. The server wasn't running. 有空吗, are you free? 有空, to have free time. And you said 我看一下: let me take a look. 一下 after a verb makes it small and casual. Just a quick look."
+    },
+    {
+      "who": "Erik",
+      "text": "Then the stack again. 前端, 后端, 数据库, 服务器."
+    },
+    {
+      "who": "Lin",
+      "text": "数据库 is a database. 数据, data, and 库, a store. 服务器 is a server: 服务 is to serve. And the little question with 呢. 数据库呢? What about the database? You've used 呢 like that before."
+    },
+    {
+      "who": "Erik",
+      "text": "And then he said 我不懂. I don't understand. Even the back-end engineer says it."
+    },
+    {
+      "who": "Lin",
+      "text": "Everyone says it. And 服务器没开: the server isn't on. 开, to open, to switch on, the same 开 as in 开会. Say these after me."
+    },
+    {
+      "who": "Lin",
+      "text": "你有空吗？ 我看一下。 数据库呢？ 服务器没开！ 没关系。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "A lot of the work happens in a group chat. Many Chinese companies use WeChat for it, or work apps like WeCom, DingTalk or Feishu. And there are a few replies you'll write all day long. Here's Manager Liu, in the team chat."
+    },
+    {
+      "who": "Manager Liu",
+      "text": "Erik，请 把 文件 发 给 我。"
+    },
+    {
+      "who": "Erik",
+      "text": "好的，马上。"
+    },
+    {
+      "who": "Lin",
+      "text": "请把文件发给我: please send me the document. 文件 is a document, a file. 发 is to send, and 发给我, send to me. And Erik answered 好的，马上: OK, right away. 马上, literally on horseback. Right away."
+    },
+    {
+      "who": "Erik",
+      "text": "Faster than a taxi."
+    },
+    {
+      "who": "Manager Liu",
+      "text": "收到，谢谢！"
+    },
+    {
+      "who": "Lin",
+      "text": "收到. Received. Got it. That's probably the most common word in any Chinese work chat. Someone gives an instruction, and everyone answers 收到. Short, polite, done."
+    },
+    {
+      "who": "Erik",
+      "text": "收到. I like that. And when someone has worked very hard?"
+    },
+    {
+      "who": "Lin",
+      "text": "辛苦了. Literally, hard and bitter. It means thank you for your hard work. You say it to a colleague after a long day, to someone who fixed something for you, even to the courier. It's warm, and people really use it."
+    },
+    {
+      "who": "Lin",
+      "text": "收到。 好的，马上。 请把文件发给我。 辛苦了！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Seven in the evening. Erik is still at his computer. The director walks past. Director Wang. 王总: the surname, then 总, the head."
+    },
+    {
+      "who": "Director Wang",
+      "text": "Erik，你 还 在 加班？",
+      "style": "a senior company director, calm, warm and a little surprised"
+    },
+    {
+      "who": "Erik",
+      "text": "是。服务器 没 问题，可是 前端 有 一 个 bug。",
+      "style": "a tired developer at the end of a long day"
+    },
+    {
+      "who": "Director Wang",
+      "text": "辛苦 了！很 晚 了，下班 吧！明天 再 改。",
+      "style": "a warm director, kindly but firmly sending an employee home"
+    },
+    {
+      "who": "Erik",
+      "text": "好的，谢谢 王总！明天 见！"
+    },
+    {
+      "who": "Lin",
+      "text": "加班 is to work overtime. 你还在加班? Are you still working late? And 下班 is to finish work and go home. Its partner is 上班, to go to work. Up and down again, like 上 and 下: 上班 in the morning, 下班 in the evening."
+    },
+    {
+      "who": "Erik",
+      "text": "And 下班吧. 吧 makes it a suggestion. Go home, why don't you."
+    },
+    {
+      "who": "Lin",
+      "text": "Exactly. And 明天再改: fix it again tomorrow. 再, again. And 明天见, see you tomorrow."
+    },
+    {
+      "who": "Erik",
+      "text": "I've heard that tech jobs in China have very long hours."
+    },
+    {
+      "who": "Lin",
+      "text": "Some do. People talk about 996: nine in the morning to nine at night, six days a week. It became a big argument in China, and in 2021 the country's top court and the labour ministry said schedules like that break the labour law. So a boss who says 下班吧 is a good boss."
+    },
+    {
+      "who": "Lin",
+      "text": "你还在加班？ 很晚了，下班吧！ 明天再改。 谢谢王总！ 明天见！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Let's put the whole day together, fast. I say the English, you say the Chinese in your head, and then Erik says it."
+    },
+    {
+      "who": "Lin",
+      "text": "Hello everyone, I'm a full-stack engineer."
+    },
+    {
+      "who": "Erik",
+      "text": "大家好，我是全栈工程师。"
+    },
+    {
+      "who": "Lin",
+      "text": "We have a meeting at ten."
+    },
+    {
+      "who": "Erik",
+      "text": "我们十点开会。"
+    },
+    {
+      "who": "Lin",
+      "text": "Are you free? Let me take a look."
+    },
+    {
+      "who": "Erik",
+      "text": "你有空吗？ 我看一下。"
+    },
+    {
+      "who": "Lin",
+      "text": "When can it go live?"
+    },
+    {
+      "who": "Erik",
+      "text": "什么时候上线？"
+    },
+    {
+      "who": "Lin",
+      "text": "Got it."
+    },
+    {
+      "who": "Erik",
+      "text": "收到！"
+    },
+    {
+      "who": "Lin",
+      "text": "Thanks for your hard work."
+    },
+    {
+      "who": "Erik",
+      "text": "辛苦了！"
+    },
+    {
+      "who": "Lin",
+      "text": "Finish work, go home."
+    },
+    {
+      "who": "Erik",
+      "text": "下班！ Finally."
+    },
+    {
+      "who": "Lin",
+      "text": "很好！ That's it for today. A whole working day in Chinese. 辛苦了, Erik."
+    },
+    {
+      "who": "Erik",
+      "text": "不辛苦！ 谢谢，林老师！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈. 不辛苦, it was no trouble, is the modest answer. And 老师, teacher, a nice touch. 大家，下班吧！ 再见！ 天天向上。"
+    },
+    {
+      "chime": true
+    }
+  ]
+}

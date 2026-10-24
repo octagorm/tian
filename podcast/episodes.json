@@ -10,5 +10,11 @@
     "title": "A ticket, lamb skewers and the mended sky",
     "description": "Erik buys a high-speed train ticket to Xi'an and learns why it is a 张, eats lamb skewers in the Muslim Quarter without mixing up four and ten, and hears how Nüwa mended the sky with coloured stones. Ends with three phrases for when it all gets too fast. Built from the words Tian's second week has met.",
     "audio": ".cache/podcast/episode-2.mp3"
+  },
+  {
+    "n": 3,
+    "title": "A day at the office, full stack",
+    "description": "A longer one, for working with Chinese colleagues: Erik introduces himself to the team as a full-stack engineer, gets through the morning meeting, finds a bug with a back-end colleague (the server was off), learns the replies of a work chat, 收到 and 辛苦了, and is sent home by the director. Front end, back end, database, server, going live, and the rest of a developer's day.",
+    "audio": ".cache/podcast/episode-3.mp3"
   }
 ]
