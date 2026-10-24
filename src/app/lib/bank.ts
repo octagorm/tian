@@ -186,6 +186,20 @@ export function level(card: Card | undefined, now: number): Level {
   return holds(card.hs, now) && holds(card.hm, now) ? 2 : 1
 }
 
+// How a word is shown, as one number: not met, in English (0); learning,
+// in hanzi with its pinyin over it and its English under it (1); its
+// meaning held, in hanzi and pinyin, the English gone once the character
+// brings back the meaning (2); and known, in hanzi alone, once it brings
+// back the sound too (3). A word whose sound comes before its meaning
+// keeps all three until the meaning holds.
+export type Stage = 0 | 1 | 2 | 3
+
+export function stage(card: Card | undefined, now: number): Stage {
+  if (!card) return 0
+  if (level(card, now) === 2) return 3
+  return holds(card.hm, now) ? 2 : 1
+}
+
 // A memory after an answer. `weight` (0–1] is how much the answer says.
 export function answer(
   m: Memory,

@@ -8,7 +8,7 @@ import {
 } from 'react'
 import { ArrowLeft, BookOpen, Check, ScrollText } from 'lucide-react'
 import { TEXT, TEXTS, sentencesOf } from '../data/reader'
-import { holds } from '../lib/bank'
+import { stage } from '../lib/bank'
 import { join } from '../lib/pinyin'
 import { tokens, wordIds } from '../lib/text'
 import { blip } from '../lib/audio'
@@ -18,15 +18,16 @@ import { Frame, usePeek } from '../ui'
 import { CloudDivider } from '../ornament/Borders'
 import type { CSSProperties, ReactNode } from 'react'
 import type { Text } from '../data/reader'
-import type { Bank } from '../lib/bank'
+import type { Bank, Stage } from '../lib/bank'
 import type { Help, Settings } from '../lib/store'
 import type { Token } from '../lib/text'
 import './read.css'
 
 // The reader (data/reader.ts): /#read lists the texts, and /#read/beijing
-// reads one, the whole text in hanzi, each word with its pinyin over it
-// until its character brings back its sound (the link hs) and its English
-// under it until the character brings back its meaning (hm), as Hola's
+// reads one, the whole text in hanzi, each word as far on as its stage
+// (lib/bank.ts): its English under it until the character brings back its
+// meaning (the link hm), and its pinyin over it until the word is known,
+// its sound held too (hs), as Hola's
 // Biblioteca does with Norwegian. A tapped word opens its sheet, which
 // says it, and can meet it (it comes up in Review from then on) or mark
 // it known; a note on the word there, if the text has one, is on the sheet
@@ -168,13 +169,10 @@ function groups(toks: Array<Token>): Array<Array<Token>> {
   return out
 }
 
-// Whether a word needs help with a link: not met, or that link not known
-function needs(t: Token, bank: Bank, link: 'hs' | 'hm', now: number) {
+// How far on a word is: the least of its parts, for a number
+function stageOfToken(t: Token, bank: Bank, now: number): Stage {
   const ids = t.id ? [t.id] : (t.parts ?? [])
-  return ids.some((id) => {
-    const c = bank.cards[id]
-    return !c || !holds(c[link], now)
-  })
+  return Math.min(3, ...ids.map((id) => stage(bank.cards[id], now))) as Stage
 }
 
 const shows = (help: Help, need: boolean) =>
@@ -217,10 +215,10 @@ function Line({
             const met = (t.id ? [t.id] : (t.parts ?? [])).every(
               (id) => bank.cards[id],
             )
-            const py = shows(settings.readPinyin, needs(t, bank, 'hs', now))
-            const en = shows(settings.readEnglish, needs(t, bank, 'hm', now))
-            const faint =
-              !needs(t, bank, 'hs', now) && !needs(t, bank, 'hm', now)
+            const st = stageOfToken(t, bank, now)
+            const py = shows(settings.readPinyin, st < 3)
+            const en = shows(settings.readEnglish, st < 2)
+            const faint = st === 3
             return (
               <span
                 key={j}

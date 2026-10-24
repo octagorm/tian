@@ -202,6 +202,17 @@ describe('bank', () => {
     expect(c.n).toBe(8)
   })
 
+  test('a word loses its English once its meaning holds, its pinyin once its sound does too', async () => {
+    const { stage } = await import('../src/app/lib/bank')
+    const c = newCard(0)
+    expect(stage(undefined, H)).toBe(0)
+    expect(stage(c, H)).toBe(1)
+    expect(stage({ ...c, hm: { s: 4, t: 0 } }, H)).toBe(2)
+    // the sound held before the meaning keeps both shown
+    expect(stage({ ...c, hs: { s: 4, t: 0 } }, H)).toBe(1)
+    expect(stage(newCard(0, 4), H)).toBe(3)
+  })
+
   test('a slip on a link to the character brings a known word back to pinyin', () => {
     const c = newCard(0, 5)
     expect(level(c, H)).toBe(2)

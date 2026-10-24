@@ -20,10 +20,11 @@ import {
   merge,
   newCard,
   setMemory,
+  stage,
 } from './bank'
 import { setRate } from './audio'
 import type { ReactNode } from 'react'
-import type { Bank, Dir, Level, Link, Path } from './bank'
+import type { Bank, Dir, Level, Link, Path, Stage } from './bank'
 
 // The word bank and the settings as React state, for every game at once.
 // Both are kept in localStorage; signed in, the bank is also kept on
@@ -114,6 +115,8 @@ interface Store {
   settings: Settings
   setSettings: (s: Partial<Settings>) => void
   levelOf: (id: string) => Level
+  // How a word is shown, a step finer (lib/bank.ts)
+  stageOf: (id: string) => Stage
   // An answer about a word: how much it says (see lib/bank.ts), and which
   // of the word's links it tested
   record: (id: string, right: boolean, weight: number, how: How) => void
@@ -385,6 +388,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       settings,
       setSettings,
       levelOf: (id) => level(bank.cards[id], Date.now()),
+      stageOf: (id) => stage(bank.cards[id], Date.now()),
       record,
       meet,
       know,

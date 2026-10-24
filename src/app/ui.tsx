@@ -17,7 +17,7 @@ import { Fret } from './ornament/Borders'
 import { Pix } from './pixel/Pix'
 import { LINKS, holds, recall } from './lib/bank'
 import type { ReactNode } from 'react'
-import type { Card, Level, Link } from './lib/bank'
+import type { Card, Level, Link, Stage } from './lib/bank'
 import type { Token } from './lib/text'
 
 // The pieces every game shares: mixed text, the sheet a tapped word
@@ -123,9 +123,20 @@ export function tokenLevel(t: Token, levelOf: (id: string) => Level): Level {
   return 2
 }
 
+// A word's stage (lib/bank.ts): a number, of digits that are each a word,
+// is as far on as the least of them
+export function tokenStage(t: Token, stageOf: (id: string) => Stage): Stage {
+  if (t.id) return stageOf(t.id)
+  if (t.parts?.length)
+    return Math.min(...t.parts.map((p) => stageOf(p))) as Stage
+  return 3
+}
+
 // A line in Chinese order, each word as the player knows it: in English
-// if not met, in hanzi with pinyin if learning, in hanzi alone if known.
-// A tap opens the word. `fresh` words glow, as just met.
+// if not met, in hanzi with pinyin over it and English under it while
+// learning, with the pinyin alone once its meaning holds, in hanzi alone
+// if known. A tap opens the word. `fresh` words glow, as just met, with
+// their English under them.
 export function Mixed({
   line,
   className = '',
@@ -138,15 +149,34 @@ export function Mixed({
   className?: string
   fresh?: Set<string>
   size?: 'sm' | 'md' | 'lg'
-  // Force every word to one level, as for the answer shown in full
+  // Force every word to one level, as for the answer shown in full (and
+  // then with no English under it)
   all?: Level
   // Words that cannot be tapped, inside something that is itself a button
   still?: boolean
 }) {
-  const { settings, levelOf } = useStore()
+  const { settings, levelOf, stageOf } = useStore()
   const peek = usePeek()
   const toks = tokens(line, { home: settings.home })
   const font = { sm: 'text-lg', md: 'text-2xl', lg: 'text-3xl' }[size]
+  const under = { sm: 'text-[0.65rem]', md: 'text-xs', lg: 'text-sm' }[size]
+  // The English under a word learnt, while its meaning does not hold yet
+  const english = (t: Token) =>
+    !all &&
+    !t.punct &&
+    (t.id && fresh?.has(t.id)
+      ? tokenStage(t, stageOf) <= 1
+      : tokenStage(t, stageOf) === 1)
+  // with a row under every word of a line that has any, so it stays even
+  const anyUnder = toks.some(english)
+  const row = (t: Token) =>
+    anyUnder && (
+      <span
+        className={`block pt-0.5 text-center leading-tight font-normal text-[var(--ink-2)] ${under}`}
+      >
+        {english(t) ? t.gloss : '\u00a0'}
+      </span>
+    )
   let prevEnglish = false
   return (
     <span
@@ -158,9 +188,10 @@ export function Mixed({
           return (
             <span
               key={i}
-              className={`zh -ml-1 ${prevEnglish ? 'text-base' : font} text-[var(--ink-2)]`}
+              className={`zh -ml-1 ${anyUnder ? 'inline-flex flex-col' : ''} ${prevEnglish ? 'text-base' : font} text-[var(--ink-2)]`}
             >
               {p}
+              {row(t)}
             </span>
           )
         }
@@ -178,7 +209,7 @@ export function Mixed({
             key={i}
             type={still ? undefined : 'button'}
             onClick={still ? undefined : () => peek(t)}
-            className={`rounded-md px-0.5 transition ${still ? '' : 'hover:bg-[var(--paper-2)]'} ${glow}`}
+            className={`rounded-md px-0.5 transition ${anyUnder ? 'inline-flex flex-col items-center' : ''} ${still ? '' : 'hover:bg-[var(--paper-2)]'} ${glow}`}
           >
             {lv === 0 ? (
               <ruby className="zh-gloss text-base text-[var(--ink-2)]">
@@ -195,6 +226,7 @@ export function Mixed({
             ) : (
               <span className={`zh ${font}`}>{t.h}</span>
             )}
+            {row(t)}
           </Tag>
         )
       })}

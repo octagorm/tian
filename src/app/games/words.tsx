@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { LESSONS, WORDS } from '../data/words'
 import { bare, syllables } from '../lib/pinyin'
-import { LINKS, level, recallOf } from '../lib/bank'
+import { LINKS, level, recallOf, stage } from '../lib/bank'
 import { useStore } from '../lib/store'
 import {
   Btn,
@@ -68,7 +68,11 @@ export default function Words() {
   const now = Date.now()
 
   const counts = [0, 0, 0]
-  for (const w of WORDS) counts[level(bank.cards[w.id], now)]++
+  const stages = [0, 0, 0, 0]
+  for (const w of WORDS) {
+    counts[level(bank.cards[w.id], now)]++
+    stages[stage(bank.cards[w.id], now)]++
+  }
 
   const match = useMemo(() => matcher(query), [query])
   const tags = KINDS.find((k) => k.id === kind)?.tags ?? []
@@ -98,7 +102,7 @@ export default function Words() {
 
   return (
     <Frame title="Word bank" zh="词库" wide>
-      <Summary counts={counts} />
+      <Summary stages={stages} />
 
       <div className="sticky top-0 z-20 -mx-4 mt-4 mb-5 bg-[var(--paper)]/92 px-4 py-3 backdrop-blur-sm">
         <div className="flex flex-wrap items-center gap-2">
@@ -359,23 +363,30 @@ function Grid({
   )
 }
 
-// Known, learning and new as one bar that grows in, with the counts
-function Summary({ counts }: { counts: Array<number> }) {
+// Known, learning (with its English, or its pinyin alone) and new as one
+// bar that grows in, with the counts
+function Summary({ stages }: { stages: Array<number> }) {
   const [shown, setShown] = useState(false)
   useEffect(() => {
     const id = requestAnimationFrame(() => setShown(true))
     return () => cancelAnimationFrame(id)
   }, [])
-  const total = counts[0] + counts[1] + counts[2]
+  const total = stages.reduce((a, b) => a + b, 0)
   const parts = [
-    { n: counts[2], color: LEVEL_COLOR[2], label: 'known', sub: 'hanzi alone' },
+    { n: stages[3], color: LEVEL_COLOR[2], label: 'known', sub: 'hanzi alone' },
     {
-      n: counts[1],
+      n: stages[2],
       color: LEVEL_COLOR[1],
-      label: 'learning',
+      label: 'meaning learnt',
       sub: 'hanzi and pinyin',
     },
-    { n: counts[0], color: '#d8cdb8', label: 'to meet', sub: 'in English' },
+    {
+      n: stages[1],
+      color: '#86b8ab',
+      label: 'learning',
+      sub: 'with English',
+    },
+    { n: stages[0], color: '#d8cdb8', label: 'to meet', sub: 'in English' },
   ]
   return (
     <div className="zh-card fx-rise p-5">
@@ -392,7 +403,7 @@ function Summary({ counts }: { counts: Array<number> }) {
           />
         ))}
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
+      <div className="mt-3 grid grid-cols-4 gap-2">
         {parts.map((p) => (
           <div key={p.label} className="min-w-0">
             <div className="flex items-center gap-1.5">
