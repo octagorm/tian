@@ -270,6 +270,18 @@ describe('bank', () => {
     expect(merge({ cards: {} }, emptyBank()).place).toEqual({})
   })
 
+  test('a link set by hand is known for days, or back to learning for hours', async () => {
+    const { setMemory, holds } = await import('../src/app/lib/bank')
+    const card = { ...newCard(0, 0.2), sm: { s: 9, t: 0 } }
+    const up = setMemory(card, 'hs', true, 1000)
+    expect(up.hs).toEqual({ s: 4, t: 1000 })
+    expect(holds(up.hs, 1000)).toBe(true)
+    expect(up.hm).toEqual(card.hm)
+    const down = setMemory(card, 'sm', false, 1000)
+    expect(down.sm).toEqual({ s: 0.3, t: 1000 })
+    expect(holds(down.sm, 1000)).toBe(false)
+  })
+
   test('a card saved before the links has its one memory in each', () => {
     const old = { s: 4, t: 7, n: 3, x: 1, i: 2 }
     const bank = { cards: { 你好: old } } as unknown as Partial<Bank>

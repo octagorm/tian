@@ -203,6 +203,20 @@ export function answerCard(
   return c
 }
 
+// One link set by hand: known, lasting four days, as a word the player says
+// they know; or back to learning, lasting a few hours, so that it comes up
+// again soon. Never longer or shorter than it was, the other way.
+export function setMemory(
+  card: Card,
+  link: Link,
+  isKnown: boolean,
+  now: number,
+): Card {
+  const m = card[link]
+  const s = isKnown ? Math.max(m.s, 4) : Math.min(m.s, 0.3)
+  return { ...card, [link]: { s, t: now } }
+}
+
 // Words the player says they know already: straight to known
 export const known = (now: number): Card => ({ ...newCard(now, 4), n: 1 })
 

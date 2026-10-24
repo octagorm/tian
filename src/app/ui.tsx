@@ -15,7 +15,7 @@ import { useStore } from './lib/store'
 import { toggleMusic, useSound } from './lib/music'
 import { Fret } from './ornament/Borders'
 import { Pix } from './pixel/Pix'
-import { LINKS, recall } from './lib/bank'
+import { LINKS, holds, recall } from './lib/bank'
 import type { ReactNode } from 'react'
 import type { Card, Level, Link } from './lib/bank'
 import type { Token } from './lib/text'
@@ -39,16 +39,20 @@ const howLong = (s: number) =>
   s < 1 ? `${Math.round(s * 24)} h` : `${s.toFixed(1)} d`
 
 // A word's links as bars, each as full as the chance of remembering it
-// now, red once it fades, with how long it lasts
+// now, red once it fades, with how long it lasts; with `onSet`, a switch on
+// each between Learning and Known, for a link that feels further on or
+// less far than the bank says
 export function LinkBars({
   card,
   now,
   wide = false,
+  onSet,
 }: {
   card: Card
   now: number
   // with the links' names in English
   wide?: boolean
+  onSet?: (link: Link, known: boolean) => void
 }) {
   return (
     <span
@@ -75,6 +79,25 @@ export function LinkBars({
               />
             </span>
             <span className="w-9 shrink-0 text-right">{howLong(m.s)}</span>
+            {onSet && (
+              <button
+                type="button"
+                aria-pressed={holds(m, now)}
+                title={
+                  holds(m, now)
+                    ? 'Known: tap to practise it again'
+                    : 'Learning: tap if you know it'
+                }
+                onClick={() => onSet(l, !holds(m, now))}
+                className={`w-[4.6rem] shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-bold tracking-wide uppercase transition ${
+                  holds(m, now)
+                    ? 'border-[var(--jade)] bg-[var(--jade)] text-white'
+                    : 'border-[var(--ink-2)] text-[var(--ink-2)] hover:border-[var(--jade)] hover:text-[var(--jade)]'
+                }`}
+              >
+                {holds(m, now) ? 'Known' : 'Learning'}
+              </button>
+            )}
           </span>
         )
       })}
@@ -272,7 +295,7 @@ export function PeekProvider({ children }: { children: ReactNode }) {
 }
 
 function Sheet({ token, onClose }: { token: Token; onClose: () => void }) {
-  const { bank, levelOf, meet, know, record } = useStore()
+  const { bank, levelOf, meet, know, record, setLink } = useStore()
   const w = token.id ? WORD[token.id] : undefined
   const lv = tokenLevel(token, levelOf)
   const card = w ? bank.cards[w.id] : undefined
@@ -371,9 +394,14 @@ function Sheet({ token, onClose }: { token: Token; onClose: () => void }) {
               <span className="text-[var(--ink-2)]">lesson {w.lesson}</span>
             )}
           </div>
-          {card && (
+          {w && card && (
             <div className="mt-3">
-              <LinkBars card={card} now={Date.now()} wide />
+              <LinkBars
+                card={card}
+                now={Date.now()}
+                wide
+                onSet={(l, k) => setLink(w.id, l, k)}
+              />
             </div>
           )}
           <div className="mt-4 flex flex-wrap gap-2">

@@ -17,6 +17,7 @@ import {
   level,
   merge,
   newCard,
+  setMemory,
 } from './bank'
 import { setRate } from './audio'
 import type { ReactNode } from 'react'
@@ -118,6 +119,8 @@ interface Store {
   meet: (ids: Array<string>) => void
   // Words the player already knows
   know: (ids: Array<string>) => void
+  // One link of a word met, set by hand: known, or back to learning
+  setLink: (id: string, link: Link, known: boolean) => void
   forget: (ids: Array<string>) => void
   points: (n: number) => void
   setScene: (id: string, stars: number) => void
@@ -232,6 +235,20 @@ export function BankProvider({ children }: { children: ReactNode }) {
         for (const id of ids)
           if (level(cards[id], now) < 2) cards[id] = known(now)
         return { ...b, cards }
+      }),
+    [update],
+  )
+
+  const setLink = useCallback(
+    (id: string, link: Link, isKnown: boolean) =>
+      update((b) => {
+        const card = b.cards[id]
+        if (!card) return b
+        const now = Date.now()
+        return {
+          ...b,
+          cards: { ...b.cards, [id]: setMemory(card, link, isKnown, now) },
+        }
       }),
     [update],
   )
@@ -365,6 +382,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       record,
       meet,
       know,
+      setLink,
       forget,
       points,
       setScene,
@@ -384,6 +402,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       record,
       meet,
       know,
+      setLink,
       forget,
       points,
       setScene,
