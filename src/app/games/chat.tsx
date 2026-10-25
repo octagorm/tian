@@ -139,8 +139,15 @@ export default function Chat() {
     [],
   )
   // The key: on the account, or in this browser
-  const signedIn = !!account.me
-  const kept = useQuery(api.chat.saved, signedIn ? {} : 'skip')
+  const kept = useQuery(api.chat.saved, account.me ? {} : 'skip')
+  // The account may not answer (Convex down): then, after a while, the key
+  // is kept in this browser as when signed out
+  const [waited, setWaited] = useState(false)
+  useEffect(() => {
+    const t = setTimeout(() => setWaited(true), 4000)
+    return () => clearTimeout(t)
+  }, [])
+  const signedIn = !!account.me && kept !== undefined
   const saveKey = useAction(api.chat.save)
   const mintToken = useAction(api.chat.token)
   const forgetKey = useMutation(api.chat.forget)
@@ -150,7 +157,8 @@ export default function Chat() {
     setLocal(k)
   }
   const where = kept ? 'account' : local ? 'browser' : null
-  const loading = account.loading || (signedIn && kept === undefined)
+  const loading =
+    !waited && (account.loading || (!!account.me && kept === undefined))
   // Kept on the account when signed in, else here
   const keep = async (k: string) => {
     if (!signedIn) return keepLocal(k)
