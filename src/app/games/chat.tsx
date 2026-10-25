@@ -365,8 +365,8 @@ export default function Chat() {
                 ? 'Speaking'
                 : prefs.manual
                   ? turn
-                    ? 'Listening: tap Done when you have finished'
-                    : 'Tap Talk when you are ready'
+                    ? 'Listening, until you let go or tap Done'
+                    : 'Hold or tap Talk when you are ready'
                   : muted
                     ? 'Microphone off'
                     : 'Listening'
@@ -400,9 +400,9 @@ export default function Chat() {
           muted={muted}
           manual={prefs.manual}
           turn={turn}
-          onTurn={() => {
-            live.current?.talk(!turn)
-            setTurn(!turn)
+          onTurn={(on) => {
+            live.current?.talk(on)
+            setTurn(on)
           }}
           ending={ending}
           onMute={() => {
@@ -638,20 +638,42 @@ function Bar({
   // Turns begun and ended by hand: Talk, then Done (or Space)
   manual: boolean
   turn: boolean
-  onTurn: () => void
+  onTurn: (on: boolean) => void
   ending: boolean
   onMute: () => void
   onType: (text: string) => void
   onEnd: () => void
 }) {
   const [text, setText] = useState('')
-  // (a button with the focus takes Space itself)
+  // Talk held down is a turn while it is held, like a walkie-talkie;
+  // tapped, the turn stays open, to think in, until Done
+  const held = useRef<number | null>(null)
+  const press = () => {
+    if (turn) return onTurn(false)
+    held.current = Date.now()
+    onTurn(true)
+  }
+  const release = () => {
+    const at = held.current
+    held.current = null
+    if (at !== null && Date.now() - at > 400) onTurn(false)
+  }
+  const releaseRef = useRef(release)
+  releaseRef.current = release
+  // Space does the same (a button with the focus takes Space itself)
   useKeys((key, e) => {
     if (key !== ' ' || !manual || !live) return
     if (e.target instanceof HTMLButtonElement) return
-    onTurn()
+    press()
     return true
   })
+  useEffect(() => {
+    const up = (e: KeyboardEvent) => {
+      if (e.key === ' ') releaseRef.current()
+    }
+    window.addEventListener('keyup', up)
+    return () => window.removeEventListener('keyup', up)
+  }, [])
   return (
     <div className="sticky bottom-0 z-10 -mx-4 mt-2 border-t border-[var(--paper-2)] bg-[var(--paper)]/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
       {ending && (
@@ -670,7 +692,14 @@ function Bar({
         {manual ? (
           <button
             type="button"
-            onClick={onTurn}
+            onPointerDown={(e) => {
+              e.preventDefault()
+              press()
+            }}
+            onPointerUp={release}
+            onPointerCancel={release}
+            // from the keyboard
+            onClick={(e) => e.detail === 0 && onTurn(!turn)}
             disabled={!live}
             aria-pressed={turn}
             className={`inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 font-bold text-white transition disabled:opacity-40 ${turn ? 'bg-[var(--red)]' : 'bg-[var(--jade)]'}`}
@@ -836,8 +865,9 @@ function Setup({
               <Hourglass size={16} /> Let me take my time
             </span>
             <span className="text-sm text-[var(--ink-2)]">
-              Tap Talk, say it with all the pauses you need, and tap Done (or
-              press Space). Otherwise a long pause ends your turn.
+              Hold Talk (or Space) while you speak, or tap it, think as long as
+              you like, and tap Done. Nothing is heard in between. Otherwise a
+              long pause ends your turn.
             </span>
           </span>
         </label>
