@@ -112,6 +112,15 @@ export const GAMES = [
     Page: page(() => import('./games/listen')),
   },
   {
+    id: 'chat',
+    title: 'Chat',
+    zh: '聊天',
+    sprite: 'talk',
+    blurb:
+      'Talk out loud with a teacher who keeps to the words you know, every word written out as you go. On your own Gemini key.',
+    Page: page(() => import('./games/chat')),
+  },
+  {
     id: 'podcast',
     title: 'Podcast',
     zh: '播客',

@@ -69,6 +69,7 @@ const GROUPS = [
       'review',
       'read',
       'listen',
+      'chat',
       'podcast',
       'order',
       'quiz',

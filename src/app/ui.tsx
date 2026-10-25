@@ -144,6 +144,7 @@ function Helped({
   stage: st,
   font,
   under,
+  outside,
 }: {
   h: string
   pinyin: string
@@ -151,14 +152,22 @@ function Helped({
   stage: Stage
   font: string
   under?: string
+  // not a word of the bank: in blue, with nothing to practise it with
+  outside?: boolean
 }) {
-  const tone = st === 0 ? 'text-[var(--gold-2)]' : 'text-[var(--jade)]'
+  const tone = outside
+    ? 'text-[var(--sky)]'
+    : st === 0
+      ? 'text-[var(--gold-2)]'
+      : 'text-[var(--jade)]'
   return (
     <>
       {st < 3 ? (
-        <ruby className={`zh ${font} ${st === 0 ? 'zh-unmet' : ''}`}>
+        <ruby
+          className={`zh ${font} ${outside ? 'zh-outside' : st === 0 ? 'zh-unmet' : ''}`}
+        >
           {h}
-          <rt>{pinyin}</rt>
+          <rt>{pinyin || '\u00a0'}</rt>
         </ruby>
       ) : (
         <span className={`zh ${font}`}>{h}</span>
@@ -167,7 +176,7 @@ function Helped({
         <span
           className={`-mt-[0.4em] block text-center leading-tight font-normal italic ${tone} ${under}`}
         >
-          {st < 2 ? gloss : '\u00a0'}
+          {(st < 2 && gloss) || '\u00a0'}
         </span>
       )}
     </>
@@ -179,13 +188,24 @@ function Helped({
 // as just met.
 export function Mixed({
   line,
+  ...rest
+}: { line: string } & Omit<Parameters<typeof Words>[0], 'toks'>) {
+  const { settings } = useStore()
+  return <Words toks={tokens(line, { home: settings.home })} {...rest} />
+}
+
+// The same, from tokens: a line as lib/text.ts makes it, or one from
+// elsewhere (the chat's, lib/chat.ts), where a word outside the bank has
+// its help in blue, and text that is not Chinese is shown as it is
+export function Words({
+  toks,
   className = '',
   fresh,
   size = 'md',
   all,
   still,
 }: {
-  line: string
+  toks: Array<Token>
   className?: string
   fresh?: Set<string>
   size?: 'sm' | 'md' | 'lg'
@@ -194,19 +214,20 @@ export function Mixed({
   // Words that cannot be tapped, inside something that is itself a button
   still?: boolean
 }) {
-  const { settings, stageOf } = useStore()
+  const { stageOf } = useStore()
   const peek = usePeek()
-  const toks = tokens(line, { home: settings.home })
   const font = { sm: 'text-lg', md: 'text-2xl', lg: 'text-3xl' }[size]
   const under = { sm: 'text-[0.65rem]', md: 'text-xs', lg: 'text-sm' }[size]
   // Words just met count as being learnt even before the bank says so
   const stageOfToken = (t: Token): Stage =>
     t.punct
       ? 3
-      : (all ??
-        (t.id && fresh?.has(t.id)
-          ? (Math.max(1, tokenStage(t, stageOf)) as Stage)
-          : tokenStage(t, stageOf)))
+      : t.outside
+        ? 0
+        : (all ??
+          (t.id && fresh?.has(t.id)
+            ? (Math.max(1, tokenStage(t, stageOf)) as Stage)
+            : tokenStage(t, stageOf)))
   // a row for English under every word of a line that has any, so it
   // stays even
   const row = toks.some((t) => stageOfToken(t) < 2) ? under : undefined
@@ -215,6 +236,16 @@ export function Mixed({
       className={`inline-flex flex-wrap items-end gap-x-1.5 ${row ? 'gap-y-3' : 'gap-y-1'} leading-none ${className}`}
     >
       {toks.map((t, i) => {
+        if (t.punct && /[\p{L}\p{N}]/u.test(t.h))
+          return (
+            <span
+              key={i}
+              className={`${row ? 'inline-flex flex-col' : ''} ${{ sm: 'text-sm', md: 'text-base', lg: 'text-lg' }[size]} self-end pb-0.5 text-[var(--ink-2)]`}
+            >
+              {t.h}
+              {row && <span className={`block ${row}`}>{'\u00a0'}</span>}
+            </span>
+          )
         if (t.punct)
           return (
             <span
@@ -243,6 +274,7 @@ export function Mixed({
               stage={stageOfToken(t)}
               font={font}
               under={row}
+              outside={t.outside}
             />
           </Tag>
         )
@@ -426,17 +458,29 @@ function Sheet({ token, onClose }: { token: Token; onClose: () => void }) {
               {token.note}
             </p>
           )}
-          <div className="mt-2 flex items-center gap-2 text-xs font-bold">
-            <span
-              className="rounded-full px-2 py-0.5 tracking-wide text-white uppercase"
-              style={{ background: LEVEL_COLOR[lv] }}
-            >
-              {LEVEL_NAME[lv]}
-            </span>
-            {w && (
-              <span className="text-[var(--ink-2)]">lesson {w.lesson}</span>
-            )}
-          </div>
+          {token.outside ? (
+            <p className="mt-2 flex items-start gap-2 text-sm leading-snug text-[var(--ink-2)]">
+              <span className="shrink-0 rounded-full bg-[var(--sky)] px-2 py-0.5 text-xs font-bold tracking-wide text-white uppercase">
+                Outside Tian
+              </span>
+              <span>
+                Not in the word bank yet, so there is nothing here to practise
+                it with.
+              </span>
+            </p>
+          ) : (
+            <div className="mt-2 flex items-center gap-2 text-xs font-bold">
+              <span
+                className="rounded-full px-2 py-0.5 tracking-wide text-white uppercase"
+                style={{ background: LEVEL_COLOR[lv] }}
+              >
+                {LEVEL_NAME[lv]}
+              </span>
+              {w && (
+                <span className="text-[var(--ink-2)]">lesson {w.lesson}</span>
+              )}
+            </div>
+          )}
           {w && card && (
             <div className="mt-3">
               <LinkBars

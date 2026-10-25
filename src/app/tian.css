@@ -78,6 +78,16 @@ ruby.zh-unmet rt {
   color: var(--gold-2);
 }
 
+/* A word outside the word bank (the chat's): blue, underlined with dots */
+ruby.zh-outside {
+  text-decoration: underline dotted var(--sky);
+  text-decoration-thickness: 0.06em;
+  text-underline-offset: 0.18em;
+}
+ruby.zh-outside rt {
+  color: var(--sky);
+}
+
 .zh-card {
   background: var(--card);
   border-radius: 1.25rem;

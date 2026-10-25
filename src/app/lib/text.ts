@@ -19,6 +19,9 @@ export interface Token {
   // A note on the word where it stands, by the key after # in the line
   // (the reader's texts, data/reader.ts), or once looked up, its text
   note?: string
+  // Not a word of the bank, with English and pinyin from elsewhere (what
+  // the chat's partner says, lib/chat.ts): nothing to practise it with
+  outside?: boolean
 }
 
 const PUNCT = new Set([...'，。！？、：；…“”《》'])
