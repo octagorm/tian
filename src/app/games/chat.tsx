@@ -2,25 +2,29 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAction, useMutation, useQuery } from 'convex/react'
 import { ConvexError } from 'convex/values'
 import {
+  Check,
   Headphones,
+  Hourglass,
   KeyRound,
   Languages,
   Mic,
   MicOff,
   PhoneOff,
+  Plus,
   RotateCcw,
   Send,
   Volume2,
 } from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { WORD } from '../data/words'
-import { SCENES, fromItems, instructions, segment } from '../lib/chat'
+import { SCENES, fromItems, idsIn, instructions, segment } from '../lib/chat'
 import { Live, getKey, setKey } from '../lib/live'
 import { audioContext } from '../lib/audio'
 import { hushMusic } from '../lib/music'
 import { useStore } from '../lib/store'
 import { Btn, Frame, Words } from '../ui'
 import { Face } from '../pixel/Pix'
+import { useKeys } from './fx'
 import type { ReactNode } from 'react'
 import type { Item, Pace, Shown } from '../lib/chat'
 import type { Token } from '../lib/text'
@@ -69,10 +73,17 @@ interface Prefs {
   scene: string
   pace: Pace
   open: boolean
+  // The player says when they have finished, instead of a pause
+  manual: boolean
 }
 
 function loadPrefs(): Prefs {
-  const base: Prefs = { scene: 'free', pace: 'slow', open: false }
+  const base: Prefs = {
+    scene: 'free',
+    pace: 'slow',
+    open: false,
+    manual: false,
+  }
   try {
     return { ...base, ...JSON.parse(localStorage.getItem(PREFS) ?? '{}') }
   } catch {
@@ -185,6 +196,8 @@ export default function Chat() {
   const [speaking, setSpeaking] = useState(false)
   const [level, setLevel] = useState(0)
   const [muted, setMuted] = useState(false)
+  // The player's turn, begun and ended by hand
+  const [turn, setTurn] = useState(false)
   const live = useRef<Live | null>(null)
   const scene = SCENES.find((s) => s.id === prefs.scene) ?? SCENES[0]
 
@@ -208,6 +221,7 @@ export default function Chat() {
     setWhy(null)
     setEnding(false)
     setMuted(false)
+    setTurn(false)
     setState('calling')
     const text = instructions(bank, Date.now(), {
       scene,
@@ -228,7 +242,7 @@ export default function Chat() {
       {
         instructions: text,
         voice: PARTNER.voice,
-        pause: prefs.pace === 'slow' ? 1200 : 900,
+        pause: prefs.manual ? 'manual' : prefs.pace === 'slow' ? 1800 : 1100,
       },
       {
         ready: () => setState('live'),
@@ -349,9 +363,13 @@ export default function Chat() {
               ? 'Call ended'
               : speaking
                 ? 'Speaking'
-                : muted
-                  ? 'Microphone off'
-                  : 'Listening'
+                : prefs.manual
+                  ? turn
+                    ? 'Listening: tap Done when you have finished'
+                    : 'Tap Talk when you are ready'
+                  : muted
+                    ? 'Microphone off'
+                    : 'Listening'
         }
         talking={speaking}
         scene={
@@ -380,6 +398,12 @@ export default function Chat() {
           live={state === 'live' && !demo}
           level={level}
           muted={muted}
+          manual={prefs.manual}
+          turn={turn}
+          onTurn={() => {
+            live.current?.talk(!turn)
+            setTurn(!turn)
+          }}
           ending={ending}
           onMute={() => {
             live.current?.mute(!muted)
@@ -387,6 +411,7 @@ export default function Chat() {
           }}
           onType={type}
           onEnd={() => {
+            setTurn(false)
             if (demo) setState('over')
             else live.current?.stop()
           }}
@@ -524,6 +549,11 @@ function Said({
     [line.toks, line.text],
   )
   const mine = line.who === 'learner'
+  // Words of the bank in what to say that have not been met, to learn
+  const { levelOf, meet } = useStore()
+  const fresh = line.better
+    ? idsIn(line.better).filter((id) => levelOf(id) === 0)
+    : []
   if (!toks.length) return null
   return (
     <div
@@ -537,9 +567,21 @@ function Said({
       {line.better && (
         <div className="rounded-xl bg-[#e3f0ea] px-3 py-2">
           <p className="mb-1 text-[11px] font-bold tracking-wide text-[var(--jade)] uppercase">
-            Better
+            Say it like this
           </p>
           <Words toks={line.better} size="sm" />
+          {fresh.length > 0 && (
+            <button
+              type="button"
+              onClick={() => meet(fresh)}
+              className="mt-2 inline-flex items-center gap-1 rounded-full bg-[var(--jade)] px-3 py-1 text-xs font-bold text-white"
+            >
+              <Plus size={14} /> Learn{' '}
+              {fresh.length === 1
+                ? 'the new word'
+                : `the ${fresh.length} new words`}
+            </button>
+          )}
         </div>
       )}
       {english && line.en && (
@@ -582,6 +624,9 @@ function Bar({
   live,
   level,
   muted,
+  manual,
+  turn,
+  onTurn,
   ending,
   onMute,
   onType,
@@ -590,12 +635,23 @@ function Bar({
   live: boolean
   level: number
   muted: boolean
+  // Turns begun and ended by hand: Talk, then Done (or Space)
+  manual: boolean
+  turn: boolean
+  onTurn: () => void
   ending: boolean
   onMute: () => void
   onType: (text: string) => void
   onEnd: () => void
 }) {
   const [text, setText] = useState('')
+  // (a button with the focus takes Space itself)
+  useKeys((key, e) => {
+    if (key !== ' ' || !manual || !live) return
+    if (e.target instanceof HTMLButtonElement) return
+    onTurn()
+    return true
+  })
   return (
     <div className="sticky bottom-0 z-10 -mx-4 mt-2 border-t border-[var(--paper-2)] bg-[var(--paper)]/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur">
       {ending && (
@@ -611,24 +667,43 @@ function Bar({
           setText('')
         }}
       >
-        <button
-          type="button"
-          onClick={onMute}
-          disabled={!live}
-          aria-label={
-            muted ? 'Turn the microphone on' : 'Turn the microphone off'
-          }
-          aria-pressed={!muted}
-          className={`relative inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-40 ${muted ? 'bg-[var(--ink-2)]' : 'bg-[var(--jade)]'}`}
-          style={{
-            boxShadow:
-              live && !muted
-                ? `0 0 0 ${2 + Math.round(level * 10)}px rgba(47,125,109,0.25)`
-                : undefined,
-          }}
-        >
-          {muted ? <MicOff size={20} /> : <Mic size={20} />}
-        </button>
+        {manual ? (
+          <button
+            type="button"
+            onClick={onTurn}
+            disabled={!live}
+            aria-pressed={turn}
+            className={`inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 font-bold text-white transition disabled:opacity-40 ${turn ? 'bg-[var(--red)]' : 'bg-[var(--jade)]'}`}
+            style={{
+              boxShadow:
+                live && turn
+                  ? `0 0 0 ${2 + Math.round(level * 10)}px rgba(200,55,45,0.25)`
+                  : undefined,
+            }}
+          >
+            {turn ? <Check size={20} /> : <Mic size={20} />}
+            {turn ? 'Done' : 'Talk'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onMute}
+            disabled={!live}
+            aria-label={
+              muted ? 'Turn the microphone on' : 'Turn the microphone off'
+            }
+            aria-pressed={!muted}
+            className={`relative inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-40 ${muted ? 'bg-[var(--ink-2)]' : 'bg-[var(--jade)]'}`}
+            style={{
+              boxShadow:
+                live && !muted
+                  ? `0 0 0 ${2 + Math.round(level * 10)}px rgba(47,125,109,0.25)`
+                  : undefined,
+            }}
+          >
+            {muted ? <MicOff size={20} /> : <Mic size={20} />}
+          </button>
+        )}
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -745,6 +820,24 @@ function Setup({
               Then you can speak over {PARTNER.name}. Without them, the
               microphone rests while {PARTNER.name} speaks, so that the voice
               from the speaker is not heard as yours.
+            </span>
+          </span>
+        </label>
+
+        <label className="mt-4 flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={prefs.manual}
+            onChange={(e) => setPrefs({ manual: e.target.checked })}
+            className="mt-1 h-5 w-5 accent-[var(--jade)]"
+          />
+          <span className="leading-snug">
+            <span className="flex items-center gap-1.5 font-bold">
+              <Hourglass size={16} /> Let me take my time
+            </span>
+            <span className="text-sm text-[var(--ink-2)]">
+              Tap Talk, say it with all the pauses you need, and tap Done (or
+              press Space). Otherwise a long pause ends your turn.
             </span>
           </span>
         </label>

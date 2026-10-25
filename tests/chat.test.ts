@@ -106,6 +106,11 @@ describe('chat: the instructions', () => {
     expect(text).toContain('beginner')
     expect(text).toContain(SHOW_LINE.name)
     expect(text).not.toContain('taking it up again')
+    // English put in is welcome, and answered with the Chinese for it
+    expect(text).toContain('English words into their Chinese')
+    expect(SHOW_LINE.parameters.properties.better.description).toContain(
+      'used English words',
+    )
   })
 
   test('a call taken up again has the conversation so far', () => {

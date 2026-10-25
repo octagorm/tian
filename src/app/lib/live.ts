@@ -47,8 +47,9 @@ export function setKey(key: string) {
 export interface LiveSetup {
   instructions: string
   voice: string
-  // How long a pause ends the player's turn, ms
-  pause: number
+  // How long a pause ends the player's turn, ms; or none, and the player
+  // says when (`talk`)
+  pause: number | 'manual'
 }
 
 export interface LiveEvents {
@@ -204,9 +205,14 @@ export class Live {
           inputAudioTranscription: {},
           outputAudioTranscription: {},
           realtimeInputConfig: {
-            automaticActivityDetection: {
-              silenceDurationMs: this.setup.pause,
-            },
+            automaticActivityDetection:
+              this.setup.pause === 'manual'
+                ? { disabled: true }
+                : {
+                    silenceDurationMs: this.setup.pause,
+                    // a learner stops to think
+                    endOfSpeechSensitivity: 'END_SENSITIVITY_LOW',
+                  },
           },
         },
       })
@@ -259,8 +265,10 @@ export class Live {
     for (const v of pcm) sum += v * v
     this.on.level(Math.min(1, Math.sqrt(sum / pcm.length) / 6000))
     if (!this.live || this.muted) return
+    if (this.setup.pause === 'manual' && !this.talking) return
     const quiet =
       !this.open &&
+      !this.talking &&
       ((this.ctx && this.ctx.currentTime < this.until + 0.4) ||
         performance.now() < this.held)
     this.send({
@@ -271,6 +279,18 @@ export class Live {
         },
       },
     })
+  }
+
+  // The player's turn, begun and ended by hand when the pause is 'manual':
+  // what the partner is saying stops, and nothing is sent between turns
+  talking = false
+  talk(on: boolean) {
+    if (on === this.talking || !this.live) return
+    this.talking = on
+    if (on) {
+      this.flush()
+      this.send({ realtimeInput: { activityStart: {} } })
+    } else this.send({ realtimeInput: { activityEnd: {} } })
   }
 
   // Something played for `seconds` that the partner should not hear
