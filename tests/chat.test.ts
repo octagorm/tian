@@ -9,6 +9,7 @@ import {
   idsIn,
   instructions,
   segment,
+  spell,
   toBase64,
   wordsKnown,
 } from '../src/app/lib/chat'
@@ -137,5 +138,35 @@ describe('chat: sound', () => {
   test('a long piece of sound is encoded whole', () => {
     const pcm = new Int16Array(40_000).map((_, i) => (i * 7) % 3000)
     expect(fromBase64(toBase64(pcm)).length).toBe(40_000)
+  })
+})
+
+describe('chat: what the partner runs together', () => {
+  test('pinyin without spaces is split into syllables', () => {
+    expect(spell('wǒmenshénmeshíhòuchīwǔfàn', 9)).toEqual(
+      'wǒ men shén me shí hòu chī wǔ fàn'.split(' '),
+    )
+    expect(spell("Xī'ān", 2)).toEqual(['Xī', 'ān'])
+    expect(spell('yìdiǎnr', 3)).toEqual(['yì', 'diǎn', 'r'])
+    expect(spell('jiǔ cài', 2)).toEqual(['jiǔ', 'cài'])
+    expect(spell('jiǔcài', 3)).toBeNull()
+  })
+
+  test('a sentence given as one item is shown word by word', () => {
+    const toks = fromItems([
+      {
+        w: '我们什么时候吃榴莲',
+        p: 'wǒmenshénmeshíhòuchīliúlián',
+        e: 'When are we eating durian',
+      },
+      { w: '？' },
+    ])
+    expect(shown(toks)).toBe('我们 什么 时候 吃 [榴莲] ？')
+    expect(toks[4]).toMatchObject({ pinyin: ['liú', 'lián'], gloss: '' })
+  })
+
+  test('a word outside the bank with its pinyin run together', () => {
+    const [t] = fromItems([{ w: '韭菜', p: 'jiǔcài', e: 'chives' }])
+    expect(t).toMatchObject({ pinyin: ['jiǔ', 'cài'], gloss: 'chives' })
   })
 })

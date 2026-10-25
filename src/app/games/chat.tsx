@@ -62,6 +62,8 @@ interface Line {
   better?: Array<Token>
   // Nothing more will be heard of it
   done: boolean
+  // Shown from show_line before its transcript came in
+  waiting?: boolean
   // The partner's voice, to hear again
   sound?: Float32Array<ArrayBuffer>
 }
@@ -246,17 +248,7 @@ export default function Chat() {
       },
       {
         ready: () => setState('live'),
-        // (what the learner said may still come in after the partner has
-        // begun to answer it)
-        heard: (t) =>
-          setLines((ls) => {
-            const i = lastOf(ls, 'learner')
-            if (i >= 0 && !ls[i].done && i >= ls.length - 2)
-              return ls.map((x, k) =>
-                k === i ? { ...x, text: x.text + t } : x,
-              )
-            return [...ls, { who: 'learner', text: t, done: false }]
-          }),
+        heard: (t) => setLines((ls) => heardMore(ls, t)),
         said: (t) =>
           setLines((ls) => {
             const i = openPartner(ls)
@@ -273,6 +265,8 @@ export default function Chat() {
             return ls.map((x, k) => ({
               ...x,
               done: true,
+              // (a transcript still to come may yet join it)
+              waiting: x.waiting && !x.text,
               sound: k === i && sound ? sound : x.sound,
             }))
           }),
@@ -300,7 +294,7 @@ export default function Chat() {
   const type = (text: string) => {
     if (!live.current || !text.trim()) return
     setLines((ls) => [
-      ...ls.map((x) => ({ ...x, done: true })),
+      ...settled(ls),
       { who: 'learner', text: text.trim(), done: true },
     ])
     live.current.say(text.trim())
@@ -401,6 +395,7 @@ export default function Chat() {
           manual={prefs.manual}
           turn={turn}
           onTurn={(on) => {
+            if (on) setLines(settled)
             live.current?.talk(on)
             setTurn(on)
           }}
@@ -438,6 +433,36 @@ function openPartner(ls: Array<Line>): number {
   return i >= 0 && !ls[i].done ? i : -1
 }
 
+// Some more of what the learner said. It may come in after the partner
+// has begun to answer it (with a turn ended by hand, it mostly does), or
+// even after show_line has put it on the screen: it goes on the
+// learner's line before the partner's answer, not after it.
+function heardMore(ls: Array<Line>, t: string): Array<Line> {
+  const p = openPartner(ls)
+  const last = ls.at(-1)
+  // where the learner's line is, or goes
+  const at =
+    p >= 0
+      ? p
+      : last?.who === 'partner' &&
+          ls.at(-2)?.who === 'learner' &&
+          ls.at(-2)?.waiting
+        ? ls.length - 1
+        : ls.length
+  const i = at - 1
+  if (i >= 0 && ls[i].who === 'learner' && (!ls[i].done || ls[i].waiting))
+    return ls.map((x, k) => (k === i ? { ...x, text: x.text + t } : x))
+  return [
+    ...ls.slice(0, at),
+    { who: 'learner', text: t, done: false },
+    ...ls.slice(at),
+  ]
+}
+
+// Every line over, as when the learner begins a new turn
+const settled = (ls: Array<Line>) =>
+  ls.map((x) => ({ ...x, done: true, waiting: false }))
+
 // The partner's calls are taken as they come
 const words = (items: Shown['said']) => {
   const toks = fromItems(items ?? [])
@@ -466,15 +491,24 @@ function show(ls: Array<Line>, s: Shown): Array<Line> {
     toks: said ?? out[i].toks,
     en: str(s.said_en) ?? out[i].en,
   }
-  const j = i - 1
   const heard = words(s.heard)
-  if (j >= 0 && out[j].who === 'learner' && heard)
-    out[j] = {
-      ...out[j],
-      toks: heard,
-      en: str(s.heard_en),
-      better: words(s.better),
-    }
+  if (!heard) return out
+  // what the learner said, if it has not been heard yet: from the call,
+  // to be joined by the transcript when it comes
+  if (out[i - 1]?.who !== 'learner') {
+    out = [
+      ...out.slice(0, i),
+      { who: 'learner', text: '', done: false, waiting: true },
+      ...out.slice(i),
+    ]
+    i++
+  }
+  out[i - 1] = {
+    ...out[i - 1],
+    toks: heard,
+    en: str(s.heard_en),
+    better: words(s.better),
+  }
   return out
 }
 

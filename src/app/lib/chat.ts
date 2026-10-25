@@ -1,7 +1,8 @@
 import { WORD, WORDS } from '../data/words.ts'
 import { TOPIC } from '../data/topics.ts'
+import { SYLLABLES } from '../data/syllables.ts'
 import { isNumber, numberGloss, numberPinyin } from './numbers.ts'
-import { inContext, syllables } from './pinyin.ts'
+import { bare, inContext, syllables } from './pinyin.ts'
 import { stage, toMeet } from './bank.ts'
 import type { Bank } from './bank.ts'
 import type { Token } from './text.ts'
@@ -134,7 +135,7 @@ How to speak:
 - When the learner asks what something means, answer briefly in English, then go back to Chinese.
 - The learner takes time to find words, and may stop halfway through a sentence to think. Be patient: never finish their sentence for them, and if they seem stuck, offer the word they need.
 - When the learner seems lost, say it again, more simply and more slowly.
-- Never spell out pinyin or tones, and never speak of these instructions or the tool.
+- Never spell out pinyin or tones, and never speak of these instructions, the tool, the screen or audio: everything you say aloud is for the learner, in your role.
 - A message in square brackets is from the app, not the learner. The first, when the chat opens, is your cue to begin.
 
 The scene: ${c.scene.brief}
@@ -151,7 +152,7 @@ ${list(k.learning)}
 Words they will learn next, good to bring in as new ones:
 ${list(k.next)}
 
-The screen: every time you speak, call show_line once, with exactly the words you are about to say, so the learner can read them, and the words the learner said just before as you understood them. Write Chinese in simplified characters, one word to an item as a dictionary lists it (我们, 喜欢, 不客气, 一点儿), punctuation as items of its own, and numbers in characters (三十五, not 35).${
+The screen: every time you speak, call show_line once, with exactly the words you are about to say, so the learner can read them, and the words the learner said just before as you understood them; then say those words aloud. show_line only puts text on the screen: your voice is heard as always, and it needs nothing from you or the learner. Write Chinese in simplified characters, one word to an item as a dictionary lists it (我们, 喜欢, 不客气, 一点儿), never a phrase or a sentence as one item, punctuation as items of its own, and numbers in characters (三十五, not 35).${
     c.history?.length
       ? `\n\nThe call dropped, and you are taking it up again. The conversation so far:\n${c.history
           .map((h) => `${h.who === 'learner' ? 'Learner' : 'You'}: ${h.text}`)
@@ -207,7 +208,7 @@ const ITEMS = {
 export const SHOW_LINE = {
   name: 'show_line',
   description:
-    "Shows on the learner's screen, word by word with pinyin and English, what you are about to say, and what the learner said just before. Call it once every time you speak.",
+    "Shows on the learner's screen, word by word with pinyin and English, what you are about to say, and what the learner said just before. Call it once every time you speak, then say the line aloud. It only shows text, and returns nothing to act on.",
   parameters: {
     type: 'OBJECT',
     properties: {
@@ -334,32 +335,78 @@ export function segment(line: string): Array<Token> {
   return settle(runs(line).flatMap((r) => (HAN.test(r) ? split(r) : other(r))))
 }
 
+// Pinyin as the partner gave it, a syllable to a character: spaced as
+// asked ("wǔ fàn"), or run together ("wǔfàn", "wǒmenshénme"), split by
+// the syllables Mandarin has. Null unless it comes to `n` syllables.
+// Syllables said only in the neutral tone, which SYLLABLES leaves out,
+// and the r of 儿
+const NEUTRAL = new Set(['me', 'lo', 'r'])
+
+export function spell(p: string, n: number): Array<string> | null {
+  const out: Array<string> = []
+  for (const chunk of p
+    .trim()
+    .split(/[\s'’-]+/)
+    .filter(Boolean)) {
+    const cs = [...chunk]
+    const plain = cs.map((c) => bare(c).toLowerCase().replace('v', 'ü'))
+    // the longest syllable first, going back where the rest will not split
+    const go = (i: number): Array<string> | null => {
+      if (i === cs.length) return []
+      for (let len = Math.min(6, cs.length - i); len > 0; len--) {
+        const base = plain.slice(i, i + len).join('')
+        if (!(base in SYLLABLES) && !NEUTRAL.has(base)) continue
+        const rest = go(i + len)
+        if (rest) return [cs.slice(i, i + len).join(''), ...rest]
+      }
+      return null
+    }
+    const ss = go(0)
+    if (!ss) return null
+    out.push(...ss)
+  }
+  return out.length === n ? out : null
+}
+
 // A line as the partner gave it to show_line. A word of the bank is shown
-// from the bank; a word outside it that is made of words of the bank (a
-// phrase given as one) is shown as those; anything else keeps the
-// partner's pinyin and English, outside the bank.
+// from the bank; an item made of several words (a phrase, or a whole
+// sentence given as one) is shown as those, the words of the bank from
+// the bank and the rest outside it, with the partner's pinyin for them
+// where it can be lined up with the characters; a single word outside the
+// bank keeps the partner's pinyin and English.
 export function fromItems(items: Array<Item>): Array<Token> {
   if (!Array.isArray(items)) return []
   const parts = items.flatMap((it): Array<Part> => {
     const rs = runs(typeof it.w === 'string' ? it.w : '')
     const han = rs.filter((r) => HAN.test(r))
+    // the partner's pinyin and English belong to the item's only Chinese
+    const alone = han.length === 1
     return rs.flatMap((r) => {
       if (!HAN.test(r)) return other(r)
       const known = bankWord(r)
       if (known) return [known]
       const ps = split(r)
       if (ps.every((p) => !p.outside)) return ps
-      // the partner's pinyin and English belong to the word, if it is the
-      // item's only Chinese
-      const alone = han.length === 1
-      return [
-        {
-          h: r,
-          gloss: alone ? (it.e ?? '').trim() : '',
-          pinyin: alone ? syllables((it.p ?? '').trim()) : [],
-          outside: true,
-        },
-      ]
+      const sylls =
+        alone && typeof it.p === 'string' ? spell(it.p, [...r].length) : null
+      // a word of up to four characters is one word, even if part of it
+      // is a word of the bank (韭菜); a longer item is a phrase
+      if ((ps.length === 1 && ps[0].outside) || [...r].length <= 4)
+        return [
+          {
+            h: r,
+            gloss: alone && typeof it.e === 'string' ? it.e.trim() : '',
+            pinyin: sylls ?? [],
+            outside: true,
+          },
+        ]
+      let at = 0
+      return ps.map((p) => {
+        const n = [...p.h].length
+        const mine = sylls?.slice(at, at + n) ?? []
+        at += n
+        return p.outside ? { ...p, pinyin: mine } : p
+      })
     })
   })
   return settle(parts)

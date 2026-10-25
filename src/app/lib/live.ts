@@ -342,7 +342,9 @@ export class Live {
           functionResponses: calls.map((c) => ({
             id: c.id,
             name: c.name,
-            response: { result: 'shown', scheduling: 'SILENT' },
+            // (scheduling is for calls that do not block, which
+            // this model does not have)
+            response: { result: 'ok' },
           })),
         },
       })

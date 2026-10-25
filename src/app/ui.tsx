@@ -235,52 +235,75 @@ export function Words({
     <span
       className={`inline-flex flex-wrap items-end gap-x-1.5 ${row ? 'gap-y-3' : 'gap-y-1'} leading-none ${className}`}
     >
-      {toks.map((t, i) => {
-        if (t.punct && /[\p{L}\p{N}]/u.test(t.h))
+      {marksAfter(toks).map((g) => {
+        const one = (i: number) => {
+          const t = toks[i]
+          if (t.punct && /[\p{L}\p{N}]/u.test(t.h))
+            return (
+              <span
+                key={i}
+                className={`${row ? 'inline-flex flex-col' : ''} ${{ sm: 'text-sm', md: 'text-base', lg: 'text-lg' }[size]} self-end pb-0.5 text-[var(--ink-2)]`}
+              >
+                {t.h}
+                {row && <span className={`block ${row}`}>{'\u00a0'}</span>}
+              </span>
+            )
+          if (t.punct)
+            return (
+              <span
+                key={i}
+                className={`zh -ml-1 ${row ? 'inline-flex flex-col' : ''} ${font} text-[var(--ink-2)]`}
+              >
+                {t.h}
+                {row && (
+                  <span className={`-mt-[0.4em] block ${row}`}>{'\u00a0'}</span>
+                )}
+              </span>
+            )
+          const glow = t.id && fresh?.has(t.id) ? 'zh-new' : ''
+          const Tag = still ? 'span' : 'button'
           return (
-            <span
+            <Tag
               key={i}
-              className={`${row ? 'inline-flex flex-col' : ''} ${{ sm: 'text-sm', md: 'text-base', lg: 'text-lg' }[size]} self-end pb-0.5 text-[var(--ink-2)]`}
+              type={still ? undefined : 'button'}
+              onClick={still ? undefined : () => peek(t)}
+              className={`rounded-md px-0.5 transition ${row ? 'inline-flex flex-col items-center' : ''} ${still ? '' : 'hover:bg-[var(--paper-2)]'} ${glow}`}
             >
-              {t.h}
-              {row && <span className={`block ${row}`}>{'\u00a0'}</span>}
-            </span>
+              <Helped
+                h={t.h}
+                pinyin={join(t.pinyin)}
+                gloss={t.gloss}
+                stage={stageOfToken(t)}
+                font={font}
+                under={row}
+                outside={t.outside}
+              />
+            </Tag>
           )
-        if (t.punct)
-          return (
-            <span
-              key={i}
-              className={`zh -ml-1 ${row ? 'inline-flex flex-col' : ''} ${font} text-[var(--ink-2)]`}
-            >
-              {t.h}
-              {row && (
-                <span className={`-mt-[0.4em] block ${row}`}>{'\u00a0'}</span>
-              )}
-            </span>
-          )
-        const glow = t.id && fresh?.has(t.id) ? 'zh-new' : ''
-        const Tag = still ? 'span' : 'button'
-        return (
-          <Tag
-            key={i}
-            type={still ? undefined : 'button'}
-            onClick={still ? undefined : () => peek(t)}
-            className={`rounded-md px-0.5 transition ${row ? 'inline-flex flex-col items-center' : ''} ${still ? '' : 'hover:bg-[var(--paper-2)]'} ${glow}`}
-          >
-            <Helped
-              h={t.h}
-              pinyin={join(t.pinyin)}
-              gloss={t.gloss}
-              stage={stageOfToken(t)}
-              font={font}
-              under={row}
-              outside={t.outside}
-            />
-          </Tag>
+        }
+        // a mark kept on the line of the word before it
+        return g.length === 1 ? (
+          one(g[0])
+        ) : (
+          <span key={g[0]} className="inline-flex items-end gap-x-1.5">
+            {g.map(one)}
+          </span>
         )
       })}
     </span>
   )
+}
+
+// The tokens of a line by index, each word with the marks after it
+// (，。！？), so that a line never begins with one
+function marksAfter(toks: Array<Token>): Array<Array<number>> {
+  const out: Array<Array<number>> = []
+  toks.forEach((t, i) => {
+    const mark = t.punct && !/[\p{L}\p{N}]/u.test(t.h)
+    if (mark && out.length) out[out.length - 1].push(i)
+    else out.push([i])
+  })
+  return out
 }
 
 // English with words of the bank in it, written {id}: each in hanzi with
