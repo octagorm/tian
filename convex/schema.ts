@@ -57,6 +57,17 @@ export default defineSchema({
     updatedAt: v.number(),
   }).index('by_user', ['userId']),
 
+  // The player's own Gemini API key for the chat (convex/chat.ts),
+  // encrypted with a secret kept outside the database, and its last four
+  // characters, to recognise it by
+  geminiKeys: defineTable({
+    userId: v.id('users'),
+    iv: v.string(),
+    box: v.string(),
+    last4: v.string(),
+    savedAt: v.number(),
+  }).index('by_user', ['userId']),
+
   // A daily reminder to do Today's session, pushed to one browser
   // (convex/reminders.ts), with or without an account: its push
   // subscription, the time of day and time zone it is for, and the last day

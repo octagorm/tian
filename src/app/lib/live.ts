@@ -3,7 +3,8 @@ import { SHOW_LINE, fromBase64, toBase64 } from './chat'
 import type { Shown } from './chat'
 
 // A conversation with Gemini Live, from the browser, on the player's own
-// API key (kept in this browser only, `getKey`): the microphone goes up
+// API key: kept in this browser (`getKey`), or on the account, from which
+// each call is given a token (convex/chat.ts). The microphone goes up
 // as 16 kHz PCM, the partner's voice comes back as 24 kHz PCM and is
 // played as it comes, with a transcript of both sides and the partner's
 // calls of show_line (lib/chat.ts). Without headphones the partner would
@@ -13,7 +14,16 @@ import type { Shown } from './chat'
 export const LIVE_MODEL = 'gemini-3.8-live'
 
 const ENDPOINT =
-  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent'
+  'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService'
+
+// The key itself, kept in this browser, or a token for one session made
+// from the key kept on the account (convex/chat.ts)
+export type LiveAuth = { key: string } | { token: string }
+
+const address = (auth: LiveAuth) =>
+  'key' in auth
+    ? `${ENDPOINT}.BidiGenerateContent?key=${encodeURIComponent(auth.key)}`
+    : `${ENDPOINT}.BidiGenerateContentConstrained?access_token=${encodeURIComponent(auth.token)}`
 
 const KEY = 'tian:gemini:v1'
 
@@ -120,7 +130,8 @@ export class Live {
   open = false
 
   constructor(
-    private key: string,
+    // or a way to get one, asked for once the microphone is on
+    private auth: LiveAuth | (() => Promise<LiveAuth>),
     private setup: LiveSetup,
     private on: LiveEvents,
   ) {}
@@ -165,7 +176,15 @@ export class Live {
     mic.connect(sink).connect(ctx.destination)
     mic.port.onmessage = (e: MessageEvent<Int16Array>) => this.hear(e.data)
 
-    const ws = new WebSocket(`${ENDPOINT}?key=${encodeURIComponent(this.key)}`)
+    let auth: LiveAuth
+    try {
+      auth = typeof this.auth === 'function' ? await this.auth() : this.auth
+    } catch (e) {
+      this.end(e instanceof Error ? e.message : String(e))
+      return
+    }
+    if (this.ended()) return
+    const ws = new WebSocket(address(auth))
     ws.binaryType = 'arraybuffer'
     this.ws = ws
     ws.onopen = () =>

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useAction, useMutation, useQuery } from 'convex/react'
+import { ConvexError } from 'convex/values'
 import {
   Headphones,
   KeyRound,
@@ -10,6 +12,7 @@ import {
   Send,
   Volume2,
 } from 'lucide-react'
+import { api } from '../../../convex/_generated/api'
 import { WORD } from '../data/words'
 import { SCENES, fromItems, instructions, segment } from '../lib/chat'
 import { Live, getKey, setKey } from '../lib/live'
@@ -24,7 +27,9 @@ import type { Token } from '../lib/text'
 import type { Look } from '../pixel/Pix'
 
 // Chat: a conversation out loud with 林老师, played by Gemini Live on the
-// player's own API key (lib/live.ts), about a scene of their choice. What
+// player's own API key (lib/live.ts), about a scene of their choice. The
+// key is kept on the account, encrypted, when signed in (convex/chat.ts),
+// and else in this browser. What
 // both say is shown word by word as the rest of the page shows Chinese,
 // from what the partner gives show_line (lib/chat.ts), and until it does,
 // from the transcript split into the bank's words. Words outside the bank
@@ -128,12 +133,32 @@ const DEMO: Array<Line> = [
 ]
 
 export default function Chat() {
-  const { bank, settings } = useStore()
+  const { bank, settings, account } = useStore()
   const demo = useMemo(
     () => new URLSearchParams(location.search).get('chat') === 'demo',
     [],
   )
-  const [key, setKeyHere] = useState(getKey)
+  // The key: on the account, or in this browser
+  const signedIn = !!account.me
+  const kept = useQuery(api.chat.saved, signedIn ? {} : 'skip')
+  const saveKey = useAction(api.chat.save)
+  const mintToken = useAction(api.chat.token)
+  const forgetKey = useMutation(api.chat.forget)
+  const [local, setLocal] = useState(getKey)
+  const keepLocal = (k: string) => {
+    setKey(k)
+    setLocal(k)
+  }
+  const where = kept ? 'account' : local ? 'browser' : null
+  const loading = account.loading || (signedIn && kept === undefined)
+  // Kept on the account when signed in, else here
+  const keep = async (k: string) => {
+    if (!signedIn) return keepLocal(k)
+    await saveKey({ key: k }).catch((e: unknown) => {
+      throw new Error(reason(e))
+    })
+    keepLocal('')
+  }
   const [prefs, setPrefsHere] = useState(loadPrefs)
   const setPrefs = (p: Partial<Prefs>) =>
     setPrefsHere((old) => {
@@ -183,7 +208,15 @@ export default function Chat() {
       history,
     })
     const l = new Live(
-      key,
+      where === 'account'
+        ? () =>
+            mintToken({}).then(
+              (token) => ({ token }),
+              (e: unknown) => {
+                throw new Error(reason(e))
+              },
+            )
+        : { key: local },
       {
         instructions: text,
         voice: PARTNER.voice,
@@ -263,15 +296,17 @@ export default function Chat() {
     live.current?.hold(buf.duration)
   }
 
-  if (!key && !demo)
+  if (loading && !demo)
     return (
       <Frame title="Chat" zh="聊天">
-        <KeyForm
-          onKey={(k) => {
-            setKey(k)
-            setKeyHere(k)
-          }}
-        />
+        <p className="text-center text-[var(--ink-2)]">…</p>
+      </Frame>
+    )
+
+  if (!where && !demo)
+    return (
+      <Frame title="Chat" zh="聊天">
+        <KeyForm signedIn={signedIn} onKey={keep} />
       </Frame>
     )
 
@@ -279,13 +314,20 @@ export default function Chat() {
     return (
       <Frame title="Chat" zh="聊天">
         <Setup prefs={prefs} setPrefs={setPrefs} onStart={() => call(false)} />
-        <KeyLine
-          k={key}
-          onForget={() => {
-            setKey('')
-            setKeyHere('')
-          }}
-        />
+        {where === 'account' && kept ? (
+          <KeyLine
+            last4={kept.last4}
+            where="on your account, encrypted"
+            onForget={() => void forgetKey({})}
+          />
+        ) : (
+          <KeyLine
+            last4={local.slice(-4)}
+            where="in this browser"
+            onForget={() => keepLocal('')}
+            onMove={signedIn ? () => keep(local) : undefined}
+          />
+        )}
       </Frame>
     )
 
@@ -345,6 +387,12 @@ export default function Chat() {
     </Frame>
   )
 }
+
+// What went wrong, as the server put it
+const reason = (e: unknown) =>
+  e instanceof ConvexError
+    ? String(e.data)
+    : 'Could not reach the account. Try again.'
 
 const lastOf = (ls: Array<Line>, who: Line['who']) => {
   for (let i = ls.length - 1; i >= 0; i--) if (ls[i].who === who) return i
@@ -716,8 +764,16 @@ function Setup({
   )
 }
 
-function KeyForm({ onKey }: { onKey: (k: string) => void }) {
+function KeyForm({
+  signedIn,
+  onKey,
+}: {
+  signedIn: boolean
+  onKey: (k: string) => Promise<void> | void
+}) {
   const [k, setK] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   return (
     <div className="zh-card p-5 leading-relaxed">
       <h2 className="zh-head mb-2 flex items-center gap-2 text-lg">
@@ -737,16 +793,24 @@ function KeyForm({ onKey }: { onKey: (k: string) => void }) {
         (it is free to start, with a daily limit), and paste it here.
       </p>
       <p className="mt-2 text-sm text-[var(--ink-2)]">
-        The key is kept in this browser only. It is sent to Google and nowhere
-        else, with what you say and the words you know. Google counts the
-        minutes against the key: billed by the minute if the key&rsquo;s project
-        pays.
+        {signedIn
+          ? 'It is kept on your account, encrypted, for every device you sign in on. Your browser never gets it back: each call is given a token for that call alone. '
+          : 'It is kept in this browser only; sign in to keep it on your account, for every device. '}
+        Google gets what you say and the words you know, and counts the minutes
+        against the key: billed by the minute if the key&rsquo;s project pays.
       </p>
       <form
         className="mt-4 flex gap-2"
         onSubmit={(e) => {
           e.preventDefault()
-          if (k.trim()) onKey(k.trim())
+          if (!k.trim() || busy) return
+          setBusy(true)
+          setError(null)
+          Promise.resolve(onKey(k.trim()))
+            .catch((err: unknown) =>
+              setError(err instanceof Error ? err.message : String(err)),
+            )
+            .finally(() => setBusy(false))
         }}
       >
         <input
@@ -759,29 +823,57 @@ function KeyForm({ onKey }: { onKey: (k: string) => void }) {
           spellCheck={false}
           className="min-w-0 flex-1 rounded-xl border-2 border-[var(--paper-2)] bg-white px-3 py-2 font-mono"
         />
-        <Btn type="submit" disabled={!k.trim()}>
-          Save
+        <Btn type="submit" disabled={!k.trim() || busy}>
+          {busy ? 'Checking…' : 'Save'}
         </Btn>
       </form>
+      {error && <p className="mt-2 text-sm text-[var(--red)]">{error}</p>}
     </div>
   )
 }
 
-function KeyLine({ k, onForget }: { k: string; onForget: () => void }) {
+function KeyLine({
+  last4,
+  where,
+  onForget,
+  onMove,
+}: {
+  last4: string
+  where: string
+  onForget: () => void
+  // To the account, from this browser
+  onMove?: () => Promise<void>
+}) {
+  const [error, setError] = useState<string | null>(null)
   return (
-    <p className="mt-4 flex flex-wrap items-center justify-center gap-x-2 text-xs text-[var(--ink-2)]">
-      <KeyRound size={14} />
-      <span>
-        Gemini key <span className="font-mono">…{k.slice(-4)}</span>, kept in
-        this browser
-      </span>
-      <button
-        type="button"
-        onClick={onForget}
-        className="font-bold underline hover:text-[var(--red)]"
-      >
-        Remove it
-      </button>
-    </p>
+    <div className="mt-4 text-center text-xs text-[var(--ink-2)]">
+      <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+        <KeyRound size={14} />
+        <span>
+          Gemini key <span className="font-mono">…{last4}</span>, kept {where}
+        </span>
+        {onMove && (
+          <button
+            type="button"
+            onClick={() =>
+              void onMove().catch((e: unknown) =>
+                setError(e instanceof Error ? e.message : String(e)),
+              )
+            }
+            className="font-bold text-[var(--jade)] underline"
+          >
+            Keep it on your account
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={onForget}
+          className="font-bold underline hover:text-[var(--red)]"
+        >
+          Remove it
+        </button>
+      </p>
+      {error && <p className="mt-1 text-[var(--red)]">{error}</p>}
+    </div>
   )
 }

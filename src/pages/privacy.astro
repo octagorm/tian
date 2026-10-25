@@ -24,41 +24,19 @@ import Prose from '~/components/Prose.astro'
     <h2>The chat</h2>
     <p>
       The chat is spoken by Google&rsquo;s Gemini, on an API key of your own
-      that you paste into it. The key is kept only in the browser where you
-      paste it, and is never sent to us or kept with your account. During a
-      chat your browser sends to Google directly, under that key, what you
-      say into the microphone or type, and the words of your word bank, so
-      that the conversation keeps to them. Google&rsquo;s terms for the
-      Gemini API apply to that. None of it passes through us.
+      that you paste into it. Signed out, the key is kept only in that
+      browser. Signed in, it is kept on your account instead, encrypted with a
+      secret that is not stored with it, so that it works on every device you
+      sign in on; we use it only to ask Google for a token for each call you
+      start, and it is never shown or sent back to the browser. Removing it in
+      the chat deletes it.
     </p>
-
-    <h2>The daily reminder</h2>
     <p>
-      If you turn on the reminder in Settings, we store, for that browser or
-      phone:
+      During a chat your browser sends to Google directly what you say into
+      the microphone or type, and the words of your word bank, so that the
+      conversation keeps to them. Google&rsquo;s terms for the Gemini API
+      apply to that. None of it passes through us, and we keep none of it.
     </p>
-    <ul>
-      <li>
-        the address and keys its push service (Apple's, Google's or
-        Mozilla's) gave it for notifications from Tian;
-      </li>
-      <li>the time you chose, and your time zone;</li>
-      <li>
-        the last day you finished Today's session, so that no reminder comes
-        on a day you have done it;
-      </li>
-      <li>
-        if you are signed in, which account it belongs to, so that a session
-        finished on another of your devices counts too.
-      </li>
-    </ul>
-    <p>
-      We use this only to send the reminder, through that push service.
-      Turning the reminder off deletes it. If you turn off notifications from
-      Tian on the device instead, the push service tells us the address is no
-      longer in use, and we delete it then.
-    </p>
-
     <h2>When you sign in with Google</h2>
     <p>We then store:</p>
     <ul>
@@ -67,12 +45,16 @@ import Prose from '~/components/Prose.astro'
         is signed in;
       </li>
       <li>
-        your word bank: the words you have met, your scores and progress.
+        your word bank: the words you have met, your scores and progress;
+      </li>
+      <li>
+        if you keep it there, your Gemini API key for the chat, encrypted
+        (above).
       </li>
     </ul>
     <p>
       We use this only to show you your progress on the devices where you are
-      signed in. Gorm sees the names and email addresses of everyone who has
+      signed in, and the key only to start your chats. Gorm sees the names and email addresses of everyone who has
       signed in, and the first time you sign in, your name and email address
       are sent as a notification to Gorm's inbox on
       <a href="https://ymse.land">ymse.land</a>, which is also kept with
