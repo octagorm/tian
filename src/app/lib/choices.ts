@@ -26,8 +26,23 @@ function shuffle<T>(xs: Array<T>, random: () => number): Array<T> {
 // word heard, meanings for a word heard, and pinyin for a meaning
 export type ChoiceKind = 'meaning' | 'reverse' | 'listen' | 'hear' | 'say'
 
-// A word as it is said, the tone changes of 不 and 一 applied
-const spoken = (w: Word) => inContext([{ h: w.h, s: syllables(w.p) }])[0]
+// A word as it is said, the tone changes of 不 and 一 applied: each
+// syllable bare, in lower case, and its tone. Kept per word, as every
+// question by ear compares the word with the whole vocabulary.
+type Sound = { bare: Array<string>; tones: Array<number> }
+const sounds = new WeakMap<Word, Sound>()
+function spoken(w: Word): Sound {
+  let s = sounds.get(w)
+  if (!s) {
+    const said = inContext([{ h: w.h, s: syllables(w.p) }])[0]
+    s = {
+      bare: said.map((x) => bare(x).toLowerCase()),
+      tones: said.map(toneOf),
+    }
+    sounds.set(w, s)
+  }
+  return s
+}
 
 // Two words a listener could not tell apart: the same syllables, with
 // tones that differ, if at all, only where one is neutral (东西 dōngxī,
@@ -36,18 +51,17 @@ export function soundsSame(a: Word, b: Word): boolean {
   const sa = spoken(a)
   const sb = spoken(b)
   return (
-    sa.length === sb.length &&
-    sa.every((s, i) => {
-      const t = sb[i]
-      if (bare(s).toLowerCase() !== bare(t).toLowerCase()) return false
-      const ta = toneOf(s)
-      const tb = toneOf(t)
+    sa.bare.length === sb.bare.length &&
+    sa.bare.every((s, i) => {
+      if (s !== sb.bare[i]) return false
+      const ta = sa.tones[i]
+      const tb = sb.tones[i]
       return ta === tb || ta === 5 || tb === 5
     })
   )
 }
 
-const length = (w: Word) => syllables(w.p).length
+const length = (w: Word) => spoken(w).bare.length
 
 // How much a wrong answer is like the word, so hard to tell from it: by
 // ear, syllables in common (more in the same place) and the same tones;
@@ -60,13 +74,11 @@ function likeness(w: Word, x: Word, kind: ChoiceKind): number {
   if (kind === 'listen' || kind === 'hear' || kind === 'say') {
     const sw = spoken(w)
     const sx = spoken(x)
-    const bw = sw.map((s) => bare(s).toLowerCase())
-    sx.forEach((s, i) => {
-      const b = bare(s).toLowerCase()
-      if (bw[i] === b) score += 2
-      else if (bw.includes(b)) score += 1
+    sx.bare.forEach((b, i) => {
+      if (sw.bare[i] === b) score += 2
+      else if (sw.bare.includes(b)) score += 1
     })
-    if (sw.map(toneOf).join() === sx.map(toneOf).join()) score += 1
+    if (sw.tones.join() === sx.tones.join()) score += 1
   }
   if (kind === 'reverse')
     for (const c of new Set(x.h)) if (w.h.includes(c)) score += 1.5
