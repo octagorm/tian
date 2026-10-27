@@ -89,4 +89,9 @@ export default defineSchema({
     .index('by_endpoint', ['endpoint'])
     .index('by_next', ['next'])
     .index('by_user', ['userId']),
+
+  // When each piece of feedback was sent (convex/feedback.ts), and nothing
+  // else: the text goes on to the admin's inbox, and only the times are
+  // kept, to hold back a flood
+  feedback: defineTable({ at: v.number() }).index('by_at', ['at']),
 })

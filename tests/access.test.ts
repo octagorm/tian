@@ -63,7 +63,7 @@ describe('access', () => {
     await t.finishAllScheduledFunctions(vi.runAllTimers)
     expect(fetch).toHaveBeenCalledTimes(1)
     const [url, init] = fetch.mock.calls[0]
-    expect(url).toBe('https://ymse.land/api/notify')
+    expect(url).toBe('https://admin.ymse.land/api/notify')
     expect(init.headers.authorization).toBe('Bearer test-only-token')
     const body = JSON.parse(init.body)
     expect(body).toMatchObject({ title: 'Ny bruker: Ola', tag: 'ny-bruker' })

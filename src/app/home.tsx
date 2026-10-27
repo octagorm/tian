@@ -11,6 +11,7 @@ import { TOPIC } from './data/topics'
 import { dayKey, level, recallOf, streak, unmet } from './lib/bank'
 import { Pix } from './pixel/Pix'
 import { Account } from './account'
+import { Feedback } from './feedback'
 import { GAMES } from './registry'
 import { CourseStrip, GardenMini, SealStrip } from './daily'
 import { Ring } from './daily/Ring'
@@ -201,7 +202,8 @@ export default function Home() {
             </Section>
           ) : null,
         )}
-        <footer className="mt-16 text-center text-sm text-[var(--ink-2)]">
+        <Feedback />
+        <footer className="mt-12 text-center text-sm text-[var(--ink-2)]">
           <Fret className="mx-auto mb-6 h-2 w-48 text-[var(--gold)] opacity-60" />
           <nav className="mb-3 flex items-center justify-center gap-5 font-bold text-[var(--ink)]">
             <a

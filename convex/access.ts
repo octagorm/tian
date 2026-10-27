@@ -48,36 +48,51 @@ export async function welcome(ctx: MutationCtx, userId: Id<'users'>) {
   await ctx.scheduler.runAfter(0, internal.access.announce, {
     title: `Ny bruker: ${user.name ?? emailOf(user)}`,
     body: `${emailOf(user)}\n${today.length === 1 ? 'Den eneste nye' : `${today.length} nye`} det siste døgnet.`,
+    url: 'https://tian.ymse.land/admin',
+    tag: 'ny-bruker',
   })
 }
 
 // To the admin's inbox, with the sender's token in YMSELAND_NOTIFY_TOKEN
-// (made at ymse.land/admin/innboks); without it, nothing is sent. Unread,
-// the next one replaces it.
+// (made under Avsendere at admin.ymse.land/oppsett); without it, nothing
+// is sent. Unread, the next one with the same tag replaces it. `image` is
+// a picture as a data URL. Whether it arrived.
+export async function toInbox(m: {
+  title: string
+  body: string
+  url?: string
+  tag?: string
+  image?: string
+}): Promise<boolean> {
+  const token = process.env.YMSELAND_NOTIFY_TOKEN
+  if (!token) return false
+  try {
+    const res = await fetch('https://admin.ymse.land/api/notify', {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${token}`,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify(m),
+      signal: AbortSignal.timeout(20_000),
+    })
+    if (!res.ok) console.error('The inbox answered', res.status)
+    return res.ok
+  } catch (e) {
+    console.error('The inbox could not be reached', e)
+    return false
+  }
+}
+
 export const announce = internalAction({
-  args: { title: v.string(), body: v.string() },
-  handler: async (_ctx, { title, body }) => {
-    const token = process.env.YMSELAND_NOTIFY_TOKEN
-    if (!token) return
-    try {
-      const res = await fetch('https://ymse.land/api/notify', {
-        method: 'POST',
-        headers: {
-          authorization: `Bearer ${token}`,
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          title,
-          body,
-          url: 'https://tian.ymse.land/admin',
-          tag: 'ny-bruker',
-        }),
-        signal: AbortSignal.timeout(10_000),
-      })
-      if (!res.ok) console.error('The inbox answered', res.status)
-    } catch (e) {
-      console.error('The inbox could not be reached', e)
-    }
+  args: {
+    title: v.string(),
+    body: v.string(),
+    url: v.optional(v.string()),
+    tag: v.optional(v.string()),
+  },
+  handler: async (_ctx, m) => {
+    await toInbox(m)
   },
 })
 
