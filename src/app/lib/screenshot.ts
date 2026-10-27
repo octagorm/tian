@@ -1,7 +1,7 @@
 // A picture for the feedback form (feedback.tsx), pasted or chosen: drawn
-// at most MAX_SIDE wide or tall and saved as WebP (JPEG where the browser
-// cannot), smaller each try until it is under MAX_BYTES, which
-// convex/feedback.ts allows with room to spare.
+// at most MAX_SIDE wide or tall and saved as JPEG, smaller each try until
+// it is under MAX_BYTES, which convex/feedback.ts allows with room to spare.
+// Not WebP: the inbox on an iPhone showed it as a broken picture.
 
 const MAX_SIDE = 2000
 const MAX_BYTES = 1_500_000
@@ -26,9 +26,7 @@ export async function shrink(file: Blob): Promise<Shot> {
       g.fillStyle = '#fff'
       g.fillRect(0, 0, canvas.width, canvas.height)
       g.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
-      let blob = await blobOf(canvas, 'image/webp', quality)
-      if (!blob || blob.type !== 'image/webp')
-        blob = await blobOf(canvas, 'image/jpeg', quality)
+      const blob = await blobOf(canvas, 'image/jpeg', quality)
       if (!blob) throw new Error('Not drawn')
       if (blob.size <= MAX_BYTES || quality < 0.4) {
         if (blob.size > MAX_BYTES) {
