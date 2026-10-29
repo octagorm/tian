@@ -65,6 +65,8 @@ export interface LiveEvents {
   // The player spoke over the partner, who stopped
   interrupted: () => void
   speaking: (on: boolean) => void
+  // The microphone is open for a turn taken by hand, or closed
+  listening: (on: boolean) => void
   // How loud the microphone is, 0 to 1
   level: (v: number) => void
   // The call is over: why, if not because it was ended here
@@ -221,6 +223,10 @@ export class Live {
   private ws: WebSocket | null = null
   private ctx: AudioContext | null = null
   private stream: MediaStream | null = null
+  // The microphone's own context, while a turn is taken by hand
+  private micCtx: AudioContext | null = null
+  // The audio thread's code
+  private module = ''
   private out: GainNode | null = null
   private player: AudioWorkletNode | null = null
   private loudness = new Loudness()
@@ -253,13 +259,7 @@ export class Live {
     this.ctx = ctx
     this.out = voiceOut(ctx)
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-      })
+      this.stream = await this.microphone()
     } catch {
       this.end(
         'The microphone was not allowed. Allow it for this page, and try again.',
@@ -271,11 +271,18 @@ export class Live {
       this.stream.getTracks().forEach((t) => t.stop())
       return
     }
-    const url = URL.createObjectURL(
+    // With turns taken by hand, the microphone is open only while the
+    // player speaks: an iPhone with it open is in a call, with a louder
+    // volume of its own and its voice processing, and the partner's voice
+    // crackled. It was opened now only to be allowed.
+    if (this.manual) {
+      this.stream.getTracks().forEach((t) => t.stop())
+      this.stream = null
+    }
+    this.module = URL.createObjectURL(
       new Blob([MIC], { type: 'application/javascript' }),
     )
-    await ctx.audioWorklet.addModule(url)
-    URL.revokeObjectURL(url)
+    await ctx.audioWorklet.addModule(this.module)
     if (this.ended()) return
     const player = new AudioWorkletNode(ctx, 'tian-player', {
       numberOfInputs: 0,
@@ -288,13 +295,7 @@ export class Live {
       this.on.speaking(e.data)
     }
     this.player = player
-    const mic = new AudioWorkletNode(ctx, 'tian-mic')
-    ctx.createMediaStreamSource(this.stream).connect(mic)
-    // (some browsers run a node only on the way to the speakers)
-    const sink = ctx.createGain()
-    sink.gain.value = 0
-    mic.connect(sink).connect(ctx.destination)
-    mic.port.onmessage = (e: MessageEvent<Int16Array>) => this.hear(e.data)
+    if (this.stream) this.listen(ctx, this.stream)
 
     let auth: LiveAuth
     try {
@@ -351,6 +352,69 @@ export class Live {
       )
   }
 
+  private get manual() {
+    return this.setup.pause === 'manual'
+  }
+
+  private microphone() {
+    return navigator.mediaDevices.getUserMedia({
+      audio: {
+        // (with turns by hand the partner is silent while the player speaks)
+        echoCancellation: !this.manual,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
+    })
+  }
+
+  // The microphone, sent on as it comes (`hear`)
+  private listen(ctx: AudioContext, stream: MediaStream) {
+    const mic = new AudioWorkletNode(ctx, 'tian-mic')
+    ctx.createMediaStreamSource(stream).connect(mic)
+    // (some browsers run a node only on the way to the speakers)
+    const sink = ctx.createGain()
+    sink.gain.value = 0
+    mic.connect(sink).connect(ctx.destination)
+    mic.port.onmessage = (e: MessageEvent<Int16Array>) => this.hear(e.data)
+  }
+
+  // A turn taken by hand: the microphone opened in a context of its own,
+  // so that nothing of it is left once it is closed
+  private turns = 0
+  private async openMic() {
+    const n = ++this.turns
+    const still = () => n === this.turns && this.talking && !this.over
+    let stream: MediaStream
+    try {
+      stream = await this.microphone()
+    } catch {
+      return
+    }
+    if (!still()) return stream.getTracks().forEach((t) => t.stop())
+    const ctx = new AudioContext()
+    this.stream = stream
+    this.micCtx = ctx
+    try {
+      await ctx.audioWorklet.addModule(this.module)
+    } catch {
+      // closed meanwhile
+      return
+    }
+    if (!still() || this.micCtx !== ctx) return
+    this.listen(ctx, stream)
+    this.on.listening(true)
+  }
+
+  private closeMic() {
+    this.turns++
+    this.stream?.getTracks().forEach((t) => t.stop())
+    this.stream = null
+    void this.micCtx?.close().catch(() => {})
+    this.micCtx = null
+    this.on.level(0)
+    this.on.listening(false)
+  }
+
   // Something typed instead of said
   say(text: string) {
     this.send({ realtimeInput: { text } })
@@ -374,8 +438,9 @@ export class Live {
     this.over = true
     this.flush()
     this.ws?.close()
-    this.stream?.getTracks().forEach((t) => t.stop())
+    this.closeMic()
     void this.ctx?.close().catch(() => {})
+    if (this.module) URL.revokeObjectURL(this.module)
     this.on.closed(why)
   }
 
@@ -410,7 +475,11 @@ export class Live {
     if (on) {
       this.flush()
       this.send({ realtimeInput: { activityStart: {} } })
-    } else this.send({ realtimeInput: { activityEnd: {} } })
+      void this.openMic()
+    } else {
+      this.send({ realtimeInput: { activityEnd: {} } })
+      this.closeMic()
+    }
   }
 
   // Something played for `seconds` that the partner should not hear

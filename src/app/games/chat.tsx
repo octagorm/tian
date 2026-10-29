@@ -192,6 +192,8 @@ export default function Chat() {
   const [muted, setMuted] = useState(false)
   // The player's turn, begun and ended by hand
   const [turn, setTurn] = useState(false)
+  // and the microphone open for it
+  const [listening, setListening] = useState(false)
   const live = useRef<Live | null>(null)
   const scene = SCENES.find((s) => s.id === prefs.scene) ?? SCENES[0]
 
@@ -246,6 +248,7 @@ export default function Chat() {
         turnEnd: (sound) => setLines((ls) => turnEnd(ls, sound)),
         interrupted: () => setLines(interrupted),
         speaking: setSpeaking,
+        listening: setListening,
         level: setLevel,
         ending: () => setEnding(true),
         closed: (w) => {
@@ -333,7 +336,9 @@ export default function Chat() {
                 ? 'Speaking'
                 : prefs.manual
                   ? turn
-                    ? 'Listening, until you let go or tap Done'
+                    ? listening
+                      ? 'Listening, until you let go or tap Done'
+                      : 'Opening the microphone…'
                     : 'Hold or tap Talk when you are ready'
                   : muted
                     ? 'Microphone off'
