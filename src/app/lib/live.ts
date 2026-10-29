@@ -74,7 +74,7 @@ export interface LiveEvents {
 }
 
 // Runs in the audio thread: the microphone, averaged down to 16 kHz, in
-// pieces of a tenth of a second
+// pieces of a tenth of a second, and the partner's voice
 const MIC = `
 class Mic extends AudioWorkletProcessor {
   constructor() {
@@ -108,6 +108,74 @@ class Mic extends AudioWorkletProcessor {
   }
 }
 registerProcessor('tian-mic', Mic)
+
+// The partner's voice, 24 kHz pieces as they come, played as one stream:
+// resampled here without a seam between pieces (a source node per piece
+// clicks where they meet), after a little is gathered, so that a piece
+// late from the network does not leave a gap; and gathered again if it
+// runs dry. 'go' plays what is left at the end of a turn, 'clear' stops.
+class Player extends AudioWorkletProcessor {
+  constructor() {
+    super()
+    this.q = []
+    this.pos = 0
+    this.have = 0
+    this.step = 24000 / sampleRate
+    this.on = false
+    this.go = false
+    this.port.onmessage = (e) => {
+      if (e.data === 'clear') {
+        this.q = []
+        this.pos = 0
+        this.have = 0
+        this.go = false
+        this.set(false)
+      } else if (e.data === 'go') this.go = true
+      else {
+        this.q.push(e.data)
+        this.have += e.data.length
+      }
+    }
+  }
+  set(on) {
+    if (on !== this.on) this.port.postMessage(on)
+    this.on = on
+  }
+  at(k) {
+    for (const b of this.q) {
+      if (k < b.length) return b[k]
+      k -= b.length
+    }
+    return null
+  }
+  process(inputs, outputs) {
+    const out = outputs[0][0]
+    out.fill(0)
+    if (!this.on && (this.have >= 3600 || (this.go && this.have > 0)))
+      this.set(true)
+    if (!this.on) return true
+    for (let i = 0; i < out.length; i++) {
+      const k = Math.floor(this.pos)
+      const a = this.at(k)
+      if (a === null) {
+        // run dry: the end of the turn, or gather again
+        if (this.go) this.go = false
+        this.set(false)
+        break
+      }
+      const b = this.at(k + 1)
+      out[i] = b === null ? a : a + (b - a) * (this.pos - k)
+      this.pos += this.step
+      while (this.q.length && this.pos >= this.q[0].length) {
+        this.pos -= this.q[0].length
+        this.have -= this.q[0].length
+        this.q.shift()
+      }
+    }
+    return true
+  }
+}
+registerProcessor('tian-player', Player)
 `
 
 export class Live {
@@ -115,9 +183,11 @@ export class Live {
   private ctx: AudioContext | null = null
   private stream: MediaStream | null = null
   private out: GainNode | null = null
-  private playing = new Set<AudioBufferSourceNode>()
-  // When what is queued to play ends, in the audio context's time
-  private until = 0
+  private player: AudioWorkletNode | null = null
+  // The partner's voice is playing
+  private sounding = false
+  // and stopped at this time (performance.now)
+  private stopped = 0
   // The sound of the partner's turn so far
   private turn: Array<Float32Array> = []
   // Something else playing that the microphone should not pick up, until
@@ -169,6 +239,17 @@ export class Live {
     await ctx.audioWorklet.addModule(url)
     URL.revokeObjectURL(url)
     if (this.ended()) return
+    const player = new AudioWorkletNode(ctx, 'tian-player', {
+      numberOfInputs: 0,
+      outputChannelCount: [1],
+    })
+    player.connect(this.out)
+    player.port.onmessage = (e: MessageEvent<boolean>) => {
+      this.sounding = e.data
+      if (!e.data) this.stopped = performance.now()
+      this.on.speaking(e.data)
+    }
+    this.player = player
     const mic = new AudioWorkletNode(ctx, 'tian-mic')
     ctx.createMediaStreamSource(this.stream).connect(mic)
     // (some browsers run a node only on the way to the speakers)
@@ -269,7 +350,8 @@ export class Live {
     const quiet =
       !this.open &&
       !this.talking &&
-      ((this.ctx && this.ctx.currentTime < this.until + 0.4) ||
+      (this.sounding ||
+        performance.now() < this.stopped + 400 ||
         performance.now() < this.held)
     this.send({
       realtimeInput: {
@@ -331,6 +413,7 @@ export class Live {
           at += b.length
         }
         this.turn = []
+        if (n) this.player?.port.postMessage('go')
         this.on.turnEnd(sound)
       }
     }
@@ -352,40 +435,15 @@ export class Live {
   }
 
   private play(b64: string) {
-    const ctx = this.ctx
-    if (!ctx || !this.out) return
     const pcm = fromBase64(b64)
-    if (!pcm.length) return
+    if (!pcm.length || !this.player) return
     this.turn.push(pcm)
-    const buf = ctx.createBuffer(1, pcm.length, 24000)
-    buf.copyToChannel(pcm, 0)
-    const src = ctx.createBufferSource()
-    src.buffer = buf
-    src.connect(this.out)
-    const at = Math.max(ctx.currentTime + 0.04, this.until)
-    src.start(at)
-    this.until = at + buf.duration
-    if (!this.playing.size) this.on.speaking(true)
-    this.playing.add(src)
-    src.onended = () => {
-      this.playing.delete(src)
-      if (!this.playing.size) this.on.speaking(false)
-    }
+    this.player.port.postMessage(pcm)
   }
 
   // Stop what is playing, as when the player speaks over it
   private flush() {
-    for (const s of this.playing) {
-      s.onended = null
-      try {
-        s.stop()
-      } catch {
-        // not started
-      }
-    }
-    if (this.playing.size) this.on.speaking(false)
-    this.playing.clear()
-    this.until = 0
+    this.player?.port.postMessage('clear')
   }
 }
 

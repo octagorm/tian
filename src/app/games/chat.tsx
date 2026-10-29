@@ -18,6 +18,15 @@ import {
 import { api } from '../../../convex/_generated/api'
 import { WORD } from '../data/words'
 import { SCENES, fromItems, idsIn, instructions, segment } from '../lib/chat'
+import {
+  begin,
+  heard,
+  interrupted,
+  said,
+  show,
+  turnEnd,
+  typed,
+} from '../lib/chatLines'
 import { Live, getKey, setKey } from '../lib/live'
 import { audioContext } from '../lib/audio'
 import { hushMusic } from '../lib/music'
@@ -26,8 +35,8 @@ import { Btn, Frame, Words } from '../ui'
 import { Face } from '../pixel/Pix'
 import { useKeys } from './fx'
 import type { ReactNode } from 'react'
-import type { Item, Pace, Shown } from '../lib/chat'
-import type { Token } from '../lib/text'
+import type { Item, Pace } from '../lib/chat'
+import type { Line } from '../lib/chatLines'
 import type { Look } from '../pixel/Pix'
 
 // Chat: a conversation out loud with 林老师, played by Gemini Live on the
@@ -49,23 +58,6 @@ const LOOK: Look = {
   coat: '#2f7d6d',
   glasses: true,
   clothes: 'mandarin',
-}
-
-interface Line {
-  who: 'learner' | 'partner'
-  // What was heard, or typed
-  text: string
-  // The words shown, from show_line
-  toks?: Array<Token>
-  en?: string
-  // What the learner meant, said the right way
-  better?: Array<Token>
-  // Nothing more will be heard of it
-  done: boolean
-  // Shown from show_line before its transcript came in
-  waiting?: boolean
-  // The partner's voice, to hear again
-  sound?: Float32Array<ArrayBuffer>
 }
 
 type State = 'setup' | 'calling' | 'live' | 'over'
@@ -248,30 +240,11 @@ export default function Chat() {
       },
       {
         ready: () => setState('live'),
-        heard: (t) => setLines((ls) => heardMore(ls, t)),
-        said: (t) =>
-          setLines((ls) => {
-            const i = openPartner(ls)
-            if (i >= 0)
-              return ls.map((x, k) =>
-                k === i ? { ...x, text: x.text + t } : x,
-              )
-            return [...ls, { who: 'partner', text: t, done: false }]
-          }),
+        heard: (t) => setLines((ls) => heard(ls, t, prefs.manual)),
+        said: (t) => setLines((ls) => said(ls, t)),
         shown: (s) => setLines((ls) => show(ls, s)),
-        turnEnd: (sound) =>
-          setLines((ls) => {
-            const i = lastOf(ls, 'partner')
-            return ls.map((x, k) => ({
-              ...x,
-              done: true,
-              // (a transcript still to come may yet join it)
-              waiting: x.waiting && !x.text,
-              sound: k === i && sound ? sound : x.sound,
-            }))
-          }),
-        interrupted: () =>
-          setLines((ls) => ls.map((x) => ({ ...x, done: true }))),
+        turnEnd: (sound) => setLines((ls) => turnEnd(ls, sound)),
+        interrupted: () => setLines(interrupted),
         speaking: setSpeaking,
         level: setLevel,
         ending: () => setEnding(true),
@@ -293,10 +266,7 @@ export default function Chat() {
 
   const type = (text: string) => {
     if (!live.current || !text.trim()) return
-    setLines((ls) => [
-      ...settled(ls),
-      { who: 'learner', text: text.trim(), done: true },
-    ])
+    setLines((ls) => typed(ls, text.trim()))
     live.current.say(text.trim())
   }
 
@@ -395,7 +365,7 @@ export default function Chat() {
           manual={prefs.manual}
           turn={turn}
           onTurn={(on) => {
-            if (on) setLines(settled)
+            if (on) setLines(begin)
             live.current?.talk(on)
             setTurn(on)
           }}
@@ -421,96 +391,6 @@ const reason = (e: unknown) =>
   e instanceof ConvexError
     ? String(e.data)
     : 'Could not reach the account. Try again.'
-
-const lastOf = (ls: Array<Line>, who: Line['who']) => {
-  for (let i = ls.length - 1; i >= 0; i--) if (ls[i].who === who) return i
-  return -1
-}
-
-// The partner's line still being heard, if any
-function openPartner(ls: Array<Line>): number {
-  const i = lastOf(ls, 'partner')
-  return i >= 0 && !ls[i].done ? i : -1
-}
-
-// Some more of what the learner said. It may come in after the partner
-// has begun to answer it (with a turn ended by hand, it mostly does), or
-// even after show_line has put it on the screen: it goes on the
-// learner's line before the partner's answer, not after it.
-function heardMore(ls: Array<Line>, t: string): Array<Line> {
-  const p = openPartner(ls)
-  const last = ls.at(-1)
-  // where the learner's line is, or goes
-  const at =
-    p >= 0
-      ? p
-      : last?.who === 'partner' &&
-          ls.at(-2)?.who === 'learner' &&
-          ls.at(-2)?.waiting
-        ? ls.length - 1
-        : ls.length
-  const i = at - 1
-  if (i >= 0 && ls[i].who === 'learner' && (!ls[i].done || ls[i].waiting))
-    return ls.map((x, k) => (k === i ? { ...x, text: x.text + t } : x))
-  return [
-    ...ls.slice(0, at),
-    { who: 'learner', text: t, done: false },
-    ...ls.slice(at),
-  ]
-}
-
-// Every line over, as when the learner begins a new turn
-const settled = (ls: Array<Line>) =>
-  ls.map((x) => ({ ...x, done: true, waiting: false }))
-
-// The partner's calls are taken as they come
-const words = (items: Shown['said']) => {
-  const toks = fromItems(items ?? [])
-  return toks.length ? toks : undefined
-}
-const str = (x: unknown) => (typeof x === 'string' && x ? x : undefined)
-
-// What show_line gave, put on the lines it belongs to: the partner's line
-// being said, or else the last one still without words (a call may come
-// after its turn is over), or a new one, if the call comes before the
-// sound; and what the learner said to the line before it
-function show(ls: Array<Line>, s: Shown): Array<Line> {
-  let out = [...ls]
-  let i = openPartner(out)
-  if (i < 0) {
-    const last = lastOf(out, 'partner')
-    i = last >= 0 && !out[last].toks && last >= out.length - 2 ? last : -1
-  }
-  if (i < 0) {
-    out = [...out, { who: 'partner', text: '', done: false }]
-    i = out.length - 1
-  }
-  const said = words(s.said)
-  out[i] = {
-    ...out[i],
-    toks: said ?? out[i].toks,
-    en: str(s.said_en) ?? out[i].en,
-  }
-  const heard = words(s.heard)
-  if (!heard) return out
-  // what the learner said, if it has not been heard yet: from the call,
-  // to be joined by the transcript when it comes
-  if (out[i - 1]?.who !== 'learner') {
-    out = [
-      ...out.slice(0, i),
-      { who: 'learner', text: '', done: false, waiting: true },
-      ...out.slice(i),
-    ]
-    i++
-  }
-  out[i - 1] = {
-    ...out[i - 1],
-    toks: heard,
-    en: str(s.heard_en),
-    better: words(s.better),
-  }
-  return out
-}
 
 function Partner({
   status,
