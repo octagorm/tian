@@ -178,12 +178,52 @@ class Player extends AudioWorkletProcessor {
 registerProcessor('tian-player', Player)
 `
 
+// Where the partner's voice is played. Gemini sends it far louder than
+// Tian's own recordings (made to -16 LUFS), and at full volume a phone's
+// speaker crackled with it: so it is brought down to their level (`level`,
+// as it comes), and a limiter keeps its peaks from overdriving it
+export function voiceOut(ctx: BaseAudioContext): GainNode {
+  const gain = ctx.createGain()
+  gain.gain.value = MUTED ? 0 : 0.5
+  const limit = ctx.createDynamicsCompressor()
+  limit.threshold.value = -10
+  limit.knee.value = 4
+  limit.ratio.value = 12
+  limit.attack.value = 0.003
+  limit.release.value = 0.15
+  gain.connect(limit).connect(ctx.destination)
+  return gain
+}
+
+// How loud speech is (the root mean square of its voiced pieces of 50 ms),
+// added to what was heard before
+export class Loudness {
+  private sum = 0
+  private n = 0
+  add(pcm: Float32Array) {
+    for (let at = 0; at + 1200 <= pcm.length; at += 1200) {
+      let s = 0
+      for (let i = at; i < at + 1200; i++) s += pcm[i] * pcm[i]
+      // (a pause says nothing of the level)
+      if (s / 1200 < 0.0004) continue
+      this.sum += s
+      this.n += 1200
+    }
+  }
+  // The gain that brings it to the level of Tian's recordings
+  gain(): number {
+    if (!this.n) return 0.5
+    return Math.min(1, Math.max(0.2, 0.15 / Math.sqrt(this.sum / this.n)))
+  }
+}
+
 export class Live {
   private ws: WebSocket | null = null
   private ctx: AudioContext | null = null
   private stream: MediaStream | null = null
   private out: GainNode | null = null
   private player: AudioWorkletNode | null = null
+  private loudness = new Loudness()
   // The partner's voice is playing
   private sounding = false
   // and stopped at this time (performance.now)
@@ -211,9 +251,7 @@ export class Live {
   async start() {
     const ctx = new AudioContext()
     this.ctx = ctx
-    this.out = ctx.createGain()
-    this.out.gain.value = MUTED ? 0 : 1
-    this.out.connect(ctx.destination)
+    this.out = voiceOut(ctx)
     try {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
@@ -438,6 +476,13 @@ export class Live {
     const pcm = fromBase64(b64)
     if (!pcm.length || !this.player) return
     this.turn.push(pcm)
+    this.loudness.add(pcm)
+    if (this.out && this.ctx && !MUTED)
+      this.out.gain.setTargetAtTime(
+        this.loudness.gain(),
+        this.ctx.currentTime,
+        0.3,
+      )
     this.player.port.postMessage(pcm)
   }
 

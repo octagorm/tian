@@ -27,8 +27,8 @@ import {
   turnEnd,
   typed,
 } from '../lib/chatLines'
-import { Live, getKey, setKey } from '../lib/live'
-import { audioContext } from '../lib/audio'
+import { Live, Loudness, getKey, setKey, voiceOut } from '../lib/live'
+import { MUTED, audioContext } from '../lib/audio'
 import { hushMusic } from '../lib/music'
 import { useStore } from '../lib/store'
 import { Btn, Frame, Words } from '../ui'
@@ -277,7 +277,11 @@ export default function Chat() {
     buf.copyToChannel(sound, 0)
     const src = c.createBufferSource()
     src.buffer = buf
-    src.connect(c.destination)
+    const out = voiceOut(c)
+    const loud = new Loudness()
+    loud.add(sound)
+    if (!MUTED) out.gain.value = loud.gain()
+    src.connect(out)
     src.start()
     live.current?.hold(buf.duration)
   }
