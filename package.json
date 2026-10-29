@@ -1,6 +1,7 @@
 {
   "name": "tian",
   "private": true,
+  "license": "MIT",
   "sideEffects": false,
   "type": "module",
   "engines": {
