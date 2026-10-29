@@ -311,3 +311,52 @@ ruby.zh-outside rt {
     animation: none !important;
   }
 }
+
+/* The home screen's word bar: known in red, learning in jade, and those of
+   each fading, due to practise now, lit in their top half, as in Hola */
+.zh-words .bar {
+  display: flex;
+  gap: 2px;
+  height: 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--paper-2);
+}
+
+.zh-words .bar span {
+  min-width: 4px;
+}
+
+.zh-words .known {
+  --c: var(--red);
+}
+
+.zh-words .learning {
+  --c: var(--jade);
+}
+
+.zh-words .bar span,
+.zh-words i {
+  background: var(--c);
+}
+
+.zh-words b {
+  color: var(--c, var(--ink));
+}
+
+.zh-words .bar .due,
+.zh-words .due i {
+  background: linear-gradient(
+    color-mix(in srgb, var(--c) 40%, #fffaf1) 0 50%,
+    var(--c) 50%
+  );
+}
+
+.zh-words i {
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+}

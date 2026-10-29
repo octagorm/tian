@@ -17,7 +17,7 @@ import { CourseStrip, GardenMini, SealStrip } from './daily'
 import { Ring } from './daily/Ring'
 import { describe } from './daily/steps'
 import { usePlay, useToday } from './daily/useToday'
-import { current, finished, plan, share } from './lib/today'
+import { FADING, current, finished, plan, share } from './lib/today'
 import { dayOf, partOf, partsDone } from './lib/course'
 import { Mixed, MusicToggle } from './ui'
 import {
@@ -115,10 +115,17 @@ export default function Home() {
   const { bank } = useStore()
   const now = Date.now()
   const met = WORDS.filter((w) => bank.cards[w.id])
-  const knownN = met.filter((w) => level(bank.cards[w.id], now) === 2).length
-  const fading = met.filter(
-    (w) => recallOf(bank.cards[w.id]!, now) < 0.85,
-  ).length
+  const words = { known: 0, knownFading: 0, learning: 0, learningFading: 0 }
+  for (const w of met) {
+    const c = bank.cards[w.id]!
+    const known = level(c, now) === 2
+    const faded = recallOf(c, now) < FADING
+    if (known) words.known++
+    else words.learning++
+    if (faded && known) words.knownFading++
+    else if (faded) words.learningFading++
+  }
+  const fading = words.knownFading + words.learningFading
   const today = bank.days[dayKey(now)] ?? 0
   const reached = today >= GOAL
 
@@ -159,13 +166,7 @@ export default function Home() {
     <div className="pb-16">
       <Hero />
       <main className="relative z-10 mx-auto -mt-20 max-w-5xl px-4 sm:-mt-28">
-        <Today
-          bank={bank}
-          fading={fading}
-          today={today}
-          known={knownN}
-          learning={met.length - knownN}
-        />
+        <Today bank={bank} fading={fading} today={today} words={words} />
         {/* The garden and the seals */}
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <a
@@ -380,14 +381,12 @@ function Today({
   bank,
   fading,
   today,
-  known,
-  learning,
+  words,
 }: {
   bank: Bank
   fading: number
   today: number
-  known: number
-  learning: number
+  words: WordCounts
 }) {
   const next = SCENES.find((sc) => !bank.scenes[sc.id])
   const city = next && CITIES.find((c) => c.scenes.includes(next))
@@ -642,7 +641,7 @@ function Today({
           <Week bank={bank} />
         </div>
       </div>
-      <Words known={known} learning={learning} fading={fading} />
+      <Words {...words} />
       <Chosen bank={bank} />
     </section>
   )
@@ -811,43 +810,56 @@ function Week({ bank }: { bank: Bank }) {
   )
 }
 
-// How many words are known, learning and still to meet
-function Words({
-  known,
-  learning,
-  fading,
-}: {
+type WordCounts = {
   known: number
+  knownFading: number
   learning: number
-  fading: number
-}) {
+  learningFading: number
+}
+
+// How many words are known, learning and still to meet, as one bar, with
+// those of the known and the learning that are fading, due to practise now,
+// lit in their top half beside each other in the middle, as in Hola
+function Words({ known, knownFading, learning, learningFading }: WordCounts) {
   const all = WORDS.length
   const rest = all - known - learning
+  const parts = [
+    { k: 'known', n: known - knownFading },
+    { k: 'known due', n: knownFading },
+    { k: 'learning due', n: learningFading },
+    { k: 'learning', n: learning - learningFading },
+  ]
+  const legend = [
+    { k: 'known', n: known, due: knownFading, label: 'known' },
+    { k: 'learning', n: learning, due: learningFading, label: 'learning' },
+  ]
   return (
-    <div className="mt-6 border-t border-[var(--paper-2)] pt-4">
-      <div
-        className="flex h-2.5 overflow-hidden rounded-full bg-[var(--paper-2)]"
-        aria-hidden
-      >
-        <div
-          className="bg-[var(--red)]"
-          style={{ width: `${(known / all) * 100}%` }}
-        />
-        <div
-          className="bg-[var(--jade)]"
-          style={{ width: `${(learning / all) * 100}%` }}
-        />
+    <div className="zh-words mt-6 border-t border-[var(--paper-2)] pt-4">
+      <div className="bar" aria-hidden>
+        {parts.map(
+          (p) =>
+            p.n > 0 && (
+              <span
+                key={p.k}
+                className={p.k}
+                style={{ width: `${(p.n / all) * 100}%` }}
+              />
+            ),
+        )}
       </div>
       <div className="mt-2 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-sm">
-        <span>
-          <b className="text-[var(--red)] tabular-nums">{known}</b> known
-        </span>
-        <span>
-          <b className="text-[var(--jade)] tabular-nums">{learning}</b> learning
-          {fading > 0 && (
-            <span className="text-[var(--gold-2)]"> · {fading} fading</span>
-          )}
-        </span>
+        {legend.map((p) => (
+          <span key={p.k} className={p.k}>
+            <i />
+            <b className="tabular-nums">{p.n}</b> {p.label}
+            {p.due > 0 && (
+              <span className="due">
+                , <i />
+                <b className="tabular-nums">{p.due}</b> fading
+              </span>
+            )}
+          </span>
+        ))}
         <span>
           <b className="tabular-nums">{rest}</b> to meet, of {all}
         </span>
