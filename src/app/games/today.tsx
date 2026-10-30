@@ -510,7 +510,7 @@ function ReviewStep({
   onGot,
   onDone,
 }: StepProps & { words: Array<Word> }) {
-  const { bank } = useStore()
+  const { bank, putOff } = useStore()
   const [questions] = useState(() =>
     questionsFor(
       words.filter((w) => !step.got?.includes(w.id)),
@@ -524,6 +524,10 @@ function ReviewStep({
       questions={questions}
       before={words.length - questions.length}
       onSettle={(q) => onGot(q.w.id)}
+      onLater={(q) => {
+        putOff(q.w.id)
+        onGot(q.w.id)
+      }}
       onDone={onDone}
     />
   )

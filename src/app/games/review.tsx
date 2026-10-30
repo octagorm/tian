@@ -17,7 +17,7 @@ import type { Word } from '../data/words'
 const ROUND = 12
 
 export default function Review() {
-  const { bank, points } = useStore()
+  const { bank, points, putOff } = useStore()
   const peek = usePeek()
   const [round, setRound] = useState<Array<Word> | null>(null)
   const [result, setResult] = useState<[number, number] | null>(null)
@@ -64,6 +64,7 @@ export default function Review() {
         <Quiz
           key={n}
           questions={questionsFor(round, bank.cards, now)}
+          onLater={(q) => putOff(q.w.id)}
           onDone={(r, t) => {
             setResult([r, t])
             points(3)

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { X } from 'lucide-react'
+import { CalendarClock, X } from 'lucide-react'
 import { WORDS } from './data/words'
 import { join, matches, syllables } from './lib/pinyin'
 import { blip } from './lib/audio'
@@ -84,6 +84,7 @@ export function Quiz({
   onSettle,
   before = 0,
   fill = true,
+  onLater,
 }: {
   questions: Array<Question>
   onDone: (right: number, total: number) => void
@@ -95,6 +96,9 @@ export function Quiz({
   // On a phone, fill the screen's height so the choices sit at the bottom,
   // in reach of a thumb; false where the quiz is one part of a page
   fill?: boolean
+  // Put a word off, to be met again as new another time; its questions
+  // leave the round
+  onLater?: (q: Question) => void
 }) {
   const { record, bank } = useStore()
   const [queue, setQueue] = useState(questions)
@@ -105,6 +109,9 @@ export function Quiz({
   // Where in the progress bar an answer was wrong
   const [missed, setMissed] = useState<Array<number>>([])
   const [leaving, setLeaving] = useState(false)
+  // Asked first whether to put the word off, as the icon is easy to press
+  // by chance
+  const [asking, setAsking] = useState(false)
   const retried = useRef(new Set<string>())
   const buttons = useRef(new Map<string, HTMLButtonElement | null>())
   const prompt = useRef<HTMLDivElement>(null)
@@ -178,8 +185,7 @@ export function Quiz({
     if (!heard(q.kind) || !right) void play(q.w.h)
   }
 
-  const next = () => {
-    if (!answered || leaving) return
+  const go = () => {
     if (reducedMotion()) {
       setAnswered(null)
       setAt((a) => a + 1)
@@ -193,8 +199,22 @@ export function Quiz({
     }, 190)
   }
 
+  const next = () => {
+    if (!answered || leaving) return
+    go()
+  }
+
+  const later = () => {
+    if (!q || !onLater || leaving) return
+    setAsking(false)
+    onLater(q)
+    // its other questions, such as one to try again, leave the round
+    setQueue((qs) => qs.filter((x, i) => i <= at || x.w.id !== q.w.id))
+    go()
+  }
+
   useKeys((key) => {
-    if (!q) return
+    if (!q || asking) return
     if (key === ' ') {
       if (!heard(q.kind) && !answered) return
       void play(q.w.h)
@@ -229,8 +249,19 @@ export function Quiz({
       </div>
       <div
         key={at}
-        className={`zh-card flex flex-1 flex-col p-5 sm:p-7 ${leaving ? 'fx-leave' : 'fx-enter'}`}
+        className={`zh-card relative flex flex-1 flex-col p-5 sm:p-7 ${leaving ? 'fx-leave' : 'fx-enter'}`}
       >
+        {onLater && !asking && (
+          <button
+            type="button"
+            onClick={() => setAsking(true)}
+            aria-label="Practise this word later"
+            title="Practise this word later"
+            className="absolute top-4 right-4 rounded-full p-2 text-[var(--ink-2)] opacity-60 hover:bg-[var(--paper)] hover:opacity-100"
+          >
+            <CalendarClock size={20} />
+          </button>
+        )}
         <div
           ref={prompt}
           className="flex flex-1 flex-col items-center justify-center py-2"
@@ -266,7 +297,23 @@ export function Quiz({
             ))}
           </div>
         )}
-        <Verdict q={q} answered={answered} onNext={next} />
+        {asking ? (
+          <div className="mt-4 rounded-xl bg-[var(--paper)] p-4 text-center">
+            <p className="font-bold">Practise this word later?</p>
+            <p className="mt-1 text-sm text-[var(--ink-2)]">
+              It leaves the words you are learning, and comes back as a new word
+              once the other new words have been met.
+            </p>
+            <div className="mt-3 flex justify-center gap-2">
+              <Btn kind="ghost" onClick={() => setAsking(false)}>
+                Keep it
+              </Btn>
+              <Btn onClick={later}>Later</Btn>
+            </div>
+          </div>
+        ) : (
+          <Verdict q={q} answered={answered} onNext={next} />
+        )}
       </div>
     </div>
   )
