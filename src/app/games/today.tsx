@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
   ArrowRight,
+  CalendarClock,
   Check,
   Flame,
   Gamepad2,
@@ -631,11 +632,24 @@ export function MeetCard({
 }) {
   const { settings } = useStore()
   const ex = useMemo(() => example(w, settings.home), [w, settings.home])
+  // Asked first whether to put it off, as the icon is easy to press by chance
+  const [asking, setAsking] = useState(false)
   useEffect(() => {
     void say(w.h)
   }, [w])
   return (
-    <div className="zh-card zh-rise p-7 text-center">
+    <div className="zh-card zh-rise relative p-7 text-center">
+      {onLater && (
+        <button
+          type="button"
+          onClick={() => setAsking(true)}
+          aria-label="Practise this word later"
+          title="Practise this word later"
+          className="absolute top-4 right-4 rounded-full p-2 text-[var(--ink-2)] opacity-60 hover:bg-[var(--paper)] hover:opacity-100"
+        >
+          <CalendarClock size={20} />
+        </button>
+      )}
       <p className="text-xs font-bold text-[var(--ink-2)] uppercase">
         New word {n + 1} of {of}
       </p>
@@ -657,24 +671,31 @@ export function MeetCard({
           <Mixed line={ex} fresh={new Set([w.id])} />
         </div>
       )}
-      <div className="mt-6 flex justify-center gap-2">
-        <Btn kind="ghost" onClick={() => onNext(true)}>
-          I knew it
-        </Btn>
-        <Btn onClick={() => onNext(false)} className="px-8">
-          Got it
-        </Btn>
-      </div>
-      {onLater && (
-        <button
-          type="button"
-          onClick={onLater}
-          className="mt-4 text-xs text-[var(--ink-2)] underline-offset-2 opacity-70 hover:underline hover:opacity-100"
-        >
-          Not yet: save this word for later
-        </button>
+      {asking && onLater ? (
+        <div className="mt-6 rounded-xl bg-[var(--paper)] p-4">
+          <p className="font-bold">Practise this word later?</p>
+          <p className="mt-1 text-sm text-[var(--ink-2)]">
+            It goes to the back of the line, and comes up again once the other
+            new words have been met.
+          </p>
+          <div className="mt-3 flex justify-center gap-2">
+            <Btn kind="ghost" onClick={() => setAsking(false)}>
+              Keep it
+            </Btn>
+            <Btn onClick={onLater}>Later</Btn>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 flex justify-center gap-2">
+          <Btn kind="ghost" onClick={() => onNext(true)}>
+            I knew it
+          </Btn>
+          <Btn onClick={() => onNext(false)} className="px-8">
+            Got it
+          </Btn>
+        </div>
       )}
-      <EnterToContinue onEnter={() => onNext(false)} />
+      {!asking && <EnterToContinue onEnter={() => onNext(false)} />}
     </div>
   )
 }

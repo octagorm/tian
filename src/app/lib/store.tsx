@@ -132,7 +132,7 @@ interface Store {
   // One link of a word met, set by hand: known, or back to learning
   setLink: (id: string, link: Link, known: boolean) => void
   forget: (ids: Array<string>) => void
-  // A word met but not answered yet, put back to be met later («Not yet»)
+  // A word met but not answered yet, put back to be met later (the later icon on its card)
   putOff: (id: string) => void
   points: (n: number) => void
   setScene: (id: string, stars: number) => void

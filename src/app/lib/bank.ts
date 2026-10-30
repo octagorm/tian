@@ -105,7 +105,7 @@ export interface Bank {
   // priority (1–3), and when the choice was last changed: their words are
   // met first
   topics: { on: Array<TopicChoice>; t: number }
-  // Words put off when they came up as new («Not yet»), by id: when, ms.
+  // Words put off when they came up as new (the later icon on its card), by id: when, ms.
   // They are met last, after every other word, for LATER days (toMeet)
   later: Record<string, number | undefined>
 }
