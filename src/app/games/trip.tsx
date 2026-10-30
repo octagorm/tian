@@ -22,6 +22,7 @@ import { WORD, WORDS } from '../data/words'
 import { english, plain, tokens, wordIds } from '../lib/text'
 import { blip, say, stop } from '../lib/audio'
 import { useStore } from '../lib/store'
+import { room } from '../lib/bank'
 import { todays } from '../lib/today'
 import {
   Btn,
@@ -313,7 +314,7 @@ function Play({
     return [...ids]
       .filter((id) => !bank.cards[id])
       .sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0))
-      .slice(0, settings.perScene)
+      .slice(0, Math.min(settings.perScene, room(bank, Date.now())))
     // Only when the scene opens
   }, [scene.id])
   const freshSet = useMemo(() => new Set(fresh), [fresh])

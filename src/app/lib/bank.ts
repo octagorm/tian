@@ -105,6 +105,9 @@ export interface Bank {
   // priority (1–3), and when the choice was last changed: their words are
   // met first
   topics: { on: Array<TopicChoice>; t: number }
+  // Words put off when they came up as new («Not yet»), by id: when, ms.
+  // They are met last, after every other word, for LATER days (toMeet)
+  later: Record<string, number | undefined>
 }
 
 export interface TopicChoice {
@@ -172,6 +175,7 @@ export const emptyBank = (): Bank => ({
   garden: {},
   place: {},
   topics: { on: [], t: 0 },
+  later: {},
 })
 
 const DAY = 86_400_000
@@ -398,10 +402,43 @@ export function due(
     .sort((a, b) => a.r - b.r)
 }
 
+// How many words are learnt at a time: once this many met are not yet
+// known, Tian brings no new ones by itself (Today's new words, the trip's
+// and the stories', the games' and the quiz's), until some of them hold.
+// What the player picks to learn (Learn, a word's «Learn it») is let
+// through, and so are the few words a game of its own cannot be played
+// without. The player sets it in Settings (`cap`); the store passes it on
+// here, so that every game asks the same.
+export const CAPS = [30, 50, 80]
+let cap = 50
+export const setCap = (n: number) => {
+  cap = n
+}
+
+// Words met and not yet known
+export function inWork(bank: Bank, now: number): number {
+  let n = 0
+  for (const c of Object.values(bank.cards)) if (c && level(c, now) < 2) n++
+  return n
+}
+
+// How many new words may be met now
+export const room = (bank: Bank, now: number, of = cap) =>
+  Math.max(0, of - inWork(bank, now))
+
+// Words put off come back to their place after this many days
+const LATER = 30
+
 // The words in the order they are met: those of the topics chosen first,
 // in rounds of as many from each as its priority, in the order chosen,
-// then the rest in lesson order
-export function toMeet(bank: Bank): Array<Word> {
+// then the rest in lesson order, and those put off lately last
+export function toMeet(bank: Bank, now = Date.now()): Array<Word> {
+  const put = (w: Word) => now - (bank.later[w.id] ?? -Infinity) < LATER * DAY
+  const order = byTopic(bank)
+  return [...order.filter((w) => !put(w)), ...order.filter(put)]
+}
+
+function byTopic(bank: Bank): Array<Word> {
   const lists = bank.topics.on
     .filter((x) => TOPIC[x.id])
     .map((x) => ({
@@ -460,7 +497,7 @@ export function pick(
   const words = scored.slice(0, n).map((s) => s.w)
   const fresh = unmet(bank)
     .filter(fit)
-    .slice(0, Math.min(newest, Math.max(0, n - words.length)))
+    .slice(0, Math.min(newest, room(bank, now), Math.max(0, n - words.length)))
   return { words: [...words, ...fresh], fresh }
 }
 
@@ -484,8 +521,13 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
   for (const id of keysOf(a.cards, b.cards)) {
     const x = a.cards?.[id] && upgrade(a.cards[id])
     const y = b.cards?.[id] && upgrade(b.cards[id])
-    out.cards[id] = !x ? y : !y ? x : both(x, y)
+    const c = !x ? y : !y ? x : both(x, y)
+    // a word put off, on either device, since it was last seen
+    const put = Math.max(a.later?.[id] ?? 0, b.later?.[id] ?? 0)
+    if (c && (!put || put < c.t)) out.cards[id] = c
   }
+  for (const id of keysOf(a.later, b.later))
+    out.later[id] = Math.max(a.later?.[id] ?? 0, b.later?.[id] ?? 0)
   for (const k of ['days', 'scenes', 'best', 'daily', 'garden'] as const) {
     for (const id of keysOf(a[k], b[k]))
       out[k][id] = Math.max(a[k]?.[id] ?? 0, b[k]?.[id] ?? 0)

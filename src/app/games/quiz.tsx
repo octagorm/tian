@@ -19,6 +19,7 @@ import {
   usePeek,
 } from '../ui'
 import { Pix } from '../pixel/Pix'
+import { room } from '../lib/bank'
 import {
   Combo,
   Key,
@@ -98,7 +99,7 @@ function newWord(
 }
 
 export default function QuizGame() {
-  const { levelOf, record, meet, points, setBest, settings } = useStore()
+  const { bank, levelOf, record, meet, points, setBest, settings } = useStore()
   const [round, setRound] = useState(() => pickRound(levelOf))
   const [i, setI] = useState(0)
   const [picked, setPicked] = useState<{ opt: string; t: number } | null>(null)
@@ -134,7 +135,8 @@ export default function QuizGame() {
       )
       for (const id of new Set(read)) record(id, true, 0.3, 'read')
     } else setMissed((m) => [...m, i])
-    const id = newWord(q, levelOf)
+    // a new word only while there is room for one
+    const id = room(bank, Date.now()) > 0 ? newWord(q, levelOf) : undefined
     setTaught(id)
     if (id) {
       meet([id])

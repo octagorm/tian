@@ -19,6 +19,7 @@ import {
   level,
   merge,
   newCard,
+  setCap,
   setMemory,
   stage,
 } from './bank'
@@ -46,6 +47,8 @@ export interface Settings {
   rate: number
   // New words brought into Chinese in each scene of the trip
   perScene: number
+  // How many words are learnt at a time (CAPS in lib/bank.ts)
+  cap: number
   // A daily reminder to do Today's session (lib/reminder.ts), at 'HH:MM'
   remind: boolean
   remindAt: string
@@ -81,6 +84,7 @@ const DEFAULTS: Settings = {
   autoplay: true,
   rate: 1,
   perScene: 3,
+  cap: 50,
   remind: false,
   remindAt: '18:00',
   readSize: 1,
@@ -128,6 +132,8 @@ interface Store {
   // One link of a word met, set by hand: known, or back to learning
   setLink: (id: string, link: Link, known: boolean) => void
   forget: (ids: Array<string>) => void
+  // A word met but not answered yet, put back to be met later («Not yet»)
+  putOff: (id: string) => void
   points: (n: number) => void
   setScene: (id: string, stars: number) => void
   setBest: (game: string, score: number) => void
@@ -189,14 +195,17 @@ export function BankProvider({ children }: { children: ReactNode }) {
   const [bank, setBank] = useState<Bank>(() =>
     merge(load(BANK_KEY, emptyBank()), emptyBank()),
   )
-  const [settings, setAll] = useState<Settings>(() =>
-    load(SETTINGS_KEY, DEFAULTS),
-  )
+  const [settings, setAll] = useState<Settings>(() => {
+    const s = load(SETTINGS_KEY, DEFAULTS)
+    setCap(s.cap)
+    return s
+  })
 
   useEffect(() => store(BANK_KEY, bank), [bank])
   useEffect(() => {
     store(SETTINGS_KEY, settings)
     setRate(settings.rate)
+    setCap(settings.cap)
   }, [settings])
 
   const update = useCallback((f: (b: Bank) => Bank) => setBank(f), [])
@@ -273,6 +282,16 @@ export function BankProvider({ children }: { children: ReactNode }) {
         const cards = { ...b.cards }
         for (const id of ids) delete cards[id]
         return { ...b, cards }
+      }),
+    [update],
+  )
+
+  const putOff = useCallback(
+    (id: string) =>
+      update((b) => {
+        const cards = { ...b.cards }
+        delete cards[id]
+        return { ...b, cards, later: { ...b.later, [id]: Date.now() } }
       }),
     [update],
   )
@@ -409,6 +428,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       know,
       setLink,
       forget,
+      putOff,
       points,
       setScene,
       setBest,
@@ -430,6 +450,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
       know,
       setLink,
       forget,
+      putOff,
       points,
       setScene,
       setBest,

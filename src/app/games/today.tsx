@@ -548,7 +548,9 @@ function NewStep({
   onGot,
   onDone,
 }: StepProps & { words: Array<Word> }) {
-  const { meet, know } = useStore()
+  const { meet, know, putOff } = useStore()
+  // Words put off on their card, left out of the questions
+  const [put, setPut] = useState<Array<string>>([])
   const [todo] = useState(() =>
     words.filter((w) => !step.got?.includes(partKey(w.id, 'met'))),
   )
@@ -563,15 +565,18 @@ function NewStep({
   )
   const [card, setCard] = useState(0)
   if (!todo.length && !questions.length) return <Empty onDone={onDone} />
-  if (card >= todo.length)
+  if (card >= todo.length) {
+    const asked = questions.filter((q) => !put.includes(q.w.id))
+    if (!asked.length) return <Empty onDone={onDone} />
     return (
       <Quiz
-        questions={questions}
-        before={words.length * 2 - questions.length}
+        questions={asked}
+        before={(words.length - put.length) * 2 - asked.length}
         onSettle={(q) => onGot(partKey(q.w.id, q.kind))}
         onDone={onDone}
       />
     )
+  }
   const w = todo[card]
   return (
     <MeetCard
@@ -583,6 +588,13 @@ function NewStep({
         if (knew) know([w.id])
         else meet([w.id])
         onGot(partKey(w.id, 'met'))
+        setCard(card + 1)
+      }}
+      onLater={() => {
+        putOff(w.id)
+        setPut((p) => [...p, w.id])
+        for (const part of ['met', 'meaning', 'listen'])
+          onGot(partKey(w.id, part))
         setCard(card + 1)
       }}
     />
@@ -608,11 +620,14 @@ export function MeetCard({
   n,
   of,
   onNext,
+  onLater,
 }: {
   w: Word
   n: number
   of: number
   onNext: (knew: boolean) => void
+  // Put off, to be met another time
+  onLater?: () => void
 }) {
   const { settings } = useStore()
   const ex = useMemo(() => example(w, settings.home), [w, settings.home])
@@ -650,6 +665,15 @@ export function MeetCard({
           Got it
         </Btn>
       </div>
+      {onLater && (
+        <button
+          type="button"
+          onClick={onLater}
+          className="mt-4 text-xs text-[var(--ink-2)] underline-offset-2 opacity-70 hover:underline hover:opacity-100"
+        >
+          Not yet: save this word for later
+        </button>
+      )}
       <EnterToContinue onEnter={() => onNext(false)} />
     </div>
   )

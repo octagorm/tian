@@ -388,6 +388,7 @@ function Today({
   today: number
   words: WordCounts
 }) {
+  const { settings } = useStore()
   const next = SCENES.find((sc) => !bank.scenes[sc.id])
   const city = next && CITIES.find((c) => c.scenes.includes(next))
   const started = SCENES.some((sc) => bank.scenes[sc.id])
@@ -641,7 +642,7 @@ function Today({
           <Week bank={bank} />
         </div>
       </div>
-      <Words {...words} />
+      <Words {...words} cap={settings.cap} />
       <Chosen bank={bank} />
     </section>
   )
@@ -819,8 +820,15 @@ type WordCounts = {
 
 // How many words are known, learning and still to meet, as one bar, with
 // those of the known and the learning that are fading, due to practise now,
-// lit in their top half beside each other in the middle, as in Hola
-function Words({ known, knownFading, learning, learningFading }: WordCounts) {
+// lit in their top half beside each other in the middle, as in Hola; and
+// how many may be learnt at a time, and when no new ones come for now
+function Words({
+  known,
+  knownFading,
+  learning,
+  learningFading,
+  cap,
+}: WordCounts & { cap: number }) {
   const all = WORDS.length
   const rest = all - known - learning
   const parts = [
@@ -831,7 +839,12 @@ function Words({ known, knownFading, learning, learningFading }: WordCounts) {
   ]
   const legend = [
     { k: 'known', n: known, due: knownFading, label: 'known' },
-    { k: 'learning', n: learning, due: learningFading, label: 'learning' },
+    {
+      k: 'learning',
+      n: learning,
+      due: learningFading,
+      label: `learning, of ${cap} at a time`,
+    },
   ]
   return (
     <div className="zh-words mt-6 border-t border-[var(--paper-2)] pt-4">
@@ -863,6 +876,11 @@ function Words({ known, knownFading, learning, learningFading }: WordCounts) {
         <span>
           <b className="tabular-nums">{rest}</b> to meet, of {all}
         </span>
+        {learning >= cap && (
+          <span className="basis-full text-[var(--ink-2)]">
+            New words wait until some of these are known.
+          </span>
+        )}
         <a
           href="#words"
           className="ml-auto inline-flex items-center gap-1 font-bold text-[var(--ink-2)] hover:text-[var(--red)]"

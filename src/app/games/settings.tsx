@@ -5,7 +5,7 @@ import { api } from '../../../convex/_generated/api'
 import { COUNTRIES } from '../data/words'
 import { SPEED_SAMPLE } from '../data/extra'
 import { useStore } from '../lib/store'
-import { dayKey } from '../lib/bank'
+import { CAPS, dayKey } from '../lib/bank'
 import { blip, say } from '../lib/audio'
 import { setMusic, setSoundEffects, setVolume, useSound } from '../lib/music'
 import { parts, subscribe, support, unsubscribe, zone } from '../lib/reminder'
@@ -50,6 +50,22 @@ export default function Settings() {
             on={settings.tones}
             set={(tones) => setSettings({ tones })}
           />
+        </Row>
+        <Row
+          title="Words learnt at a time"
+          text="Once this many words are being learnt, Tian brings no new ones until some of them are known."
+        >
+          <select
+            value={settings.cap}
+            onChange={(e) => setSettings({ cap: Number(e.target.value) })}
+            className="rounded-xl border-2 border-[var(--paper-2)] bg-white px-3 py-2"
+          >
+            {CAPS.map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
         </Row>
         <Row
           title="New words per scene"

@@ -14,6 +14,7 @@ import { WORDS } from '../data/words'
 import { plain, wordIds } from '../lib/text'
 import { blip, say, stop } from '../lib/audio'
 import { useStore } from '../lib/store'
+import { room } from '../lib/bank'
 import { Btn, Frame, Mixed, Stars, shuffle } from '../ui'
 import { PaperCut } from '../paper/PaperCut'
 import { Theatre } from '../paper/Theatre'
@@ -236,7 +237,7 @@ function Play({
     return [...ids]
       .filter((id) => !bank.cards[id])
       .sort((a, b) => (order.get(a) ?? 0) - (order.get(b) ?? 0))
-      .slice(0, settings.perScene)
+      .slice(0, Math.min(settings.perScene, room(bank, Date.now())))
   }, [])
   useEffect(() => meet(fresh), [fresh, meet])
   const freshSet = useMemo(() => new Set(fresh), [fresh])

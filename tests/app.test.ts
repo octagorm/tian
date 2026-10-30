@@ -1470,6 +1470,39 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(merge({ cards: {} }, emptyBank()).topics.on).toEqual([])
   })
 
+  test('no new words once as many as the cap are being learnt, and words put off come last', async () => {
+    const { plan } = await import('../src/app/lib/today')
+    const { inWork, room, toMeet } = await import('../src/app/lib/bank')
+    // fifty words met an hour ago, none known yet
+    const b = noCourse()
+    for (const w of WORDS.slice(0, 50)) b.cards[w.id] = newCard(NOON - H)
+    expect(inWork(b, NOON)).toBe(50)
+    expect(room(b, NOON)).toBe(0)
+    expect(room(b, NOON, 80)).toBe(30)
+    expect(plan(b, NOON).steps.some((s) => s.k === 'new')).toBe(false)
+    expect(pick(b, 10, NOON, { newest: 5 }).fresh).toEqual([])
+    // known words do not count
+    for (const w of WORDS.slice(0, 10))
+      b.cards[w.id] = { ...newCard(NOON - 2 * D, 5), n: 3 }
+    expect(room(b, NOON)).toBe(10)
+    expect(plan(b, NOON).steps.find((s) => s.k === 'new')?.ids?.length).toBe(4)
+    // a word put off is met after every other, until a month has gone
+    const next = toMeet(b, NOON).filter((w) => !b.cards[w.id])[0]
+    const put = { ...b, later: { [next.id]: NOON } }
+    const order = toMeet(put, NOON + D).filter((w) => !put.cards[w.id])
+    expect(order[0].id).not.toBe(next.id)
+    expect(order.at(-1)?.id).toBe(next.id)
+    expect(toMeet(put, NOON + 31 * D)[50].id).toBe(next.id)
+    // put off on one device, the card met there before is gone on both
+    const a = { ...emptyBank(), cards: { [next.id]: newCard(NOON - H) } }
+    const c = { ...emptyBank(), later: { [next.id]: NOON } }
+    expect(merge(a, c).cards[next.id]).toBeUndefined()
+    expect(merge(c, a).later[next.id]).toBe(NOON)
+    // and met again since, it stays
+    const again = { ...emptyBank(), cards: { [next.id]: newCard(NOON + H) } }
+    expect(merge(again, c).cards[next.id]).toBeTruthy()
+  })
+
   test('Today plans the fading words, new ones, the trip or words to shore up, and listening', async () => {
     const { plan, settle, summary, current, finished, markDone } =
       await import('../src/app/lib/today')

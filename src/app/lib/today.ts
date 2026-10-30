@@ -1,6 +1,15 @@
 import { WORD, WORDS } from '../data/words.ts'
 import { SCENES } from '../data/trip.ts'
-import { LINKS, dayKey, due, level, recallOf, streak, unmet } from './bank.ts'
+import {
+  LINKS,
+  dayKey,
+  due,
+  level,
+  recallOf,
+  room,
+  streak,
+  unmet,
+} from './bank.ts'
 import { isDone, offered, partOf, partsToday, wordsOf } from './course.ts'
 import type { Bank, Link, Path, PathStep, StepKind } from './bank.ts'
 
@@ -83,7 +92,8 @@ export function plan(bank: Bank, now: number): Path {
         : fading.length >= 10
           ? 3
           : 4
-  const fresh = unmet(bank).slice(0, newCount)
+  // none once as many words are being learnt as the player wants at a time
+  const fresh = unmet(bank).slice(0, Math.min(newCount, room(bank, now)))
   // While the course is offered, what is left of its day takes the place
   // of new words, the trip or a game, and listening: its parts meet words
   // of their own, and play them. Once a day of it is done, the next is for
