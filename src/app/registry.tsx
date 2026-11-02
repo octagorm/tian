@@ -174,6 +174,17 @@ export const GAMES = [
     Page: page(() => import('./games/office')),
   },
   {
+    id: 'lanterns',
+    title: 'Lanterns',
+    zh: '灯笼',
+    sprite: 'lantern',
+    blurb:
+      'A word is said and lanterns rise into the night. Tap the right one before it floats away.',
+    // opens once this many words are being practised
+    needs: 15,
+    Page: page(() => import('./games/lanterns')),
+  },
+  {
     id: 'parts',
     title: 'Character parts',
     zh: '部首',
@@ -239,53 +250,6 @@ export const GAMES = [
     blurb: 'Every sprite and portrait, for checking the art.',
     hidden: true,
     Page: page(() => import('./games/gallery')),
-  },
-  // Practice demos: games with the bank's words instead of cards, listed
-  // on /#play, to try before any goes on the home screen
-  {
-    id: 'play',
-    title: 'Practice demos',
-    zh: '玩',
-    sprite: 'star',
-    blurb: 'Games with your own words, to try.',
-    hidden: true,
-    Page: page(() => import('./games/play')),
-  },
-  {
-    id: 'lanterns',
-    title: 'Lanterns',
-    zh: '灯笼',
-    sprite: 'lantern',
-    blurb: 'Tap the lantern with the word you heard.',
-    hidden: true,
-    Page: page(() => import('./games/lanterns')),
-  },
-  {
-    id: 'boat',
-    title: 'Dragon boats',
-    zh: '龙舟',
-    sprite: 'map',
-    blurb: 'Race a rival with right answers.',
-    hidden: true,
-    Page: page(() => import('./games/boat')),
-  },
-  {
-    id: 'grid',
-    title: 'Character grid',
-    zh: '字阵',
-    sprite: 'parts',
-    blurb: 'Trace your words through a grid of characters.',
-    hidden: true,
-    Page: page(() => import('./games/grid')),
-  },
-  {
-    id: 'pairs',
-    title: 'Sound pairs',
-    zh: '听对',
-    sprite: 'ear',
-    blurb: 'Match characters to their sounds.',
-    hidden: true,
-    Page: page(() => import('./games/pairs')),
   },
   {
     id: 'settings',

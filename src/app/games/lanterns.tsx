@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Heart } from 'lucide-react'
+import { Heart, Lock } from 'lucide-react'
 import { blip } from '../lib/audio'
 import { wordChoices } from '../lib/choices'
 import { useStore } from '../lib/store'
 import { Btn, Frame, Ruby, usePeek } from '../ui'
+import { fadedFirst, practiceWords, short } from '../lib/practice'
 import {
   Combo,
   Key,
@@ -13,12 +14,10 @@ import {
   useKeys,
   useSpeaker,
 } from './fx'
-import { fadedFirst, practiceWords, short } from './play/pool'
-import { DemoNote } from './play/DemoNote'
 import type { Word } from '../data/words'
-import './play/play.css'
+import './lanterns.css'
 
-// Lanterns (灯笼, demo): a word is said, and lanterns rise into the night
+// Lanterns (灯笼): a word is said, and lanterns rise into the night
 // sky with characters on them. Tap the one you heard before it drifts
 // away. Three lives; each wave rises a little faster. It asks the
 // character for a sound (s>h), the way Review's listening does, with
@@ -26,6 +25,8 @@ import './play/play.css'
 // look of them gives nothing away.
 
 const LIVES = 3
+// Words met before the game opens (its `needs` in registry.tsx)
+export const NEEDS = 15
 const COLUMNS = [11, 36, 61, 86]
 
 interface Wave {
@@ -40,7 +41,8 @@ interface Wave {
 type Outcome = { right: boolean; picked?: string } | null
 
 export default function Lanterns() {
-  const { bank, record } = useStore()
+  const { bank, record, setBest } = useStore()
+  const met = Object.keys(bank.cards).length
   const peek = usePeek()
   const words = useMemo(() => practiceWords(bank), [])
   const pool = useMemo(
@@ -126,6 +128,7 @@ export default function Lanterns() {
       () => {
         if (left <= 0) {
           setOver(true)
+          setBest('lanterns', score)
           setPlaying(false)
           blip('gong')
         } else nextWave(wave.n + 1)
@@ -135,7 +138,7 @@ export default function Lanterns() {
   }
 
   useKeys((key) => {
-    if (!playing && key === 'Enter') {
+    if (!playing && key === 'Enter' && met >= NEEDS) {
       start()
       return true
     }
@@ -150,6 +153,24 @@ export default function Lanterns() {
       return true
     }
   })
+
+  if (met < NEEDS)
+    return (
+      <Frame title="Lanterns" zh="灯笼">
+        <div className="zh-card fx-rise p-8 text-center">
+          <Lock size={40} className="mx-auto text-[var(--ink-2)]" />
+          <p className="mt-3 text-lg font-bold">
+            Lanterns open once you are practising {NEEDS} words
+          </p>
+          <p className="mt-1 text-[var(--ink-2)]">
+            {NEEDS - met} more to go. The lanterns carry words you have met.
+          </p>
+          <a href="#today" className="mt-4 inline-block">
+            <Btn>Go to Today</Btn>
+          </a>
+        </div>
+      </Frame>
+    )
 
   return (
     <Frame
@@ -173,10 +194,6 @@ export default function Lanterns() {
         )
       }
     >
-      <DemoNote>
-        A word is said. Tap its lantern before it floats away. Your most faded
-        words come first; each answer counts for hearing a character.
-      </DemoNote>
       <div className="ln-sky relative overflow-hidden rounded-3xl">
         <div className="ln-stars" aria-hidden />
         <div className="ln-moon" aria-hidden />

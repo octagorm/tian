@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ArrowRight, BookOpen, Settings } from 'lucide-react'
+import { ArrowRight, BookOpen, Lock, Settings } from 'lucide-react'
 import { useStore } from './lib/store'
 import { touchOnly } from './lib/device'
 import { blip } from './lib/audio'
@@ -88,7 +88,7 @@ const GROUPS = [
     title: 'Arcade',
     zh: '游戏',
     pinyin: 'yóuxì – games',
-    ids: ['rain', 'shop', 'market', 'taxi', 'office', 'mahjong'],
+    ids: ['rain', 'lanterns', 'shop', 'market', 'taxi', 'office', 'mahjong'],
   },
 ] as const
 
@@ -1088,10 +1088,14 @@ function Adventure({ game, bank }: { game: Game; bank: Bank }) {
 }
 
 function Tile({ game, best }: { game: Game; best?: number }) {
+  const { bank } = useStore()
+  // a game may open only once enough words are being practised
+  const needs = 'needs' in game ? game.needs : 0
+  const short = needs - Object.keys(bank.cards).length
   return (
     <a
       href={`#${game.id}`}
-      className="zh-card zh-lift group flex items-start gap-3.5 p-4"
+      className={`zh-card zh-lift group flex items-start gap-3.5 p-4 ${short > 0 ? 'opacity-60 grayscale' : ''}`}
     >
       <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--paper-2)] shadow-[inset_0_0_0_1px_rgba(34,28,24,0.06)]">
         <Pix name={game.sprite} size={40} className="zh-bob" />
@@ -1109,7 +1113,11 @@ function Tile({ game, best }: { game: Game; best?: number }) {
         <span className="block text-sm leading-snug text-[var(--ink-2)]">
           {game.blurb}
         </span>
-        {best ? (
+        {short > 0 ? (
+          <span className="mt-1 flex items-center gap-1 text-xs font-bold text-[var(--ink-2)]">
+            <Lock size={12} /> Opens at {needs} words · {short} more
+          </span>
+        ) : best ? (
           <span className="mt-1 block text-xs font-bold text-[var(--gold-2)]">
             Best: {best}
           </span>

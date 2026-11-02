@@ -1,9 +1,9 @@
-import { WORDS } from '../../data/words'
-import { due } from '../../lib/bank'
-import type { Bank } from '../../lib/bank'
-import type { Word } from '../../data/words'
+import { WORDS } from '../data/words'
+import { due } from './bank'
+import type { Bank } from './bank'
+import type { Word } from '../data/words'
 
-// The words the practice games play with: those met, the most faded
+// The words a practice game plays with: those met, the most faded
 // first, so that playing does the work of Review. With too few met, the
 // first lessons fill in, but only words met are recorded in the bank, so
 // a game never brings new words by itself (lib/bank.ts, `room`).
