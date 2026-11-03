@@ -360,3 +360,26 @@ ruby.zh-outside rt {
   height: 11px;
   border-radius: 2px;
 }
+
+/* Settings' Install: the steps, numbered in the seal's red */
+.zh-install {
+  margin: 0;
+  padding: 0.25rem 1rem 0.75rem;
+  list-style: none;
+  counter-reset: step;
+}
+.zh-install li {
+  counter-increment: step;
+  position: relative;
+  padding: 0.45rem 0 0.45rem 2rem;
+  line-height: 1.45;
+}
+.zh-install li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0.25rem;
+  top: 0.35rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--red);
+}

@@ -745,9 +745,24 @@ if (typeof window !== 'undefined') {
   })
 }
 
-// How this page can be installed here: by the browser's own offer, by
-// hand from Safari's share menu, or not at all (or already is)
-export function useInstall(): (() => void) | 'ios' | null {
+let installed = false
+if (typeof window !== 'undefined')
+  window.addEventListener('appinstalled', () => {
+    installed = true
+    tellOffer()
+  })
+
+// Where the page is, for Settings' Install (#settings/install, a link that
+// can be sent): already an app, an iPhone or iPad in Safari or in another
+// browser, an Android phone, or a computer; and the browser's own offer,
+// when it has made one
+export type InstallPlace =
+  'installed' | 'ios-safari' | 'ios-other' | 'android' | 'desktop'
+
+export function useInstall(): {
+  where: InstallPlace
+  install: (() => void) | null
+} {
   const o = useSyncExternalStore(
     (f) => {
       offerSubs.add(f)
@@ -758,18 +773,32 @@ export function useInstall(): (() => void) | 'ios' | null {
     () => offer,
     () => null,
   )
-  const standalone =
-    window.matchMedia('(display-mode: standalone)').matches ||
-    (navigator as Navigator & { standalone?: boolean }).standalone === true
-  if (standalone) return null
-  if (o)
-    return () => {
-      void o.prompt()
-      offer = null
-      tellOffer()
-    }
+  const nav = navigator as Navigator & { standalone?: boolean }
+  const ua = nav.userAgent
   const ios =
-    /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
-  return ios ? 'ios' : null
+    /iPhone|iPad|iPod/.test(ua) ||
+    (/Macintosh/.test(ua) && nav.maxTouchPoints > 1)
+  const where: InstallPlace =
+    installed ||
+    nav.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches
+      ? 'installed'
+      : ios
+        ? /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua)
+          ? 'ios-other'
+          : 'ios-safari'
+        : /Android/.test(ua)
+          ? 'android'
+          : 'desktop'
+  return {
+    where,
+    install:
+      o && where !== 'installed'
+        ? () => {
+            void o.prompt()
+            offer = null
+            tellOffer()
+          }
+        : null,
+  }
 }

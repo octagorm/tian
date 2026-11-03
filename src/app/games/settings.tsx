@@ -1,6 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from 'convex/react'
-import { Download, Share } from 'lucide-react'
+import {
+  Check,
+  Copy,
+  Download,
+  Ellipsis,
+  EllipsisVertical,
+  Share,
+  SquarePlus,
+} from 'lucide-react'
 import { api } from '../../../convex/_generated/api'
 import { COUNTRIES } from '../data/words'
 import { SPEED_SAMPLE } from '../data/extra'
@@ -18,9 +26,17 @@ import type { ReactNode } from 'react'
 export default function Settings() {
   const { settings, setSettings, reset } = useStore()
   const sound = useSound()
-  const install = useInstall()
+  // #settings/install, a link that can be sent: straight to it
+  useEffect(() => {
+    const at = window.location.hash.split('/')[1]
+    if (at) document.getElementById(at)?.scrollIntoView({ block: 'start' })
+  }, [])
   return (
     <Frame title="Settings" zh="设置">
+      <Group title="Install" id="install">
+        <Install />
+      </Group>
+
       <Group title="You">
         <Row
           title="Where you are from"
@@ -159,31 +175,6 @@ export default function Settings() {
         <Reminder />
       </Group>
 
-      {install && (
-        <Group title="On your phone">
-          <Row
-            title="Keep it on your home screen"
-            text={
-              install === 'ios' ? (
-                <>
-                  In Safari, tap Share{' '}
-                  <Share size={14} className="inline align-[-2px]" />, then Add
-                  to Home Screen. It opens full screen, like an app.
-                </>
-              ) : (
-                'It opens in its own window, like an app.'
-              )
-            }
-          >
-            {install !== 'ios' && (
-              <Btn kind="jade" onClick={install}>
-                <Download size={16} /> Install
-              </Btn>
-            )}
-          </Row>
-        </Group>
-      )}
-
       <Group title="Start over">
         <Row
           title="Forget everything"
@@ -298,9 +289,110 @@ function Reminder() {
   )
 }
 
-function Group({ title, children }: { title: string; children: ReactNode }) {
+// Install: how to keep Tian on the home screen, for this device
+function Install() {
+  const { where, install } = useInstall()
+  const [copied, setCopied] = useState(false)
+  const icon = (I: typeof Share) => (
+    <I
+      size={15}
+      className="inline align-[-3px] text-[var(--jade)]"
+      aria-hidden
+    />
+  )
+  const why = 'It opens full screen, like an app, without the address bar.'
+
+  if (where === 'installed')
+    return (
+      <Row
+        title="Tian is installed"
+        text="You will find it on your home screen."
+      >
+        <Check className="text-[var(--jade)]" />
+      </Row>
+    )
+
+  if (install)
+    return (
+      <Row title="Keep it on your home screen" text={why}>
+        <Btn kind="jade" onClick={install}>
+          <Download size={16} /> Install
+        </Btn>
+      </Row>
+    )
+
+  if (where === 'ios-safari' || where === 'android')
+    return (
+      <>
+        <Row title="Keep it on your home screen" text={why}>
+          {null}
+        </Row>
+        <ol className="zh-install">
+          {where === 'ios-safari' ? (
+            <>
+              <li>
+                In Safari, tap Share {icon(Share)} at the bottom of the screen.
+                If you can’t see it, tap {icon(Ellipsis)} first.
+              </li>
+              <li>
+                Choose Add to Home Screen {icon(SquarePlus)}. Scroll down a
+                little if it isn’t there.
+              </li>
+              <li>Tap Add, at the top right.</li>
+            </>
+          ) : (
+            <>
+              <li>In Chrome, tap {icon(EllipsisVertical)} at the top right.</li>
+              <li>Choose Install app, or Add to Home screen.</li>
+              <li>Tap Install.</li>
+            </>
+          )}
+        </ol>
+      </>
+    )
+
+  if (where === 'ios-other')
+    return (
+      <Row
+        title="Keep it on your home screen"
+        text="It is easiest from Safari: copy the address, open Safari and paste it there."
+      >
+        <Btn
+          kind="ghost"
+          onClick={() => {
+            navigator.clipboard
+              .writeText('https://tian.ymse.land/#settings/install')
+              .then(() => setCopied(true))
+              .catch(() => setCopied(false))
+          }}
+        >
+          {copied ? <Check size={16} /> : <Copy size={16} />}{' '}
+          {copied ? 'Copied' : 'Copy the address'}
+        </Btn>
+      </Row>
+    )
+
   return (
-    <section className="mb-7">
+    <Row
+      title="Keep it on your phone"
+      text="On a phone, Tian can sit on the home screen like an app: open tian.ymse.land/#settings/install there to see how. On a computer, Chrome and Edge can install it from the icon at the right of the address bar."
+    >
+      {null}
+    </Row>
+  )
+}
+
+function Group({
+  title,
+  id,
+  children,
+}: {
+  title: string
+  id?: string
+  children: ReactNode
+}) {
+  return (
+    <section className="mb-7 scroll-mt-4" id={id}>
       <h2 className="zh-head mb-2.5 text-xl text-[var(--ink-2)]">{title}</h2>
       <div className="zh-card divide-y divide-[var(--paper-2)] overflow-hidden">
         {children}
