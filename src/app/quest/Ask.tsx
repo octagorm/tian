@@ -5,7 +5,8 @@ import { join, matches, syllables } from '../lib/pinyin'
 import { say } from '../lib/audio'
 import { useStore } from '../lib/store'
 import { Ruby, shuffle } from '../ui'
-import { wordChoices } from '../lib/choices'
+import { distinct, shown, wordChoices } from '../lib/choices'
+import type { ChoiceKind } from '../lib/choices'
 import type { Word } from '../data/words'
 
 // One question of the fight: what a word means, which word was said, or
@@ -31,15 +32,22 @@ export interface Question {
 
 // Wrong answers that look like the right one: words that share a
 // character with it, then words as long
-function lookalikes(w: Word): Array<Word> {
+// to choose from, no two showing the same
+function lookalikes(w: Word, kind: ChoiceKind): Array<Word> {
   const chars = new Set(w.h)
+  const answer = shown(w, kind)
+  const fair = (x: Word) =>
+    x.id !== w.id && x.g !== w.g && shown(x, kind) !== answer
   const sharing = WORDS.filter(
-    (x) => x.id !== w.id && x.g !== w.g && [...x.h].some((c) => chars.has(c)),
+    (x) => fair(x) && [...x.h].some((c) => chars.has(c)),
   )
   const same = WORDS.filter(
-    (x) => x.id !== w.id && x.h.length === w.h.length && !sharing.includes(x),
+    (x) => fair(x) && x.h.length === w.h.length && !sharing.includes(x),
   )
-  return shuffle([w, ...[...shuffle(sharing), ...shuffle(same)].slice(0, 3)])
+  return shuffle([
+    w,
+    ...distinct([...shuffle(sharing), ...shuffle(same)], kind).slice(0, 3),
+  ])
 }
 
 export function Ask({
@@ -62,7 +70,7 @@ export function Ask({
   }, [])
   const [choices, setChoices] = useState(() =>
     q.mirror
-      ? lookalikes(w)
+      ? lookalikes(w, kind === 'listen' ? 'listen' : 'meaning')
       : wordChoices(w, pool, kind === 'listen' ? 'listen' : 'meaning'),
   )
   const [answered, setAnswered] = useState<string | null>(null)

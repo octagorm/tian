@@ -63,6 +63,30 @@ export function soundsSame(a: Word, b: Word): boolean {
 
 const length = (w: Word) => spoken(w).bare.length
 
+// What a choice shows: the pinyin for a meaning, the meaning for a
+// character or a word heard, and otherwise the characters. Two choices
+// that show the same are no choice at all, so no two may (wán twice).
+export function shown(w: Word, kind: ChoiceKind): string {
+  const text =
+    kind === 'say'
+      ? w.p.replace(/[\s']/g, '')
+      : kind === 'meaning' || kind === 'hear'
+        ? w.e
+        : w.h
+  return text.trim().toLowerCase()
+}
+
+// The words in order, each that shows the same as one before it left out
+export function distinct(xs: Array<Word>, kind: ChoiceKind): Array<Word> {
+  const seen = new Set<string>()
+  return xs.filter((x) => {
+    const s = shown(x, kind)
+    if (seen.has(s)) return false
+    seen.add(s)
+    return true
+  })
+}
+
 // How much a wrong answer is like the word, so hard to tell from it: by
 // ear, syllables in common (more in the same place) and the same tones;
 // by sight, characters in common; and for all, a word of the same kind or
@@ -130,8 +154,13 @@ export function wordChoices(
   kind: ChoiceKind,
   random = Math.random,
 ): Array<Word> {
+  const answer = shown(w, kind)
   const fair = (x: Word) =>
-    x.id !== w.id && x.g !== w.g && x.h !== w.h && !soundsSame(x, w)
+    x.id !== w.id &&
+    x.g !== w.g &&
+    x.h !== w.h &&
+    !soundsSame(x, w) &&
+    shown(x, kind) !== answer
   const others = pool.filter(fair)
   const ranked = (xs: Array<Word>) =>
     xs
@@ -140,7 +169,8 @@ export function wordChoices(
       .map((r) => r.x)
   let picked: Array<Word>
   // meanings in English do not show how long the word is
-  if (kind === 'meaning' || kind === 'hear') picked = ranked(others).slice(0, 3)
+  if (kind === 'meaning' || kind === 'hear')
+    picked = distinct(ranked(others), kind).slice(0, 3)
   else {
     const n = length(w)
     const sameLength = [
@@ -164,10 +194,10 @@ export function wordChoices(
       others.filter((x) => Math.abs(length(x) - n) === 1),
       others.filter((x) => Math.abs(length(x) - n) > 1),
     ]
-    picked = [
-      ...picked,
-      ...tiers.flatMap(ranked).filter((x) => !picked.includes(x)),
-    ].slice(0, 3)
+    picked = distinct(
+      [...picked, ...tiers.flatMap(ranked).filter((x) => !picked.includes(x))],
+      kind,
+    ).slice(0, 3)
   }
   return shuffle([w, ...picked], random)
 }

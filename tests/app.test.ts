@@ -19,6 +19,7 @@ import { tokens } from '../src/app/lib/text'
 import {
   lineChoices,
   numberChoices,
+  shown,
   soundsSame,
   wordChoices,
 } from '../src/app/lib/choices'
@@ -2303,6 +2304,32 @@ describe('choices', () => {
     expect(cs).toHaveLength(4)
     for (const c of cs) expect(len(c)).toBe(4)
     expect(wordChoices(WORDS[0], WORDS.slice(0, 8), 'meaning')).toHaveLength(4)
+  })
+
+  test('no two choices show the same', () => {
+    // 碗 wǎn was once offered beside 玩 wán and 完 wán
+    const bowl = WORDS.find((x) => x.h === '碗')!
+    const met = WORDS.filter((x) => x.lesson <= bowl.lesson + 8)
+    let seed = 1
+    const random = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0
+      return seed / 4294967296
+    }
+    const kinds = ['meaning', 'reverse', 'listen', 'hear', 'say'] as const
+    for (const pool of [met, WORDS.slice(0, 8), WORDS])
+      for (const w of [bowl, ...WORDS.filter((_, i) => i % 7 === 0)])
+        for (const kind of kinds) {
+          const cs = wordChoices(w, pool, kind, random)
+          const texts = cs.map((c) => shown(c, kind))
+          expect(new Set(texts).size, `${w.h} ${kind}: ${texts}`).toBe(
+            cs.length,
+          )
+          expect(cs).toContain(w)
+        }
+    for (let i = 0; i < 50; i++) {
+      const pinyin = wordChoices(bowl, met, 'say', random).map((c) => c.p)
+      expect(pinyin.filter((p) => p === 'wán').length).toBeLessThan(2)
+    }
   })
 
   test('sounds alike: neutral tone, 他 and 她', () => {
