@@ -103,7 +103,8 @@ export default function Lanterns() {
   const settle = (right: boolean, picked?: string) => {
     if (!wave || outcome) return
     setOutcome({ right, picked })
-    if (bank.cards[wave.w.id]) record(wave.w.id, right, 0.6, 's>h')
+    if (bank.cards[wave.w.id])
+      record(wave.w.id, right, 0.6, 's>h', wave.choices.length)
     const el = lanterns.current.get(wave.w.id)
     if (right) {
       blip('right')

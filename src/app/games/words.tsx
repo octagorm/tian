@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Search, X } from 'lucide-react'
 import { LESSONS, WORDS } from '../data/words'
 import { bare, syllables } from '../lib/pinyin'
-import { LINKS, level, recallOf, stage } from '../lib/bank'
+import { LINKS, level, recallOf, slipping, stage } from '../lib/bank'
 import { useStore } from '../lib/store'
 import {
   Btn,
@@ -25,7 +25,8 @@ import type { Word } from '../data/words'
 // Words can be marked as known (for what the player knew before) or
 // forgotten, a lesson at a time.
 
-type LevelFilter = 'all' | Level
+// 'slips': the words that keep slipping (LEECH in lib/bank.ts)
+type LevelFilter = 'all' | Level | 'slips'
 type Sort = 'lesson' | 'fading' | 'recent'
 
 const KINDS: Array<{ id: string; label: string; tags: Array<string> }> = [
@@ -70,7 +71,9 @@ export default function Words() {
 
   const counts = [0, 0, 0]
   const stages = [0, 0, 0, 0]
+  let slips = 0
   for (const w of WORDS) {
+    if (slipping(bank.cards[w.id])) slips++
     counts[level(bank.cards[w.id], now)]++
     stages[stage(bank.cards[w.id], now)]++
   }
@@ -79,7 +82,10 @@ export default function Words() {
   const tags = KINDS.find((k) => k.id === kind)?.tags ?? []
   const shown = WORDS.filter(
     (w) =>
-      (lv === 'all' || level(bank.cards[w.id], now) === lv) &&
+      (lv === 'all' ||
+        (lv === 'slips'
+          ? slipping(bank.cards[w.id])
+          : level(bank.cards[w.id], now) === lv)) &&
       (!lesson || w.lesson === lesson) &&
       (!tags.length || w.tags.some((t) => tags.includes(t))) &&
       (!match || match(w)),
@@ -167,6 +173,20 @@ export default function Words() {
                 </span>
               </button>
             ))}
+            {(slips > 0 || lv === 'slips') && (
+              <button
+                type="button"
+                onClick={() => setLv('slips')}
+                title="Words forgotten again and again after they were known"
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold transition ${lv === 'slips' ? 'bg-[var(--ink)] text-[var(--paper)] shadow' : 'bg-[var(--paper-2)] hover:brightness-95'}`}
+              >
+                <span className="h-2 w-2 rounded-full border-2 border-[var(--red)]" />
+                Keep slipping
+                <span className="font-normal opacity-70 tabular-nums">
+                  {slips}
+                </span>
+              </button>
+            )}
           </div>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">

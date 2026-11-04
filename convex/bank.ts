@@ -7,8 +7,9 @@ import { requireUser } from './access'
 // (src/app/lib/store.tsx). The bank is stored as the JSON the page keeps;
 // the page owns its shape.
 
-// Some hundreds of words and scores; far under Convex's limit per document
-const MAX = 400_000
+// Every word with its last answers logged comes to about 600 kB; under
+// Convex's limit of 1 MiB per document
+const MAX = 900_000
 
 export const bank = query({
   args: {},

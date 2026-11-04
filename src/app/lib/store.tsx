@@ -17,6 +17,7 @@ import {
   isDir,
   known,
   level,
+  luck,
   merge,
   newCard,
   setCap,
@@ -124,7 +125,14 @@ interface Store {
   stageOf: (id: string) => Stage
   // An answer about a word: how much it says (see lib/bank.ts), and which
   // of the word's links it tested
-  record: (id: string, right: boolean, weight: number, how: How) => void
+  // `choices`: how many a right answer was picked from, if any (luck)
+  record: (
+    id: string,
+    right: boolean,
+    weight: number,
+    how: How,
+    choices?: number,
+  ) => void
   // Words met for the first time
   meet: (ids: Array<string>) => void
   // Words the player already knows
@@ -212,7 +220,7 @@ export function BankProvider({ children }: { children: ReactNode }) {
   const today = () => dayKey(Date.now())
 
   const record = useCallback(
-    (id: string, right: boolean, weight: number, how: How) =>
+    (id: string, right: boolean, weight: number, how: How, choices?: number) =>
       update((b) => {
         const now = Date.now()
         const card = b.cards[id]
@@ -227,7 +235,14 @@ export function BankProvider({ children }: { children: ReactNode }) {
                 : how
         const cards = {
           ...b.cards,
-          [id]: answerCard(card, links, right, now, weight, dir),
+          [id]: answerCard(
+            card,
+            links,
+            right,
+            now,
+            luck(weight, right, choices),
+            dir,
+          ),
         }
         const days = right
           ? { ...b.days, [today()]: (b.days[today()] ?? 0) + 1 }

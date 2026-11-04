@@ -24,6 +24,7 @@ import {
   wordChoices,
 } from '../src/app/lib/choices'
 import {
+  LOG,
   answer,
   answerCard,
   due,
@@ -226,6 +227,98 @@ describe('bank', () => {
     const slipped = answerCard(c, ['sm'], false, H)
     expect(slipped.x).toBe(1)
     expect(slipped.hs).toBe(c.hs)
+  })
+
+  test('a hard link grows more slowly, but a right answer never shortens it', async () => {
+    const { ease, nextD } = await import('../src/app/lib/bank')
+    const m = { s: 4, t: 0 }
+    const easy = answer({ ...m, d: 2 }, true, 4 * D)
+    const hard = answer({ ...m, d: 9 }, true, 4 * D)
+    expect(easy.s).toBeGreaterThan(hard.s)
+    expect(hard.s).toBeGreaterThan(m.s)
+    // a weak right too, at the hardest
+    expect(answer({ ...m, d: 10 }, true, H, 0.2).s).toBeGreaterThanOrEqual(m.s)
+    expect(ease(5)).toBe(1)
+    // a miss raises difficulty, a right lowers it; one in five keeps it
+    expect(nextD(5, false, 1)).toBeGreaterThan(5)
+    expect(nextD(5, true, 1)).toBeLessThan(5)
+    let d = 5
+    for (let i = 0; i < 100; i++) d = nextD(d, i % 5 !== 0, 0.6)
+    expect(d).toBeGreaterThan(4)
+    expect(d).toBeLessThan(6)
+  })
+
+  test('a link held long keeps more after a miss, and the miss shows until got right', () => {
+    const long = answer({ s: 60, t: 0 }, false, 60 * D)
+    const short = answer({ s: 3, t: 0 }, false, 3 * D)
+    expect(long.s).toBeGreaterThan(2)
+    expect(long.s).toBeLessThan(60)
+    expect(short.s).toBeLessThan(long.s)
+    expect(long.f).toBe(1)
+    expect(long.l).toBe(1)
+    // not known while missed, however long it lasts
+    const c = { ...newCard(0, 60), hm: long }
+    expect(level(c, 60 * D)).toBe(1)
+    const again = answerCard(c, ['hm'], true, 61 * D)
+    expect(again.hm.f).toBeUndefined()
+    expect(again.hm.l).toBe(1)
+    expect(level(again, 61 * D)).toBe(2)
+    // a weak hint of a miss is no lapse
+    expect(answer({ s: 60, t: 0 }, false, D, 0.3).l).toBeUndefined()
+  })
+
+  test('words missed again and again once known keep slipping', async () => {
+    const { slipping, LEECH } = await import('../src/app/lib/bank')
+    let c = newCard(0, 10)
+    for (let i = 0; i < LEECH; i++) {
+      expect(slipping(c)).toBe(false)
+      c = answerCard(c, ['hs'], false, (i * 20 + 1) * D)
+      for (let j = 1; j <= 6; j++)
+        c = answerCard(c, ['hs'], true, (i * 20 + 1 + j * 3) * D)
+    }
+    expect(c.hs.l).toBe(LEECH)
+    expect(slipping(c)).toBe(true)
+  })
+
+  test('a right pick from fewer choices says less', async () => {
+    const { luck } = await import('../src/app/lib/bank')
+    expect(luck(0.6, true, 4)).toBeCloseTo(0.6)
+    expect(luck(0.6, true, 2)).toBeCloseTo(0.4)
+    expect(luck(0.6, true, 6)).toBeGreaterThan(0.6)
+    expect(luck(0.9, true, 9)).toBeLessThanOrEqual(1)
+    expect(luck(0.6, false, 2)).toBe(0.6)
+    expect(luck(1, true)).toBe(1)
+  })
+
+  test('old links get a difficulty guessed from their misses', async () => {
+    const { guessD } = await import('../src/app/lib/bank')
+    const c = newCard(0, 5)
+    expect(guessD(c, 'hm')).toBeCloseTo(5)
+    expect(guessD({ ...c, d: { 'h>m': [2, 3, 0] } }, 'hm')).toBeGreaterThan(7)
+    expect(guessD({ ...c, n: 30, x: 0 }, 'hm')).toBeLessThan(4)
+    // and nothing changes until answered
+    const old = { ...c, hm: { s: 5, t: 0 } }
+    expect(answerCard(old, ['hm'], true, D).hm.d).toBeDefined()
+  })
+
+  test('answers are logged with the chance they were given, and merged', () => {
+    let c = newCard(0, 2)
+    for (let i = 1; i <= 12; i++)
+      c = answerCard(c, ['hm'], i % 3 > 0, i * D, 0.6, 'h>m')
+    expect(c.log).toHaveLength(LOG)
+    const [min, how, w, s, r] = c.log!.at(-1)!
+    expect(min).toBe(Math.round((12 * D) / 60_000))
+    expect(how).toBe('h>m')
+    expect(w).toBe(-6)
+    expect(s).toBeGreaterThan(0)
+    expect(r).toBeGreaterThan(0)
+    expect(r).toBeLessThanOrEqual(100)
+    const other = answerCard(c, ['hs'], true, 13 * D, 1, 'h>s')
+    const later = answerCard(c, ['sm'], true, 14 * D, 1, 's>m')
+    const m = merge({ cards: { x: other } }, { cards: { x: later } })
+    const log = m.cards.x!.log!
+    expect(log).toHaveLength(LOG)
+    expect(log.map((e) => e[1]).slice(-2)).toEqual(['h>s', 's>m'])
   })
 
   test('the weakest link is the most faded', () => {

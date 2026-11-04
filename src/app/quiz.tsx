@@ -154,6 +154,7 @@ export function Quiz({
       right,
       firstTime ? WEIGHT[q.kind] : WEIGHT[q.kind] / 2,
       DIR_OF[q.kind],
+      q.kind === 'type' ? undefined : choices.length,
     )
     if (right) {
       if (firstTime) {
