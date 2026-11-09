@@ -8,7 +8,7 @@ import { CITIES, SCENES } from './data/trip'
 import { QUEST } from './data/quest'
 import { STORIES } from './data/stories'
 import { TOPIC } from './data/topics'
-import { dayKey, level, recallOf, streak, unmet } from './lib/bank'
+import { BEHIND, dayKey, learnt, recallOf, streak, unmet } from './lib/bank'
 import { Pix } from './pixel/Pix'
 import { Account } from './account'
 import { Feedback } from './feedback'
@@ -118,7 +118,8 @@ export default function Home() {
   const words = { known: 0, knownFading: 0, learning: 0, learningFading: 0 }
   for (const w of met) {
     const c = bank.cards[w.id]!
-    const known = level(c, now) === 2
+    // learnt, and reviewed as it fades: not counted as learnt again
+    const known = learnt(c)
     const faded = recallOf(c, now) < FADING
     if (known) words.known++
     else words.learning++
@@ -642,7 +643,7 @@ function Today({
           <Week bank={bank} />
         </div>
       </div>
-      <Words {...words} cap={settings.cap} />
+      <Words {...words} cap={settings.cap} behind={fading > BEHIND} />
       <Chosen bank={bank} />
     </section>
   )
@@ -828,7 +829,8 @@ function Words({
   learning,
   learningFading,
   cap,
-}: WordCounts & { cap: number }) {
+  behind,
+}: WordCounts & { cap: number; behind: boolean }) {
   const all = WORDS.length
   const rest = all - known - learning
   const parts = [
@@ -876,10 +878,16 @@ function Words({
         <span>
           <b className="tabular-nums">{rest}</b> to meet, of {all}
         </span>
-        {learning >= cap && (
+        {learning >= cap ? (
           <span className="basis-full text-[var(--ink-2)]">
             New words wait until some of these are known.
           </span>
+        ) : (
+          behind && (
+            <span className="basis-full text-[var(--ink-2)]">
+              New words wait until fewer are fading.
+            </span>
+          )
         )}
         <a
           href="#words"

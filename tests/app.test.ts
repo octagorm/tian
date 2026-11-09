@@ -33,6 +33,7 @@ import {
   merge,
   newCard,
   pick,
+  recall,
   weakest,
 } from '../src/app/lib/bank'
 import type { Bank, Card } from '../src/app/lib/bank'
@@ -201,8 +202,22 @@ describe('bank', () => {
     for (let i = 1; i <= 10; i++) crammed = answer(crammed, true, i * 60_000)
     let spaced = newCard(0).hm
     for (let i = 1; i <= 4; i++) spaced = answer(spaced, true, i * D)
-    expect(crammed.s).toBeLessThan(0.5)
+    // not known for it, though a first right answer is a start
+    expect(crammed.s).toBeLessThan(1.5)
     expect(spaced.s).toBeGreaterThan(3)
+  })
+
+  test('a first right answer leaves a link lasting to the next day', () => {
+    const fresh = newCard(0).hm
+    const typed = answer(fresh, true, 60_000)
+    expect(typed.s).toBe(0.5)
+    expect(recall(typed, D)).toBeGreaterThan(0.8)
+    // by its weight, and not on the retry after a miss
+    expect(answer(fresh, true, 60_000, 0.6).s).toBe(0.3)
+    const missed = answer(fresh, false, 60_000)
+    expect(answer(missed, true, 120_000, 0.5).s).toBeLessThan(0.1)
+    // and never shortens what lasts longer
+    expect(answer({ s: 3, t: 0 }, true, 60_000).s).toBeGreaterThan(3)
   })
 
   test('a word is known once its character brings back sound and meaning', () => {
@@ -393,8 +408,8 @@ describe('bank', () => {
   test('a link set by hand is known for days, or back to learning for hours', async () => {
     const { setMemory, holds } = await import('../src/app/lib/bank')
     const card = { ...newCard(0, 0.2), sm: { s: 9, t: 0 } }
-    const up = setMemory(card, 'hs', true, 1000)
-    expect(up.hs).toEqual({ s: 4, t: 1000 })
+    const up = setMemory(card, 'hs', true, 1000, () => 0.5)
+    expect(up.hs).toEqual({ s: 30, t: 1000 })
     expect(holds(up.hs, 1000)).toBe(true)
     expect(up.hm).toEqual(card.hm)
     const down = setMemory(card, 'sm', false, 1000)
@@ -1584,7 +1599,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     // fifty words met an hour ago, none known yet
     const b = noCourse()
     for (const w of WORDS.slice(0, 50)) b.cards[w.id] = newCard(NOON - H)
-    expect(inWork(b, NOON)).toBe(50)
+    expect(inWork(b)).toBe(50)
     expect(room(b, NOON)).toBe(0)
     expect(room(b, NOON, 80)).toBe(30)
     expect(plan(b, NOON).steps.some((s) => s.k === 'new')).toBe(false)
@@ -1594,6 +1609,17 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
       b.cards[w.id] = { ...newCard(NOON - 2 * D, 5), n: 3 }
     expect(room(b, NOON)).toBe(10)
     expect(plan(b, NOON).steps.find((s) => s.k === 'new')?.ids?.length).toBe(4)
+    // nor do words once learnt that have faded since: they are reviewed
+    for (const w of WORDS.slice(0, 10))
+      b.cards[w.id] = { ...newCard(NOON - 30 * D, 5), n: 3 }
+    expect(room(b, NOON)).toBe(10)
+    // but with more fading than a couple of days can review, none are met
+    const behind = noCourse()
+    for (const w of WORDS.slice(0, 45))
+      behind.cards[w.id] = { ...newCard(NOON - 60 * D, 5), n: 3 }
+    expect(inWork(behind)).toBe(0)
+    expect(room(behind, NOON)).toBe(0)
+    expect(plan(behind, NOON).steps.some((s) => s.k === 'new')).toBe(false)
     // a word put off is met after every other, until a month has gone
     const next = toMeet(b, NOON).filter((w) => !b.cards[w.id])[0]
     const put = { ...b, later: { [next.id]: NOON } }
@@ -1624,7 +1650,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
       b.cards[w.id] = newCard(NOON - 20 * D, 0.5)
     const p = plan(b, NOON)
     expect(p.steps[0].k).toBe('review')
-    expect(p.steps[0].ids?.length).toBe(8)
+    expect(p.steps[0].ids?.length).toBe(20)
     expect(p.steps[0].arg).toBeUndefined()
     expect(p.s0[`${p.steps[0].ids?.[0]} hs`]).toBe(0.5)
     expect(current(p)).toBe(0)
@@ -1774,7 +1800,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     b.scenes['start-hidden'] = NOON - 2 * D
     // the words met long ago are the most faded
     WORDS.slice(0, 60).forEach((w, i) => {
-      b.cards[w.id] = newCard(NOON - D - i * H, 3)
+      b.cards[w.id] = newCard(NOON - D - i * H, 1.2)
     })
     const plans = Array.from({ length: 6 }, (_, k) => plan(b, NOON + k * D))
     const third = plans.map((p) =>
@@ -1786,21 +1812,19 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     // shoring up takes the next most faded after those reviewed, and is
     // played here, before the listening
     const p = plans[third.findIndex((s) => s?.k === 'shore')]
-    expect(p.steps.map((s) => s.k)).toEqual([
-      'review',
-      'new',
-      'shore',
-      'listen',
-    ])
+    // (with sixty words fading, no new ones are met that day)
+    expect(p.steps.map((s) => s.k)).toEqual(['review', 'shore', 'listen'])
     const review = p.steps[0].ids ?? []
-    const shore = p.steps[2].ids ?? []
+    const shore = p.steps[1].ids ?? []
     expect(shore.length).toBe(8)
-    expect(p.steps[2].arg).toBeUndefined()
+    expect(p.steps[1].arg).toBeUndefined()
     // a day after, none are fading yet: a warm-up
-    expect(shoreUp(b, NOON, [])?.arg).toBe('warm')
+    const fresh = emptyBank()
+    for (const w of WORDS.slice(0, 10)) fresh.cards[w.id] = newCard(NOON - D, 3)
+    expect(shoreUp(fresh, NOON, [])?.arg).toBe('warm')
     expect(shore.some((id) => review.includes(id))).toBe(false)
     expect(shore).toContain(WORDS[59 - review.length].id)
-    expect(p.s0[`${shore[0]} hm`]).toBe(3)
+    expect(p.s0[`${shore[0]} hm`]).toBe(1.2)
     // its words are in the summary
     const done = p.steps.reduce((q, _, i) => markDone(q, i, NOON + H), p)
     const ids = summary(done, b, NOON + H).words.map((w) => w.id)
@@ -1811,7 +1835,7 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     const put = shoreInstead(t, at, b, NOON)
     expect(put.steps[at].k).toBe('shore')
     expect(put.steps[at].ids?.length).toBe(8)
-    expect(put.s0[`${put.steps[at].ids?.[0]} hs`]).toBe(3)
+    expect(put.s0[`${put.steps[at].ids?.[0]} hs`]).toBe(1.2)
     // with too few words met, there is nothing to shore up
     const few = noCourse()
     for (const w of WORDS.slice(0, 6)) few.cards[w.id] = newCard(NOON - D, 3)

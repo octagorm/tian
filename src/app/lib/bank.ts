@@ -216,6 +216,13 @@ export const emptyBank = (): Bank => ({
 const DAY = 86_400_000
 const FIRST = 0.05 // about an hour
 const MIN = 0.02
+// What a right answer leaves a link with at the least, in days, for an
+// answer of full weight: as FSRS starts a card from its first grade, not
+// from nothing. A word met and got right is likely remembered the day
+// after; grown from an hour, it was taken as forgotten by then, and took
+// two reviews more to hold. Not for a link missed since it was last got
+// right (the question that comes back in the same round).
+const RIGHT = 0.5
 export const KNOWN = 1.5
 
 export type Level = 0 | 1 | 2
@@ -323,8 +330,9 @@ export function answer(
   const keep = m.l ? { l: m.l } : {}
   if (right) {
     const gain = Math.min(8, 1.1 + 15 * (1 - r))
+    const grown = m.s * (1 + (gain - 1) * weight * ease(d0))
     return {
-      s: round3(m.s * (1 + (gain - 1) * weight * ease(d0))),
+      s: round3(m.f ? grown : Math.max(grown, RIGHT * weight)),
       t: now,
       d: round3(nextD(d0, true, weight)),
       ...keep,
@@ -443,23 +451,34 @@ export function missRate(
   return (x + 2 * rates[dir]) / (n + 2)
 }
 
-// One link set by hand: known, lasting four days, as a word the player says
-// they know; or back to learning, lasting a few hours, so that it comes up
-// again soon. Never longer or shorter than it was, the other way.
+// One link set by hand: known, lasting some weeks, as a word the player
+// says they know; or back to learning, lasting a few hours, so that it
+// comes up again soon. Never longer or shorter than it was, the other way.
 export function setMemory(
   card: Card,
   link: Link,
   isKnown: boolean,
   now: number,
+  random: () => number = Math.random,
 ): Card {
   const m = card[link]
-  const s = isKnown ? Math.max(m.s, 4) : Math.min(m.s, 0.3)
+  const s = isKnown ? Math.max(m.s, said(random)) : Math.min(m.s, 0.3)
   const keep = { ...(m.d ? { d: m.d } : {}), ...(m.l ? { l: m.l } : {}) }
   return { ...card, [link]: { s, t: now, ...keep } }
 }
 
+// How long a link said to be known lasts, in days: long enough that it is
+// not asked about for some weeks, and not the same for every word, so that
+// words marked together do not all fade on one day
+const SAID = 20
+const said = (random: () => number) => round3(SAID * (1 + random()))
+
 // Words the player says they know already: straight to known
-export const known = (now: number): Card => ({ ...newCard(now, 4), n: 1 })
+export function known(now: number, random: () => number = Math.random): Card {
+  const c = newCard(now)
+  for (const l of LINKS) c[l] = { s: said(random), t: now }
+  return { ...c, n: 1 }
+}
 
 // The chance of remembering a word's weakest link, now
 export const recallOf = (card: Card, now: number) =>
@@ -545,16 +564,40 @@ export const setCap = (n: number) => {
   cap = n
 }
 
-// Words met and not yet known
-export function inWork(bank: Bank, now: number): number {
+// A word learnt: both links to its character have lasted KNOWN days or
+// more, and neither was missed since. It stays learnt while it fades, so
+// that words known and left alone for a while, such as those marked known
+// together, do not take the place of new ones: they are reviewed, not
+// learnt again.
+export const learnt = (c: Card) =>
+  !c.hs.f && !c.hm.f && c.hs.s >= KNOWN && c.hm.s >= KNOWN
+
+// Words met and not yet learnt
+export function inWork(bank: Bank): number {
   let n = 0
-  for (const c of Object.values(bank.cards)) if (c && level(c, now) < 2) n++
+  for (const c of Object.values(bank.cards)) if (c && !learnt(c)) n++
   return n
 }
 
+// Below this chance of remembering, a word is fading
+export const FADING = 0.85
+
+// Words fading: what there is to review
+export function fading(bank: Bank, now: number): number {
+  let n = 0
+  for (const c of Object.values(bank.cards))
+    if (c && recallOf(c, now) < FADING) n++
+  return n
+}
+
+// With more words fading than this, about two days of Today's review, no
+// new ones are brought: more words than can be reviewed are all half
+// remembered
+export const BEHIND = 40
+
 // How many new words may be met now
 export const room = (bank: Bank, now: number, of = cap) =>
-  Math.max(0, of - inWork(bank, now))
+  fading(bank, now) > BEHIND ? 0 : Math.max(0, of - inWork(bank))
 
 // Words put off come back to their place after this many days
 const LATER = 30

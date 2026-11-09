@@ -1,6 +1,7 @@
 import { WORD, WORDS } from '../data/words.ts'
 import { SCENES } from '../data/trip.ts'
 import {
+  FADING,
   LINKS,
   dayKey,
   due,
@@ -37,13 +38,12 @@ export const STEP: Record<
 }
 
 // Words to review: those fading, the most faded first
-const REVIEW = 8
+const REVIEW = 20
 // Words to shore up, after those reviewed: the next most faded, each
 // asked about its weakest link; fewer than SHORE_MIN and there is no step
 const SHORE = 8
 const SHORE_MIN = 4
-// Below this chance of remembering, a word is fading
-export const FADING = 0.85
+export { FADING }
 // A scene or a game counts as played after this many points from it
 const PLAYED_TRIP = 6
 const PLAYED_GAME = 3
