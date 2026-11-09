@@ -56,7 +56,13 @@ export function tokens(line: string, vars: Vars): Array<Token> {
       ...(note ? { note } : {}),
     }
   })
-  const words = base.filter((b) => !('punct' in b && b.punct))
+  // a word with punctuation after it is said with a pause: nothing after
+  // it changes its tone
+  const words = base.flatMap((b, i) => {
+    if ('punct' in b && b.punct) return []
+    const after = base[i + 1] as (typeof base)[number] | undefined
+    return [{ ...b, stop: !!after && 'punct' in after && !!after.punct }]
+  })
   const sylls = inContext(words)
   let k = 0
   return base.map((b) => {

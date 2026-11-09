@@ -74,8 +74,8 @@ const RAW: Array<[string, string, string]> = [
     `
 中国|Zhōng guó|China||country
 挪威|Nuó wēi|Norway||country
-美国|Měi guó|America|the United States||country
-英国|Yīng guó|Britain|the United Kingdom||country
+美国|Měi guó|America|the United States
+英国|Yīng guó|Britain|the United Kingdom
 德国|Dé guó|Germany||country
 法国|Fǎ guó|France||country
 瑞典|Ruì diǎn|Sweden||country
@@ -153,8 +153,8 @@ const RAW: Array<[string, string, string]> = [
 茶|chá|tea||drink
 咖啡|kā fēi|coffee||drink
 豆浆|dòu jiāng|soy milk||drink
-包子|bāo zi|steamed bun|steamed bun with a filling||food
-油条|yóu tiáo|fried dough stick|youtiao, a long fried dough stick||food
+包子|bāo zi|steamed bun|steamed bun with a filling|food
+油条|yóu tiáo|fried dough stick|youtiao, a long fried dough stick|food
 鸡蛋|jī dàn|egg||food
 杯|bēi|cup|cup, glass; measure word for drinks|mw
 根|gēn|(stick)|measure word for long, thin things|mw
@@ -190,7 +190,7 @@ const RAW: Array<[string, string, string]> = [
 近|jìn|near|near, close
 到|dào|arrive|to arrive; to, until
 路口|lù kǒu|crossing|crossing, junction
-天安门|Tiān ān mén|Tiananmen|Tiananmen, the Gate of Heavenly Peace||place
+天安门|Tiān ān mén|Tiananmen|Tiananmen, the Gate of Heavenly Peace|place
 厕所|cè suǒ|toilet
 扫|sǎo|scan|to scan; to sweep
 微信|Wēi xìn|WeChat|WeChat, the app for chat and paying
@@ -217,7 +217,7 @@ const RAW: Array<[string, string, string]> = [
 网|wǎng|Wi-Fi|net; the internet, Wi-Fi
 密码|mì mǎ|password|password, PIN
 先生|xiān sheng|Mr|Mr, sir; husband
-王|Wáng|Wang|Wang, a surname||name
+王|Wáng|Wang|Wang, a surname|name
 `,
   ],
   [
@@ -228,15 +228,15 @@ const RAW: Array<[string, string, string]> = [
 服务员|fú wù yuán|waiter|waiter, waitress
 菜单|cài dān|menu
 菜|cài|dish|dish; vegetable
-米饭|mǐ fàn|rice|cooked rice||food
+米饭|mǐ fàn|rice|cooked rice|food
 面条|miàn tiáo|noodles||food
 饺子|jiǎo zi|dumplings||food
-牛肉面|niú ròu miàn|beef noodles|beef noodle soup||food
+牛肉面|niú ròu miàn|beef noodles|beef noodle soup|food
 汤|tāng|soup||food
 牛肉|niú ròu|beef||food
-鸡肉|jī ròu|chicken|chicken (meat)||food
-羊肉串|yáng ròu chuàn|lamb skewer|lamb kebab on a skewer||food
-火锅|huǒ guō|hotpot|hotpot, cooked at the table||food
+鸡肉|jī ròu|chicken|chicken (meat)|food
+羊肉串|yáng ròu chuàn|lamb skewer|lamb kebab on a skewer|food
+火锅|huǒ guō|hotpot|hotpot, cooked at the table|food
 啤酒|pí jiǔ|beer||drink
 可乐|kě lè|cola||drink
 碗|wǎn|bowl|bowl; measure word for food in bowls|mw
@@ -299,10 +299,10 @@ const RAW: Array<[string, string, string]> = [
 成都|Chéng dū|Chengdu||place
 桂林|Guì lín|Guilin||place
 上海|Shàng hǎi|Shanghai||place
-外滩|Wài tān|the Bund|the Bund, Shanghai's riverfront||place
-长城|Cháng chéng|Great Wall|the Great Wall||place
-曲阜|Qū fù|Qufu|Qufu, Confucius' home town||place
-兵马俑|bīng mǎ yǒng|Terracotta Army|the Terracotta Army, at Xi'an||place
+外滩|Wài tān|the Bund|the Bund, Shanghai's riverfront|place
+长城|Cháng chéng|Great Wall|the Great Wall|place
+曲阜|Qū fù|Qufu|Qufu, Confucius' home town|place
+兵马俑|bīng mǎ yǒng|Terracotta Army|the Terracotta Army, at Xi'an|place
 旅游|lǚ yóu|travel|to travel (for fun); tourism
 一路平安|yī lù píng ān|safe journey|have a safe trip!
 `,
@@ -453,12 +453,12 @@ const RAW: Array<[string, string, string]> = [
 神|shén|god|god, spirit
 妖怪|yāo guài|demon|demon, monster
 猴子|hóu zi|monkey
-孙悟空|Sūn Wù kōng|Sun Wukong|Sun Wukong, the Monkey King||name
+孙悟空|Sūn Wù kōng|Sun Wukong|Sun Wukong, the Monkey King|name
 师父|shī fu|master|master, teacher (of a disciple)
 西游记|Xī yóu jì|Journey to the West|Journey to the West, the 16th-century novel
-嫦娥|Cháng é|Chang'e|Chang'e, the goddess who flew to the moon||name
+嫦娥|Cháng é|Chang'e|Chang'e, the goddess who flew to the moon|name
 皇帝|huáng dì|emperor
-秦始皇|Qín Shǐ huáng|the First Emperor|Qin Shi Huang, who united China in 221 BC||name
+秦始皇|Qín Shǐ huáng|the First Emperor|Qin Shi Huang, who united China in 221 BC|name
 历史|lì shǐ|history
 故事|gù shi|story
 打|dǎ|hit|to hit, to fight; to play (a game)
@@ -474,7 +474,7 @@ const RAW: Array<[string, string, string]> = [
     `
 道|dào|the Way|road; the Way (Dao); to say
 孔子|Kǒng zǐ|Confucius||name
-老子|Lǎo zǐ|Laozi|Laozi, the sage of the Daodejing||name
+老子|Lǎo zǐ|Laozi|Laozi, the sage of the Daodejing|name
 哲学|zhé xué|philosophy
 思想|sī xiǎng|thought|thought, ideas
 人民|rén mín|the people
@@ -552,10 +552,10 @@ const RAW: Array<[string, string, string]> = [
 里|lǐ|li|li, a Chinese half-kilometre; also in, inside (田里, in the field)
 跟头|gēn tou|somersault
 金箍棒|jīn gū bàng|golden cudgel|the Monkey King's golden-banded staff
-佛|Fó|Buddha|the Buddha||name
+佛|Fó|Buddha|the Buddha|name
 和尚|hé shang|monk|Buddhist monk
-后羿|Hòu Yì|Hou Yi|Hou Yi, the archer who shot down the suns||name
-齐天大圣|Qí tiān dà shèng|Great Sage|the Great Sage Equal to Heaven: Wukong's own title for himself||name
+后羿|Hòu Yì|Hou Yi|Hou Yi, the archer who shot down the suns|name
+齐天大圣|Qí tiān dà shèng|Great Sage|the Great Sage Equal to Heaven: Wukong's own title for himself|name
 道德经|Dào dé jīng|Daodejing|the Daodejing, the book of the Way, said to be Laozi's
 `,
   ],
@@ -564,8 +564,8 @@ const RAW: Array<[string, string, string]> = [
     '飞船',
     `
 星球|xīng qiú|planet|a planet, a heavenly body
-木星|Mù xīng|Jupiter|Jupiter, the wood star (the planets are named for the five elements)||place
-土星|Tǔ xīng|Saturn|Saturn, the earth star||place
+木星|Mù xīng|Jupiter|Jupiter, the wood star (the planets are named for the five elements)|place
+土星|Tǔ xīng|Saturn|Saturn, the earth star|place
 小行星|xiǎo xíng xīng|asteroid
 飞碟|fēi dié|flying saucer|flying saucer, UFO
 激光|jī guāng|laser
@@ -653,10 +653,10 @@ const RAW: Array<[string, string, string]> = [
     'The road west',
     '取经路',
     `
-唐僧|Táng Sēng|Tang Sanzang|Tang Sanzang, "the Tang monk", who goes west for the scriptures||name
-猪八戒|Zhū Bā jiè|Zhu Bajie|Zhu Bajie, "Pigsy", Tang Sanzang's second disciple||name
-沙僧|Shā Sēng|Sha Wujing|Sha Wujing, "Sandy", Tang Sanzang's third disciple||name
-观音|Guān yīn|Guanyin|Guanyin, the bodhisattva of mercy||name
+唐僧|Táng Sēng|Tang Sanzang|Tang Sanzang, "the Tang monk", who goes west for the scriptures|name
+猪八戒|Zhū Bā jiè|Zhu Bajie|Zhu Bajie, "Pigsy", Tang Sanzang's second disciple|name
+沙僧|Shā Sēng|Sha Wujing|Sha Wujing, "Sandy", Tang Sanzang's third disciple|name
+观音|Guān yīn|Guanyin|Guanyin, the bodhisattva of mercy|name
 经|jīng|scriptures|scripture, sutra; a classic
 猪|zhū|pig
 桃子|táo zi|peach
@@ -837,12 +837,12 @@ const RAW: Array<[string, string, string]> = [
 实习生|shí xí shēng|intern
 职员|zhí yuán|clerk|clerk, member of staff
 客户|kè hù|client|client, customer
-刘|Liú|Liu|Liu, a surname||name
-陈|Chén|Chen|Chen, a surname||name
-赵|Zhào|Zhao|Zhao, a surname||name
-周|Zhōu|Zhou|Zhou, a surname||name
-林|Lín|Lin|Lin, a surname||name
-孙|Sūn|Sun|Sun, a surname||name
+刘|Liú|Liu|Liu, a surname|name
+陈|Chén|Chen|Chen, a surname|name
+赵|Zhào|Zhao|Zhao, a surname|name
+周|Zhōu|Zhou|Zhou, a surname|name
+林|Lín|Lin|Lin, a surname|name
+孙|Sūn|Sun|Sun, a surname|name
 上班|shàng bān|go to work|to go to work, to be at work
 下班|xià bān|finish work|to finish work for the day
 加班|jiā bān|work late|to work overtime
@@ -905,7 +905,7 @@ const RAW: Array<[string, string, string]> = [
 撞|zhuàng|bump into|to bump into, to crash into
 笑|xiào|laugh at|to laugh, to smile; to laugh at
 守株待兔|shǒu zhū dài tù|wait by the stump|"guard the stump, wait for rabbits": to wait for luck instead of working (an idiom)
-酒|jiǔ|wine|wine, alcohol||drink
+酒|jiǔ|wine|wine, alcohol|drink
 够|gòu|enough|enough; to be enough
 蛇|shé|snake
 先|xiān|first|first, before the others
@@ -979,10 +979,10 @@ const RAW: Array<[string, string, string]> = [
 道家|Dào jiā|Daoists|the Daoists, Daoism
 法家|Fǎ jiā|Legalists|the Legalists, who held that strict laws make order
 佛教|Fó jiào|Buddhism
-论语|Lún yǔ|the Analects|the Analects, the sayings of Confucius||name
-孟子|Mèng zǐ|Mencius|Mencius, Confucius's great follower||name
-墨子|Mò zǐ|Mozi|Mozi, who taught care for all alike||name
-韩非子|Hán Fēi zǐ|Han Feizi|Han Feizi, the Legalist||name
+论语|Lún yǔ|the Analects|the Analects, the sayings of Confucius|name
+孟子|Mèng zǐ|Mencius|Mencius, Confucius's great follower|name
+墨子|Mò zǐ|Mozi|Mozi, who taught care for all alike|name
+韩非子|Hán Fēi zǐ|Han Feizi|Han Feizi, the Legalist|name
 仁|rén|benevolence|benevolence, humaneness (Confucius's chief virtue)
 礼|lǐ|rites|rites, ritual; good manners
 义|yì|righteousness|righteousness, what is right
@@ -1014,15 +1014,15 @@ const RAW: Array<[string, string, string]> = [
 现代|xiàn dài|modern|modern, modern times
 世纪|shì jì|century
 朝代|cháo dài|dynasty
-商朝|Shāng cháo|the Shang|the Shang dynasty (about 1600–1046 BC)||name
-周朝|Zhōu cháo|the Zhou|the Zhou dynasty (1046–256 BC)||name
-秦朝|Qín cháo|the Qin|the Qin dynasty (221–206 BC), which first united China||name
-汉朝|Hàn cháo|the Han|the Han dynasty (206 BC – AD 220)||name
-唐朝|Táng cháo|the Tang|the Tang dynasty (618–907)||name
-宋朝|Sòng cháo|the Song|the Song dynasty (960–1279)||name
-元朝|Yuán cháo|the Yuan|the Yuan dynasty (1271–1368), of the Mongols||name
-明朝|Míng cháo|the Ming|the Ming dynasty (1368–1644)||name
-清朝|Qīng cháo|the Qing|the Qing dynasty (1644–1912), the last||name
+商朝|Shāng cháo|the Shang|the Shang dynasty (about 1600–1046 BC)|name
+周朝|Zhōu cháo|the Zhou|the Zhou dynasty (1046–256 BC)|name
+秦朝|Qín cháo|the Qin|the Qin dynasty (221–206 BC), which first united China|name
+汉朝|Hàn cháo|the Han|the Han dynasty (206 BC – AD 220)|name
+唐朝|Táng cháo|the Tang|the Tang dynasty (618–907)|name
+宋朝|Sòng cháo|the Song|the Song dynasty (960–1279)|name
+元朝|Yuán cháo|the Yuan|the Yuan dynasty (1271–1368), of the Mongols|name
+明朝|Míng cháo|the Ming|the Ming dynasty (1368–1644)|name
+清朝|Qīng cháo|the Qing|the Qing dynasty (1644–1912), the last|name
 统一|tǒng yī|unite|to unite, to unify; united
 帝国|dì guó|empire
 甲骨文|jiǎ gǔ wén|oracle bones|oracle bone script, the earliest Chinese writing
@@ -1046,19 +1046,19 @@ const RAW: Array<[string, string, string]> = [
 神仙|shén xiān|immortal|immortal, a being of the heavens
 仙女|xiān nǚ|fairy|fairy, a woman immortal
 天宫|tiān gōng|heavenly palace|the palace of heaven
-玉帝|Yù Dì|the Jade Emperor|the Jade Emperor, ruler of heaven||name
-黄帝|Huáng Dì|the Yellow Emperor|the Yellow Emperor, a legendary first ruler||name
-伏羲|Fú xī|Fuxi|Fuxi, Nüwa's brother, who taught people to fish and hunt||name
-大禹|Dà Yǔ|Yu the Great|Yu the Great, who tamed the floods||name
+玉帝|Yù Dì|the Jade Emperor|the Jade Emperor, ruler of heaven|name
+黄帝|Huáng Dì|the Yellow Emperor|the Yellow Emperor, a legendary first ruler|name
+伏羲|Fú xī|Fuxi|Fuxi, Nüwa's brother, who taught people to fish and hunt|name
+大禹|Dà Yǔ|Yu the Great|Yu the Great, who tamed the floods|name
 洪水|hóng shuǐ|flood
 治水|zhì shuǐ|tame the waters|to control floods
-夸父|Kuā fù|Kuafu|Kuafu, the giant who chased the sun||name
-精卫|Jīng wèi|Jingwei|Jingwei, the bird who tried to fill the sea||name
-哪吒|Né zhā|Nezha|Nezha, the boy god||name
+夸父|Kuā fù|Kuafu|Kuafu, the giant who chased the sun|name
+精卫|Jīng wèi|Jingwei|Jingwei, the bird who tried to fill the sea|name
+哪吒|Né zhā|Nezha|Nezha, the boy god|name
 凤凰|fèng huáng|phoenix
 麒麟|qí lín|qilin|qilin, a beast of good omen
 鬼|guǐ|ghost
-山海经|Shān hǎi jīng|Classic of Mountains and Seas|the Classic of Mountains and Seas, an old book of strange lands and beasts||name
+山海经|Shān hǎi jīng|Classic of Mountains and Seas|the Classic of Mountains and Seas, an old book of strange lands and beasts|name
 `,
   ],
   [
@@ -1100,14 +1100,14 @@ const RAW: Array<[string, string, string]> = [
     '中国菜',
     `
 推荐|tuī jiàn|recommend
-特色菜|tè sè cài|speciality|the speciality of the house or the place||food
+特色菜|tè sè cài|speciality|the speciality of the house or the place|food
 炒|chǎo|stir-fried|to stir-fry; stir-fried
 炒饭|chǎo fàn|fried rice||food
-小笼包|xiǎo lóng bāo|soup dumplings|xiaolongbao, little steamed buns with soup inside||food
-馄饨|hún tun|wontons|wontons, in soup||food
+小笼包|xiǎo lóng bāo|soup dumplings|xiaolongbao, little steamed buns with soup inside|food
+馄饨|hún tun|wontons|wontons, in soup|food
 豆腐|dòu fu|tofu||food
-麻婆豆腐|má pó dòu fu|mapo tofu|mapo tofu, tofu in a hot, numbing Sichuan sauce||food
-宫保鸡丁|gōng bǎo jī dīng|kung pao chicken|kung pao chicken: diced chicken with peanuts and chilli||food
+麻婆豆腐|má pó dòu fu|mapo tofu|mapo tofu, tofu in a hot, numbing Sichuan sauce|food
+宫保鸡丁|gōng bǎo jī dīng|kung pao chicken|kung pao chicken: diced chicken with peanuts and chilli|food
 猪肉|zhū ròu|pork||food
 蔬菜|shū cài|vegetables||food
 辣椒|là jiāo|chilli||food
@@ -1119,7 +1119,7 @@ const RAW: Array<[string, string, string]> = [
 咸|xián|salty
 素|sù|vegetarian|vegetarian, without meat
 过敏|guò mǐn|allergic|to be allergic
-饮料|yǐn liào|drink|drink, beverage||drink
+饮料|yǐn liào|drink|drink, beverage|drink
 果汁|guǒ zhī|juice||drink
 热水|rè shuǐ|hot water||drink
 冰|bīng|ice|ice; iced
@@ -1148,7 +1148,7 @@ const RAW: Array<[string, string, string]> = [
 打折|dǎ zhé|discount|to give a discount (打八折 = 20 % off)
 袋子|dài zi|bag
 刷卡|shuā kǎ|pay by card|to pay by card
-支付宝|Zhī fù bǎo|Alipay|Alipay, the other big way to pay by phone||name
+支付宝|Zhī fù bǎo|Alipay|Alipay, the other big way to pay by phone|name
 二维码|èr wéi mǎ|QR code
 零钱|líng qián|small change
 小票|xiǎo piào|receipt|receipt, from the till
@@ -1225,7 +1225,10 @@ export const WORDS: Array<Word> = RAW.flatMap(([, , rows], i) =>
     .trim()
     .split('\n')
     .map((row) => {
-      const [h, p, g, e = '', tags = ''] = row.split('|').map((s) => s.trim())
+      const fields = row.split('|').map((s) => s.trim())
+      // a sixth field would be tags read as nothing
+      if (fields.length > 5) throw new Error(`Too many fields: ${row}`)
+      const [h, p, g, e = '', tags = ''] = fields
       return {
         id: h,
         h,

@@ -96,26 +96,60 @@ export function sandhi(
   return syllable
 }
 
+const WEEK = new Set(['星期', '周', '礼拜'])
+const ORDINAL_AFTER = new Set(['月', '号', '楼', '日'])
+
 // The syllables of a run of words, with 不 and 一 changed by what follows.
 // Each word is [hanzi, syllables]; `numeric` marks number words, where 一
-// is read yī (but 一百 is yìbǎi, which the number reader handles).
+// is read yī (but 一百 is yìbǎi, which the number reader handles), and
+// `stop` a word with a pause after it (a comma, the end of a sentence),
+// which nothing after it changes: 不，谢谢 is bù, and 一，二，三 yī.
 export function inContext(
-  words: Array<{ h: string; s: Array<string>; numeric?: boolean }>,
+  words: Array<{
+    h: string
+    s: Array<string>
+    numeric?: boolean
+    stop?: boolean
+  }>,
 ): Array<Array<string>> {
-  const flat: Array<{ ch: string; s: string; w: number; numeric: boolean }> = []
+  const flat: Array<{
+    ch: string
+    s: string
+    w: number
+    numeric: boolean
+    // The last syllable of its word, and of a word with a pause after it
+    last: boolean
+    stop: boolean
+    word: string
+  }> = []
   words.forEach((w, wi) => {
     const chars = [...w.h].filter((c) => c !== '儿')
     w.s.forEach((s, i) =>
-      flat.push({ ch: chars[i] ?? '', s, w: wi, numeric: !!w.numeric }),
+      flat.push({
+        ch: chars[i] ?? '',
+        s,
+        w: wi,
+        numeric: !!w.numeric,
+        last: i === w.s.length - 1,
+        stop: !!w.stop && i === w.s.length - 1,
+        word: w.h,
+      }),
     )
   })
   const out = words.map(() => [] as Array<string>)
   flat.forEach((f, i) => {
     const next = flat[i + 1] as (typeof flat)[number] | undefined
-    // 第一 and numbers keep yī
-    const ordinal = f.ch === '一' && i > 0 && flat[i - 1].ch === '第'
+    // 第一 and numbers keep yī, and so does 一 at the end of a longer word
+    // (唯一), whatever word comes next, 一 naming a day of the week (星期
+    // 一), and 一 counting a month, a date or a floor (一月, 一号, 一楼)
+    const ordinal =
+      f.ch === '一' &&
+      ((i > 0 && flat[i - 1].ch === '第') ||
+        (f.last && i > 0 && flat[i - 1].w === f.w) ||
+        (i > 0 && flat[i - 1].w !== f.w && WEEK.has(flat[i - 1].word)) ||
+        (next !== undefined && next.w !== f.w && ORDINAL_AFTER.has(next.ch)))
     out[f.w].push(
-      ordinal
+      ordinal || f.stop
         ? f.s
         : sandhi(f.ch, f.s, next ? toneOf(next.s) : undefined, f.numeric),
     )

@@ -305,9 +305,19 @@ const runs = (s: string) =>
 // The pinyin of a line's words, with 不 and 一 changed by what follows;
 // a word outside the bank keeps the pinyin it was given
 function settle(parts: Array<Part>): Array<Token> {
-  const words = parts.filter((p) => !p.punct)
   const sylls = inContext(
-    words.map((p) => ({ h: p.h, s: p.pinyin, numeric: p.numeric })),
+    parts.flatMap((p, i) =>
+      p.punct
+        ? []
+        : [
+            {
+              h: p.h,
+              s: p.pinyin,
+              numeric: p.numeric,
+              stop: !!parts[i + 1]?.punct,
+            },
+          ],
+    ),
   )
   let k = 0
   return parts.map((p) => {

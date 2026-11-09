@@ -121,6 +121,15 @@ describe('trip', () => {
   })
 })
 
+describe('the word list', () => {
+  test('a word with a meaning of its own keeps its tags', () => {
+    const tagged = (t: string) => WORDS.filter((w) => w.tags.includes(t))
+    expect(tagged('name').map((w) => w.id)).toContain('孙悟空')
+    expect(tagged('food').map((w) => w.id)).toContain('包子')
+    expect(tagged('place').map((w) => w.id)).toContain('长城')
+  })
+})
+
 describe('pinyin', () => {
   test('tones and numbers', () => {
     expect(toneOf('mā')).toBe(1)
@@ -148,6 +157,11 @@ describe('pinyin', () => {
     expect(p('不客气 。')).toEqual(['bú kè qi'])
     expect(p('不 好')).toEqual(['bù', 'hǎo'])
     expect(p('不 是')).toEqual(['bú', 'shì'])
+    // not across a pause, nor in a day of the week or a count read out
+    expect(p('不 ， 谢谢')).toEqual(['bù', 'xiè xie'])
+    expect(p('一 ， 二 ， 三 ！')).toEqual(['yī', 'èr', 'sān'])
+    expect(p('星期 一 上午')).toEqual(['xīng qī', 'yī', 'shàng wǔ'])
+    expect(p('一 个 人')).toEqual(['yí', 'gè', 'rén'])
     expect(p('一 个')).toEqual(['yí', 'gè'])
     expect(p('一 杯')).toEqual(['yì', 'bēi'])
     expect(p('一点')).toEqual(['yì diǎn'])
