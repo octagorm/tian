@@ -38,7 +38,7 @@ const linkOf = (how: Dir | Link): Link =>
 const answers: Array<Answer> = []
 let light = 0
 for (const card of Object.values(bank.cards ?? {})) {
-  for (const [, how, w, s, r] of (card?.log ?? [])) {
+  for (const [, how, w, s, r] of card?.log ?? []) {
     if (!all && Math.abs(w) < 5) {
       light++
       continue
