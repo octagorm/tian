@@ -11,7 +11,7 @@
 
 ## Unsure
 
-- The memory model's numbers are our own: a first right answer leaves half a day by its weight, gain `1.1 + 15 × (1 − recall)` up to 8, "known" is 1.5 days of stability, Today reviews 20 words and new words wait while more than 40 are fading. They were set by simulating half a year of Today alone (9.11.2026), on the model's own forgetting curve. Each card logs its last answers with the chance it was given (`log`): a script that compares the two on a real bank would say whether words turn hanzi-only too slowly or too fast.
+- The memory model's numbers are our own: a first right answer leaves half a day by its weight, gain `1.1 + 15 × (1 − recall)` up to 8, "known" is 1.5 days of stability, Today reviews 20 words and new words wait while more than 40 are fading. They were set by simulating half a year of Today alone (9.11.2026), on the model's own forgetting curve. Each card logs its last answers with the chance it was given (`log`): `node scripts/calibrate.ts` compares the two on a real bank; run it once a few hundred answers are logged, and adjust the numbers by what it says.
 - Say it compares contours after centring each on its own mean, with a small time shift allowed. 70 counts as right. Not tested with many voices; a whispered or noisy take can score oddly.
 - Word order accepts only the trip's own order, though some lines allow another (time words before or after the subject).
 - Taxi praise: a modest answer is marked best, a plain thanks is accepted with a note.

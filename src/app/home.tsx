@@ -166,13 +166,22 @@ export default function Home() {
     group.games.push(g)
   }
 
+  // On a phone the page is in parts, one shown at a time and picked from
+  // the bar at the foot (PartBar): Today, then each group of games. Wider
+  // screens show it all.
+  const [part, setPart] = usePart()
+  const away = (id: string) => (part === id ? '' : 'max-sm:hidden')
+  const shown = groups.filter((gr) => gr.games.length)
+
   return (
-    <div className="pb-16">
+    <div className="pb-16 max-sm:pb-28">
       <Hero />
       <main className="relative z-10 mx-auto -mt-20 max-w-5xl px-4 sm:-mt-28">
-        <Today bank={bank} fading={fading} today={today} words={words} />
+        <div className={away('today')}>
+          <Today bank={bank} fading={fading} today={today} words={words} />
+        </div>
         {/* The garden and the seals */}
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className={`mt-4 grid gap-4 sm:grid-cols-2 ${away('today')}`}>
           <a
             href="#garden"
             className="zh-card zh-lift block overflow-hidden"
@@ -190,6 +199,7 @@ export default function Home() {
               zh={gr.zh}
               pinyin={gr.pinyin}
               title={gr.title}
+              className={away(gr.id)}
             >
               {gr.id === 'adventures' ? (
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -207,7 +217,9 @@ export default function Home() {
             </Section>
           ) : null,
         )}
-        <Feedback />
+        <div className={away('today')}>
+          <Feedback />
+        </div>
         <footer className="mt-12 text-center text-sm text-[var(--ink-2)]">
           <Fret className="mx-auto mb-6 h-2 w-48 text-[var(--gold)] opacity-60" />
           <nav className="mb-3 flex items-center justify-center gap-5 font-bold text-[var(--ink)]">
@@ -247,7 +259,74 @@ export default function Home() {
           </p>
         </footer>
       </main>
+      <PartBar
+        part={part}
+        pick={setPart}
+        parts={[
+          { id: 'today', zh: '今天', title: 'Today' },
+          ...shown.map((gr) => ({ id: gr.id, zh: gr.zh, title: gr.title })),
+        ]}
+      />
     </div>
+  )
+}
+
+// The part of the home screen shown on a phone, kept for the visit
+const PART_KEY = 'tian:part:v1'
+
+function usePart(): [string, (id: string) => void] {
+  const [part, setPart] = useState(() => {
+    try {
+      return sessionStorage.getItem(PART_KEY) ?? 'today'
+    } catch {
+      return 'today'
+    }
+  })
+  const pick = (id: string) => {
+    setPart(id)
+    try {
+      sessionStorage.setItem(PART_KEY, id)
+    } catch {
+      // not kept
+    }
+    window.scrollTo(0, 0)
+  }
+  return [part, pick]
+}
+
+function PartBar({
+  part,
+  pick,
+  parts,
+}: {
+  part: string
+  pick: (id: string) => void
+  parts: Array<{ id: string; zh: string; title: string }>
+}) {
+  return (
+    <nav
+      aria-label="Parts of the page"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-[var(--paper-3)] bg-[var(--paper)] pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_14px_rgba(34,28,24,0.12)] sm:hidden"
+    >
+      {parts.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          aria-current={part === p.id ? 'page' : undefined}
+          onClick={() => pick(p.id)}
+          className={`flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 pt-2 pb-1.5 ${
+            part === p.id ? 'text-[var(--red)]' : 'text-[var(--ink-2)]'
+          }`}
+        >
+          <span className="zh-display text-lg leading-none">{p.zh}</span>
+          <span
+            className={`truncate text-[0.7rem] ${part === p.id ? 'font-bold' : ''}`}
+          >
+            {p.title}
+          </span>
+        </button>
+      ))}
+    </nav>
   )
 }
 
@@ -978,16 +1057,21 @@ function Section({
   zh,
   pinyin,
   title,
+  className = '',
   children,
 }: {
   id: string
   zh: string
   pinyin: string
   title: string
+  className?: string
   children: ReactNode
 }) {
   return (
-    <section className="mt-12" aria-labelledby={`zh-group-${id}`}>
+    <section
+      className={`mt-12 max-sm:mt-6 ${className}`}
+      aria-labelledby={`zh-group-${id}`}
+    >
       <CloudDivider className="mb-5 text-[var(--gold-2)]">
         <h2 id={`zh-group-${id}`} className="flex items-baseline gap-2.5 px-3">
           <span

@@ -143,6 +143,13 @@ export interface Bank {
   // Words put off when they came up as new (the later icon on its card), by id: when, ms.
   // They are met last, after every other word, for LATER days (toMeet)
   later: Record<string, number | undefined>
+  // Words forgotten on purpose (Reset on a lesson in the word bank), by
+  // id: when, ms. In a merge a card last seen before then is dropped, so
+  // another device does not bring the word back; met again, it is new.
+  gone: Record<string, number | undefined>
+  // When everything was last reset (Settings), ms: a bank that has not
+  // seen the reset gives way to one that has (merge)
+  since: number
 }
 
 export interface TopicChoice {
@@ -211,6 +218,8 @@ export const emptyBank = (): Bank => ({
   place: {},
   topics: { on: [], t: 0 },
   later: {},
+  gone: {},
+  since: 0,
 })
 
 const DAY = 86_400_000
@@ -689,14 +698,23 @@ const keysOf = (...rs: Array<object | undefined>) =>
 // bank saved before a field existed (from an older page, or the
 // account's copy) is read as having it empty, and a card saved before
 // the links as having its one memory in each.
-export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
+export function merge(one: Partial<Bank>, other: Partial<Bank>): Bank {
   const out = emptyBank()
+  out.since = Math.max(one.since ?? 0, other.since ?? 0)
+  const a = after(one, out.since)
+  const b = after(other, out.since)
+  for (const id of keysOf(a.gone, b.gone))
+    out.gone[id] = Math.max(a.gone?.[id] ?? 0, b.gone?.[id] ?? 0)
   for (const id of keysOf(a.cards, b.cards)) {
     const x = a.cards?.[id] && upgrade(a.cards[id])
     const y = b.cards?.[id] && upgrade(b.cards[id])
     const c = !x ? y : !y ? x : both(x, y)
-    // a word put off, on either device, since it was last seen
-    const put = Math.max(a.later?.[id] ?? 0, b.later?.[id] ?? 0)
+    // a word put off or forgotten, on either device, since it was last seen
+    const put = Math.max(
+      a.later?.[id] ?? 0,
+      b.later?.[id] ?? 0,
+      out.gone[id] ?? 0,
+    )
     if (c && (!put || put < c.t)) out.cards[id] = c
   }
   for (const id of keysOf(a.later, b.later))
@@ -729,6 +747,16 @@ export function merge(a: Partial<Bank>, b: Partial<Bank>): Bank {
   const tb = b.topics?.on ? b.topics : out.topics
   out.topics = tb.t > ta.t ? tb : ta
   return out
+}
+
+// A bank that has not seen the last reset is from before it: of it, only
+// the words seen since are kept
+function after(bank: Partial<Bank>, since: number): Partial<Bank> {
+  if ((bank.since ?? 0) >= since) return bank
+  const cards: Bank['cards'] = {}
+  for (const [id, c] of Object.entries(bank.cards ?? {}))
+    if (c && c.t > since) cards[id] = c
+  return { cards }
 }
 
 const later = (a: Memory, b: Memory) => (a.t >= b.t ? a : b)

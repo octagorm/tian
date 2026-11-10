@@ -1,5 +1,5 @@
 import { ConvexError, v } from 'convex/values'
-import { mutation, query } from './_generated/server'
+import { internalQuery, mutation, query } from './_generated/server'
 import { requireUser } from './access'
 
 // The word bank on the account, so it follows the player from device to
@@ -50,5 +50,23 @@ export const save = mutation({
         data,
         updatedAt: Date.now(),
       })
+  },
+})
+
+// One player's bank, for scripts/calibrate.ts: run by hand with
+// `npx convex run --prod bank:forEmail '{"email": "…"}'`, never from the page
+export const forEmail = internalQuery({
+  args: { email: v.string() },
+  handler: async (ctx, { email }) => {
+    const user = await ctx.db
+      .query('users')
+      .withIndex('email', (q) => q.eq('email', email.toLowerCase()))
+      .first()
+    if (!user) return null
+    const row = await ctx.db
+      .query('banks')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .first()
+    return row ? row.data : null
   },
 })

@@ -393,6 +393,36 @@ describe('bank', () => {
     expect(m.best.rain).toBe(10)
   })
 
+  test('a word forgotten or a bank reset on one device stays so in a merge', () => {
+    const old = emptyBank()
+    old.cards['你好'] = { ...newCard(0, 1), t: 100 }
+    old.cards['谢谢'] = { ...newCard(0, 1), t: 100 }
+    old.best.rain = 10
+    old.days['2026-11-01'] = 12
+    // forgotten elsewhere at 200: gone, unless seen again since
+    const forgot = { ...emptyBank(), gone: { 你好: 200 } }
+    expect(merge(old, forgot).cards['你好']).toBeUndefined()
+    expect(merge(forgot, old).cards['谢谢']).toBeDefined()
+    expect(merge(forgot, old).gone['你好']).toBe(200)
+    const again = emptyBank()
+    again.cards['你好'] = { ...newCard(0, 1), t: 300 }
+    expect(merge(merge(old, forgot), again).cards['你好']?.t).toBe(300)
+    // reset elsewhere at 200: the old bank gives way, but for words seen since
+    const reset = { ...emptyBank(), since: 200 }
+    reset.cards['再见'] = { ...newCard(0, 1), t: 250 }
+    old.cards['好'] = { ...newCard(0, 1), t: 260 }
+    for (const m of [merge(old, reset), merge(reset, old)]) {
+      expect(Object.keys(m.cards).sort()).toEqual(['再见', '好'].sort())
+      expect(m.best.rain).toBeUndefined()
+      expect(m.days).toEqual({})
+      expect(m.since).toBe(200)
+    }
+    // banks saved before either are read as never reset
+    const m = merge({ cards: old.cards }, { cards: {} })
+    expect(m.since).toBe(0)
+    expect(m.gone).toEqual({})
+  })
+
   test('merging keeps the later place in a text, and a text read stays read', () => {
     const a = emptyBank()
     const b = emptyBank()

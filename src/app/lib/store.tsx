@@ -32,7 +32,8 @@ import type { Bank, Dir, Level, Link, Path, Stage, TopicChoice } from './bank'
 // The word bank and the settings as React state, for every game at once.
 // Both are kept in localStorage; signed in, the bank is also kept on
 // the account (convex/bank.ts): the two are merged whenever the
-// account's copy comes in, and each change is saved a moment later.
+// account's copy comes in, and changes are saved every half minute and
+// when the page is hidden.
 //
 // After every change the store looks for seals earned and things grown in
 // the garden (lib/achievements.ts, loaded apart from the rest), adds
@@ -295,8 +296,13 @@ export function BankProvider({ children }: { children: ReactNode }) {
     (ids: Array<string>) =>
       update((b) => {
         const cards = { ...b.cards }
-        for (const id of ids) delete cards[id]
-        return { ...b, cards }
+        const gone = { ...b.gone }
+        const now = Date.now()
+        for (const id of ids) {
+          delete cards[id]
+          gone[id] = now
+        }
+        return { ...b, cards, gone }
       }),
     [update],
   )
@@ -363,7 +369,10 @@ export function BankProvider({ children }: { children: ReactNode }) {
     [update],
   )
 
-  const reset = useCallback(() => setBank(emptyBank()), [])
+  const reset = useCallback(
+    () => setBank({ ...emptyBank(), since: Date.now() }),
+    [],
+  )
 
   const setPath = useCallback(
     (f: (p: Path | null) => Path | null) =>
@@ -509,6 +518,8 @@ function useAwards(bank: Bank, setBank: (f: (b: Bank) => Bank) => void) {
   }, [bank, setBank])
 }
 
+const SAVE_EVERY = 30_000
+
 const same = (a: Bank, b: Bank) =>
   JSON.stringify(merge(a, emptyBank())) ===
   JSON.stringify(merge(b, emptyBank()))
@@ -521,6 +532,7 @@ function useAccount(local: Bank, setLocal: (b: Bank) => void): Account {
   const save = useMutation(api.bank.save)
   const merged = useRef(false)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const due = useRef(false)
 
   const remote = useMemo(() => {
     if (remoteRaw === undefined) return undefined
@@ -556,16 +568,36 @@ function useAccount(local: Bank, setLocal: (b: Bank) => void): Account {
       void save({ data: JSON.stringify(both) }).catch(() => {})
   }, [member, remote, setLocal, save])
 
-  useEffect(() => {
-    if (!member || !merged.current || !remote || same(local, remote)) return
+  // What has changed here is saved every SAVE_EVERY at most, and at once
+  // when the page is hidden or left: the whole bank goes up each time, and
+  // comes back to every device open, so not after each answer
+  const flush = useCallback(() => {
     if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => {
-      void save({ data: JSON.stringify(local) }).catch(() => {})
-    }, 2000)
-    return () => {
-      if (timer.current) clearTimeout(timer.current)
+    timer.current = null
+    if (!due.current) return
+    due.current = false
+    void save({ data: JSON.stringify(latest.current) }).catch(() => {})
+  }, [save])
+
+  useEffect(() => {
+    due.current = member && merged.current && !!remote && !same(local, remote)
+    if (due.current && !timer.current)
+      timer.current = setTimeout(flush, SAVE_EVERY)
+  }, [member, local, remote, flush])
+
+  useEffect(() => {
+    const hidden = () => {
+      if (document.visibilityState === 'hidden') flush()
     }
-  }, [member, local, remote, save])
+    document.addEventListener('visibilitychange', hidden)
+    window.addEventListener('pagehide', flush)
+    return () => {
+      document.removeEventListener('visibilitychange', hidden)
+      window.removeEventListener('pagehide', flush)
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = null
+    }
+  }, [flush])
 
   return useMemo(
     () => ({
