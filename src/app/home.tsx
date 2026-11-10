@@ -128,7 +128,10 @@ export default function Home() {
   }
   const fading = words.knownFading + words.learningFading
   const today = bank.days[dayKey(now)] ?? 0
-  const reached = today >= GOAL
+  // Today's session done is the day's goal reached, whatever its points:
+  // a day of First steps without a slip gives fewer than the goal
+  const sessionDone = !!bank.daily[dayKey(now)]
+  const reached = today >= GOAL || sessionDone
 
   // Once a day, the first time the home screen sees the goal reached
   useEffect(() => {
@@ -353,7 +356,7 @@ function Hero() {
             href="#settings"
             aria-label="Settings"
             title="Settings"
-            className="zh-glass inline-flex h-10 w-10 items-center justify-center rounded-full transition max-sm:hidden"
+            className="zh-glass inline-flex h-10 w-10 items-center justify-center rounded-full transition"
           >
             <Settings size={18} />
           </a>
@@ -394,14 +397,18 @@ function Today({
   const city = next && CITIES.find((c) => c.scenes.includes(next))
   const started = SCENES.some((sc) => bank.scenes[sc.id])
   const toMeet = unmet(bank).length
-  const reached = today >= GOAL
+  const reached = today >= GOAL || !!bank.daily[dayKey(Date.now())]
 
   const review: Step = {
     href: '#review',
     zh: '复习',
     pinyin: 'fùxí',
     title: `Review ${fading} fading ${fading === 1 ? 'word' : 'words'}`,
-    text: 'They are slipping. A few minutes now keeps them for days.',
+    // (after the day's session it is an offer, not a warning: tomorrow's
+    // session takes them up)
+    text: reached
+      ? 'For more today. Tomorrow’s session takes them up otherwise.'
+      : 'They are slipping. A few minutes now keeps them for days.',
     go: 'Review',
     art: <SpriteArt name="review" />,
   }
@@ -581,6 +588,17 @@ function Today({
               className="-mt-0.5 h-2.5 w-full opacity-80"
             />
           </div>
+          {sessionDone && (
+            <p className="mb-4 flex items-center gap-3 rounded-xl bg-[var(--paper)] px-4 py-3">
+              <Seal text="好" size={34} stamp tilt={-6} title="好 hǎo, good" />
+              <span className="leading-snug">
+                <span className="block font-bold">Done for today</span>
+                <span className="text-sm text-[var(--ink-2)]">
+                  Today’s ten minutes are done. Anything below is extra.
+                </span>
+              </span>
+            </p>
+          )}
           <a
             href={step.href}
             onClick={(e) => {
@@ -639,7 +657,7 @@ function Today({
           )}
         </div>
         <div className="flex flex-wrap items-center gap-x-8 gap-y-5 border-t border-[var(--paper-2)] pt-5 lg:flex-col lg:items-stretch lg:border-t-0 lg:border-l lg:pt-0 lg:pl-7">
-          <GoalRing points={today} />
+          <GoalRing points={today} done={reached} />
           <Week bank={bank} />
         </div>
       </div>
@@ -658,11 +676,11 @@ function SpriteArt({ name }: { name: string }) {
 }
 
 // Today's points on the way round to the goal; at the goal, a seal
-function GoalRing({ points }: { points: number }) {
+function GoalRing({ points, done }: { points: number; done: boolean }) {
   const r = 40
   const len = 2 * Math.PI * r
-  const k = Math.min(1, points / GOAL)
-  const reached = points >= GOAL
+  const reached = done || points >= GOAL
+  const k = reached ? 1 : Math.min(1, points / GOAL)
   return (
     <div className="flex items-center gap-4">
       <div

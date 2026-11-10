@@ -37,6 +37,20 @@ describe('mend', () => {
     expect(reload).toHaveBeenCalledTimes(1)
   })
 
+  it('does not reload without a network, which would lose the page', () => {
+    const reload = vi.fn()
+    vi.stubGlobal('sessionStorage', {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    })
+    vi.stubGlobal('window', { location: { reload } })
+    vi.stubGlobal('navigator', { onLine: false })
+    expect(reloadOnce()).toBe(false)
+    expect(reload).not.toHaveBeenCalled()
+    vi.stubGlobal('navigator', { onLine: true })
+  })
+
   it('does not reload without storage, so it cannot loop', () => {
     const reload = vi.fn()
     vi.stubGlobal('sessionStorage', {

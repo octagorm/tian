@@ -10,8 +10,16 @@ import type { ErrorInfo, ReactNode } from 'react'
 // and a game's code is loaded when it is first opened (registry.tsx), from a
 // file named by its hash. After a deploy that file is gone, and the import
 // fails. Then the page reloads itself, once, to get the new version.
+//
+// The other cause is no network: a game not kept yet (public/sw.js keeps
+// them all, once it has had the time) cannot be fetched. Reloading then
+// would swap the page for the browser's own error page, so it says so
+// instead, and loads again when the network is back.
 
 const KEY = 'tian:reloaded'
+
+const offline = () =>
+  typeof navigator !== 'undefined' && navigator.onLine === false
 
 // A failed import, as each browser words it (Chrome, Safari, Firefox), or a
 // file that came back as the 404 page
@@ -24,6 +32,7 @@ export const isStale = (e: unknown) =>
 // Reloads unless the page has just done so, so a file that is really
 // missing cannot loop. True if it is reloading.
 export function reloadOnce(): boolean {
+  if (offline()) return false
   try {
     const last = Number(sessionStorage.getItem(KEY) || 0)
     if (Date.now() - last < 30_000) return false
@@ -58,8 +67,17 @@ export class Mend extends Component<Props, { error: unknown }> {
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
     if (isStale(error) && reloadOnce()) return
+    // without a network: again by itself once it is back
+    if (isStale(error) && offline())
+      window.addEventListener('online', this.back, { once: true })
     console.error(error, info.componentStack)
   }
+
+  componentWillUnmount() {
+    window.removeEventListener('online', this.back)
+  }
+
+  back = () => window.location.reload()
 
   render() {
     if (!this.state.error) return this.props.children
@@ -71,6 +89,7 @@ export class Mend extends Component<Props, { error: unknown }> {
       }
       window.location.reload()
     }
+    if (isStale(this.state.error) && offline()) return <Offline />
     if (this.props.fallback) return this.props.fallback(reload)
     return <Broken reload={reload} />
   }
@@ -96,6 +115,27 @@ export function Broken({ reload }: { reload: () => void }) {
           </Btn>
         )}
       </div>
+    </div>
+  )
+}
+
+// A part of the page that could not be fetched without a network
+function Offline() {
+  return (
+    <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="zh-display text-5xl text-[var(--red)]">没有网络</div>
+      <p className="text-[var(--ink-2)]">
+        No network, and this part of Tian is not on this device yet. It opens by
+        itself when the network is back.
+      </p>
+      <Btn
+        kind="ghost"
+        onClick={() => {
+          window.location.hash = ''
+        }}
+      >
+        Home
+      </Btn>
     </div>
   )
 }

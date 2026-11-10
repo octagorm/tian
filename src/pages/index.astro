@@ -15,9 +15,14 @@ import Tian from '~/app'
          for headings in Latin letters -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Loaded without holding the page back: where Google cannot be
+         reached (mainland China), a blocking stylesheet kept the page
+         blank until the request gave up -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Ma+Shan+Zheng&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
     <!-- A Google sign-in from the installed app that came back without a
          code failed: marked so, the app tries once more by itself

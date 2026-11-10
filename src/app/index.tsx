@@ -59,7 +59,25 @@ const onFollow = (e: MouseEvent) => {
   followed = a?.querySelector<HTMLElement>('[data-zh-title]') ?? null
 }
 
+// The service worker (public/sw.js) keeps the page for starting without a
+// network; a while after the page is up, it is asked to fetch the code of
+// every game, so that each opens without one too
+function useKept() {
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return
+    const t = setTimeout(() => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then(() => navigator.serviceWorker.ready)
+        .then((reg) => reg.active?.postMessage('precache'))
+        .catch(() => {})
+    }, 4000)
+    return () => clearTimeout(t)
+  }, [])
+}
+
 function Router() {
+  useKept()
   const [game, setGame] = useState<GameId | null>(fromHash)
   const shown = useRef(game)
   // Where the home screen was scrolled to, to come back to it there
