@@ -728,7 +728,7 @@ export const ENCOUNTERS: Array<Encounter> = [
     script: `
       = start
       Engineer: 船长 ， 前面 有 很 多 很 多 小 东西 ！ | Captain, there are lots and lots of little things ahead!
-      swarm: 我们 很 多 。 我们 一起 想 ， 一起 说 。 | We are many. We think together, we speak together.
+      swarm: 我们 很 多 。 我们 一起 想=think ， 一起 说 。 | We are many. We think together, we speak together.
       swarm: 你们 也 来 。 和 我们 一起 。 | You will come too. Join us.
       Captain: 怎么办 ？ | What shall we do?
       * 不 ， 谢谢 。 | No, thank you. > no
@@ -811,7 +811,7 @@ export const ENCOUNTERS: Array<Encounter> = [
       @ Apologised for waking an asteroid with a face, and let it sleep.
 
       = years
-      stone: 一万 年 。 我 还 想 睡 。 晚安 。 | Ten thousand years. And I still want to sleep. Good night.
+      stone: 一万 年 。 我 还=still 想 睡 。 晚安 。 | Ten thousand years. And I still want to sleep. Good night.
       ! score 30
       ! ship stay
       @ Learned that an asteroid with a face had slept for ten thousand years.

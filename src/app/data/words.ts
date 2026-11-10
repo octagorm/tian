@@ -286,14 +286,14 @@ const RAW: Array<[string, string, string]> = [
 火车站|huǒ chē zhàn|station|railway station
 票|piào|ticket
 张|zhāng|(sheet)|measure word for flat things: tickets, tables, photos|mw
-坐|zuò|take|to sit; to take (a train, bus, taxi)
+坐|zuò|sit|to sit; to take (a train, bus, taxi)
 飞机|fēi jī|plane|aeroplane
 机场|jī chǎng|airport
 出租车|chū zū chē|taxi
 地铁|dì tiě|metro|metro, underground
 站|zhàn|stop|station, stop; to stand|mw
 车|chē|car|car, vehicle
-开|kāi|leave|to depart; to drive; to open
+开|kāi|open|to open; to drive; to depart
 北京|Běi jīng|Beijing||place
 西安|Xī ān|Xi'an||place
 成都|Chéng dū|Chengdu||place
@@ -396,7 +396,7 @@ const RAW: Array<[string, string, string]> = [
 一下|yī xià|a bit|(after a verb) briefly, a little
 怎么|zěn me|how|how?|q
 行|xíng|OK|OK, all right: 不行 "no way"
-送|sòng|give free|to give as a present; to deliver
+送|sòng|give|to give as a present; to deliver
 找|zhǎo|look for|to look for; to give change
 别|bié|don't
 最|zuì|most|most, -est

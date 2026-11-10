@@ -738,7 +738,7 @@ export const CITIES: Array<City> = [
 + 请问 ， 去 外滩 怎么 走 ？ | Excuse me, how do I get to the Bund?
 - 请问 ， 外滩 多少 钱 ？ | Excuse me, how much is the Bund? | It is not for sale.
 - 请问 ， 你 去 外滩 吗 ？ | Excuse me, are you going to the Bund? | That asks if she is going.
-> staff: 坐 地铁 ， 两 站 就 到 了 。 | Take the metro – two stops and you're there.
+> staff: 坐=take 地铁 ， 两 站 就 到 了 。 | Take the metro – two stops and you're there.
 + 两 站 ？ 很 近 ！ | Two stops? Close!
 - 两 个 小时 ？ | Two hours? | 两站 – two stops.
 > staff: 对 。 外滩 晚上 很 漂亮 。 | Yes. The Bund is lovely at night.
@@ -848,7 +848,7 @@ export const CITIES: Array<City> = [
 > kid: 我们 一起 玩 吧 ！ 这 是 太空 游戏 。 | Let's play together! It's a space game.
 + 太 好 了 ！ 我 喜欢 太空 。 | Great! I love space.
 - 我 不 喜欢 玩 。 | I don't like playing. | Come on!
-> kid: 你 戴 眼镜 ， 我 开 飞船 。 | You put on the headset, I'll fly the ship.
+> kid: 你 戴 眼镜 ， 我 开=fly 飞船 。 | You put on the headset, I'll fly the ship.
 + 好 ！ 外星人 来 了 ！ 开火 ！ | OK! Aliens incoming! Fire!
 - 好 ！ 我 吃 眼镜 。 | OK! I'll eat the headset. | 戴 is to wear.
 > kid: 我们 赢 了 ！ 你 太 厉害 了 ！ | We won! You're amazing!

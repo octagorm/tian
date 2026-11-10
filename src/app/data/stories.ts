@@ -1195,7 +1195,7 @@ export const STORIES: Array<Story> = [
         },
       ],
       [
-        '愚公 说 ： “ 我 死 了 ， 还 有 儿子 。 儿子 死 了 ， 还 有 儿子 的 儿子 。 ”',
+        '愚公 说 ： “ 我 死 了 ， 还=still 有 儿子 。 儿子 死 了 ， 还=still 有 儿子 的 儿子 。 ”',
         'Yugong said: "When I die, there are my sons. When they die, there are their sons."',
         {
           by: 'yugong',

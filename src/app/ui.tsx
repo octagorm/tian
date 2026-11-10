@@ -643,6 +643,10 @@ export function SpeakButton({
 
 // Every game's page: a way home, the game's name in Chinese and English
 // over a band of fretwork, room on the right for a score, and the music
+// Whether the page open was reached from the home screen in this visit
+// (index.tsx keeps it), so that the arrow home can go back to it
+export const visit = { fromHome: false }
+
 export function Frame({
   title,
   zh,
@@ -664,6 +668,14 @@ export function Frame({
         <div className="flex items-center gap-3">
           <a
             href="#"
+            onClick={(e) => {
+              // back to the home screen it was opened from, rather than
+              // on to a new one: the browser's Back then leaves the game
+              // behind, not back into it
+              if (!visit.fromHome) return
+              e.preventDefault()
+              window.history.back()
+            }}
             aria-label="Home"
             title="Home"
             className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[var(--card)] text-[var(--ink-2)] shadow-sm transition hover:-translate-x-0.5 hover:text-[var(--red)]"

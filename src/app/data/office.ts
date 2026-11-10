@@ -368,7 +368,7 @@ chen: 下雨 了 ！ 你 有 伞 吗 ？ | It's raining! Have you got an umbrell
 chen: 太 好 了 ！ 谢谢 ！ | Great! Thanks!
 
 = leave chat
-zhao: 小 林 为什么 还 没 来 ？ | Why hasn't Xiao Lin come yet?
+zhao: 小 林 为什么 还=still 没 来 ？ | Why hasn't Xiao Lin come yet?
 + 她 今天 请假 了 。 | She's taken the day off.
 - 她 今天 加班 了 。 | She's working late today.
 - 她 今天 是 老师 。 | She's a teacher today.
@@ -544,14 +544,14 @@ wang: 孙 先生 星期 五 来 ， 请 小 林 订 会议室 。 | Mr Sun is co
 lin: 好的 ！ | Of course!
 
 = late voice
-chen: 经理 ， 对不起 ， 我 今天 会 迟到 半 个 小时 。 | Sorry, I'll be half an hour late today.
+chen: 经理 ， 对不起 ， 我 今天 会=will 迟到 半 个 小时 。 | Sorry, I'll be half an hour late today.
 + 没关系 ， 小心 一点 。 | Never mind; take care.
 - 没关系 ， 我 不 认识 你 。 | Never mind; I don't know you.
 - 不客气 ， 小心 一点 。 | You're welcome; take care.
 chen: 谢谢 经理 ！ | Thank you!
 
 = delivery call
-sun: 你们 的 快递 还 没有 到 ！ | Your delivery still hasn't arrived!
+sun: 你们 的 快递 还=still 没有 到 ！ | Your delivery still hasn't arrived!
 + 对不起 ， 我 马上 问 一下 。 | I'm sorry; I'll find out right away.
 - 对不起 ， 我 马上 吃 一下 。 | I'm sorry; I'll eat it right away.
 - 谢谢 ， 我们 的 快递 很 快 。 | Thanks; our deliveries are quick.
@@ -624,7 +624,7 @@ sun: 我们 想 买 五百 个 ， 一 个 多少 钱 ？ | We'd like to buy fiv
 + 一 个 二十 块 。 | Twenty kuai each.
 - 一共 二十 个 。 | Twenty altogether.
 - 一 个 二十 岁 。 | Twenty years old each.
-sun: 好 ， 我们 想 一下 。 | Good, we'll think about it.
+sun: 好 ， 我们 想=think 一下 。 | Good, we'll think about it.
 
 = sales voice
 zhao: 上 个=last 月 我们 卖 了 八百 个 ， 这 个 月 卖 了 九百 个 。 | Last month we sold eight hundred; this month we sold nine hundred.
@@ -712,7 +712,7 @@ liu: 小 林 工作 非常 好 ， 我们 让 她 升职 吗 ？ | Xiao Lin work
 + 好 ， 让 她 升职 吧 ！ | Yes, let's promote her!
 - 好 ， 让 她 请假 吧 ！ | Yes, let's give her time off!
 - 好 ， 让 她 迟到 吧 ！ | Yes, let her be late!
-lin: 谢谢 ！ 我 会 加油 的 ！ | Thank you! I'll do my best!
+lin: 谢谢 ！ 我 会=will 加油 的 ！ | Thank you! I'll do my best!
 
 = hundred meet
 liu: 上 个=last 月 我们 卖 了 八万 个 。 | Last month we sold eighty thousand.
@@ -740,9 +740,9 @@ lin: 王 总 想 和 你 吃饭 ， 星期 五 晚上 七 点 。 | Director Wan
 
 = broken call
 sun: 你们 的 东西 坏 了 三百 个 ！ | Three hundred of your goods arrived broken!
-+ 对不起 ， 我们 马上 送 新 的 。 | I'm sorry; we'll send new ones right away.
-- 对不起 ， 我们 马上 送 坏 的 。 | I'm sorry; we'll send broken ones right away.
-- 没关系 ， 我们 马上 送 新 的 。 | Never mind; we'll send new ones right away.
++ 对不起 ， 我们 马上 送=send 新 的 。 | I'm sorry; we'll send new ones right away.
+- 对不起 ， 我们 马上 送=send 坏 的 。 | I'm sorry; we'll send broken ones right away.
+- 没关系 ， 我们 马上 送=send 新 的 。 | Never mind; we'll send new ones right away.
 sun: 好 ， 谢谢 。 | Good, thank you.
 
 = party voice

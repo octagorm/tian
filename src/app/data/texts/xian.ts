@@ -13,7 +13,7 @@ export const XIAN: Text = {
     'On the train to Xi’an the traveller meets a teacher from the city, who knows what to eat there and what to see. The Terracotta Army was buried with the First Emperor, who died in 210 BC.',
   text: [
     [
-      '昨天 我 坐 火车 去 了 西安 。',
+      '昨天 我 坐=take 火车 去 了 西安 。',
       '火车 票 不 贵 。',
       '在 火车 上=on ， 我 认识 了 一 个 中国 朋友 。',
       '她 是 老师 ， 也 是 西安 人 。',
@@ -36,7 +36,7 @@ export const XIAN: Text = {
     ],
     [
       '老师 问 我 ： “ 你 觉得 西安 怎么样 ？ ”',
-      '我 说 ： “ 西安 很 有意思 ！ 下次 我 还 想 来 。 ”',
+      '我 说 ： “ 西安 很 有意思 ！ 下次 我 还=again 想 来 。 ”',
     ],
   ],
   notes: {

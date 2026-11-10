@@ -79,8 +79,9 @@ function faces(pairOf: Array<number>, random = Math.random): Array<boolean> {
 const score = (t: Tally) =>
   Math.max(0, t.pairs * 10 - t.misses * 3 - t.hints * 5 - t.shuffles * 8)
 
+// (never below zero: a new deal starts a moment after the clock last ticked)
 const clock = (ms: number) => {
-  const s = Math.floor(ms / 1000)
+  const s = Math.max(0, Math.floor(ms / 1000))
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 

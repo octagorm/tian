@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { BankProvider } from './lib/store'
-import { Frame, PeekProvider } from './ui'
+import { Frame, PeekProvider, visit } from './ui'
 import Home from './home'
 import { GAMES } from './registry'
 import { Reminders, SealToaster, TodayDock } from './daily'
@@ -88,6 +88,7 @@ function Router() {
       const prev = shown.current
       if (next === prev) return
       if (!prev) homeScroll.current = window.scrollY
+      visit.fromHome = !prev && !!next
       shown.current = next
       const update = () => {
         flushSync(() => setGame(next))

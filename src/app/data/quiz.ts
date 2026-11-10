@@ -585,7 +585,7 @@ const ROWS: Record<string, Array<Row>> = {
       '医院 / 学校 / 书店 / 超市',
     ],
     [
-      '我们 在 哪儿 坐 飞机 ？',
+      '我们 在 哪儿 坐=take 飞机 ？',
       'Where do we take a plane?',
       '机场 / 火车站 / 公园 / 超市',
     ],

@@ -499,7 +499,8 @@ function Prompt({
           hint={!reveal}
         />
         {reveal && (
-          <div className="fx-rise mt-3">
+          // room for the pinyin over it, clear of the button and its shadow
+          <div className="fx-rise mt-9">
             <Ruby h={q.w.h} p={q.w.p} className="text-5xl" />
           </div>
         )}
