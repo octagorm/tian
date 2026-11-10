@@ -12,7 +12,7 @@
 // say less and are left out unless --all is given.
 import { readFileSync } from 'node:fs'
 import { LINK_OF_DIR } from '../src/app/lib/bank.ts'
-import type { Bank, Dir, Link, LogEntry } from '../src/app/lib/bank.ts'
+import type { Bank, Dir, Link } from '../src/app/lib/bank.ts'
 
 const file = process.argv[2]
 if (!file) {
