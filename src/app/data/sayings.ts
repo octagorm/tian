@@ -73,7 +73,7 @@ export const SAYINGS: Array<Saying> = [
     gloss: 'the Way|can|be told|not|constant|Way',
     en: 'The Way that can be told is not the constant Way.',
     source: 'Daodejing 1 · Laozi (6th–4th century BC)',
-    note: 'The opening of the Daodejing. Two words you know hide in it: 道 is also "to say" (知道), and 非常, "not constant", is today simply "very".',
+    note: 'The opening of the Daodejing. Two words you know hide in it: 道 is also "to say", as in 说道, and 非常, "not constant", is today simply "very".',
     theme: 'Dao',
   },
   {

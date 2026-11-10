@@ -9,8 +9,6 @@
 - [ ] Particles said alone (吗, 呢, 吧, 的, 了, 啊) have no real tone; the word voice may say them oddly.
 - [ ] The taxi's passengers (17.10.2026): every line checked by transcription, Gemini Flash first and Pro on what Flash flagged (Flash alone misses a lot on short clips). Six lines were made again, for a slurred 往 or 学校 or an added 啊 or 嗯. The grandmother (Gacrux) still says 公园儿 in 到公园往左拐, as Beijingers do: make it again if that is unwanted.
 
-- [ ] 美国 and 英国 are not offered as the player's country (they have no `country` tag in `data/words.ts`): each needs the trip's `{home}` lines recorded (eight in all). Add the tag, then run `audio.py --job` on the Mac.
-
 ## Unsure
 
 - The memory model's numbers are our own: a first right answer leaves half a day by its weight, gain `1.1 + 15 × (1 − recall)` up to 8, "known" is 1.5 days of stability, Today reviews 20 words and new words wait while more than 40 are fading. They were set by simulating half a year of Today alone (9.11.2026), on the model's own forgetting curve. Each card logs its last answers with the chance it was given (`log`): a script that compares the two on a real bank would say whether words turn hanzi-only too slowly or too fast.

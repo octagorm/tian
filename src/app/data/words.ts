@@ -74,8 +74,8 @@ const RAW: Array<[string, string, string]> = [
     `
 中国|Zhōng guó|China||country
 挪威|Nuó wēi|Norway||country
-美国|Měi guó|America|the United States
-英国|Yīng guó|Britain|the United Kingdom
+美国|Měi guó|America|the United States|country
+英国|Yīng guó|Britain|the United Kingdom|country
 德国|Dé guó|Germany||country
 法国|Fǎ guó|France||country
 瑞典|Ruì diǎn|Sweden||country
@@ -510,7 +510,7 @@ const RAW: Array<[string, string, string]> = [
 厉害|lì hai|awesome|formidable, awesome
 过|guo|(ever)|after a verb: have ever done it|part
 戴|dài|wear|to wear (glasses, a hat)
-眼镜|yǎn jìng|glasses|glasses; a headset
+眼镜|yǎn jìng|glasses|glasses; a VR headset is VR眼镜
 虚拟现实|xū nǐ xiàn shí|VR|virtual reality
 `,
   ],
@@ -682,7 +682,7 @@ const RAW: Array<[string, string, string]> = [
     '讨价还价',
     `
 讨价还价|tǎo jià huán jià|haggle|to haggle, to bargain
-把|bǎ|(handle)|measure word for things held by a handle: fans, umbrellas, knives|mw
+把|bǎ|(handle)|measure word for things held by a handle: fans, umbrellas, knives. Before a verb it also marks the thing acted on: 把门关上, shut the door|mw
 扇子|shàn zi|fan|fan (folding or round)
 茶壶|chá hú|teapot
 丝巾|sī jīn|silk scarf
@@ -916,6 +916,71 @@ const RAW: Array<[string, string, string]> = [
   // Topic lessons (data/topics.ts): met first when their topic is chosen,
   // otherwise after everything else
   [
+    // The small words that hold sentences together, and a few everyday
+    // ones the trip does not come to: without them little can be read.
+    // They are met straight after the trip's words (MEET, below), though
+    // the lesson stands here so that the lessons before it keep their
+    // numbers
+    'Small words',
+    '小词',
+    `
+因为|yīn wèi|because
+所以|suǒ yǐ|so|so, therefore
+如果|rú guǒ|if
+虽然|suī rán|although
+或者|huò zhě|or|or (in statements; in questions it is 还是)
+自己|zì jǐ|self|oneself; one's own
+一些|yī xiē|some|some, a few
+这些|zhè xiē|these
+那些|nà xiē|those
+又|yòu|again|again; 又…又… is both … and …
+才|cái|only then|only then, not until; only
+更|gèng|more|more, even more
+正在|zhèng zài|(now)|in the middle of doing: 我正在吃饭, I am eating|part
+着|zhe|(-ing)|after a verb: a state that goes on (坐着, sitting; 开着, open)|part
+得|de|(so)|after a verb, before how it is done: 说得好, speaks well|part
+比|bǐ|than|than; to compare: 他比我高, he is taller than me
+被|bèi|by|marks what is done to someone: 被他吃了, eaten by him|part
+跟|gēn|with|with; to follow
+向|xiàng|towards
+离|lí|from|away from, of a distance: 离这儿很远, far from here
+为了|wèi le|for|for, in order to
+应该|yīng gāi|should
+必须|bì xū|must
+别人|bié rén|others|other people
+您|nín|you|you, said politely
+爸爸|bà ba|dad|dad, father
+哥哥|gē ge|older brother
+姐姐|jiě jie|older sister
+弟弟|dì di|younger brother
+妹妹|mèi mei|younger sister
+姓|xìng|surname|to have as a surname: 我姓王, my name is Wang
+后面|hòu miàn|behind|behind; at the back
+旁边|páng biān|beside|beside, next to
+外面|wài miàn|outside
+中间|zhōng jiān|middle|in the middle, between
+读|dú|read|to read (aloud); to study
+穿|chuān|wear|to wear, to put on (clothes, shoes)
+拿|ná|take|to take, to hold in the hand
+放|fàng|put|to put, to place; to let go
+洗|xǐ|wash
+找到|zhǎo dào|find|to find: 找 is to look for, 到 that it was reached
+看见|kàn jiàn|see|to see, to catch sight of
+希望|xī wàng|hope
+准备|zhǔn bèi|prepare|to prepare, to get ready; to plan to
+错|cuò|wrong|wrong; a mistake
+难|nán|hard|hard, difficult
+容易|róng yì|easy
+事情|shì qing|matter|a matter, a thing to do or that happened
+意思|yì si|meaning|meaning; 有意思 is interesting
+地方|dì fang|place
+身体|shēn tǐ|body|body; health
+中午|zhōng wǔ|noon|noon, midday
+去年|qù nián|last year
+水果|shuǐ guǒ|fruit
+`,
+  ],
+  [
     'Software',
     '软件开发',
     `
@@ -1125,6 +1190,7 @@ const RAW: Array<[string, string, string]> = [
 冰|bīng|ice|ice; iced
 打包|dǎ bāo|take away|to pack up (leftovers, a meal) to take away
 外卖|wài mài|takeaway|takeaway, food delivered
+串|chuàn|(skewer)|measure word for things on a string or a stick: skewers, grapes, keys|mw
 `,
   ],
   [
@@ -1244,6 +1310,17 @@ export const WORDS: Array<Word> = RAW.flatMap(([, , rows], i) =>
 export const WORD: Record<string, Word | undefined> = Object.fromEntries(
   WORDS.map((w) => [w.id, w]),
 )
+
+// The words in the order they are met when no topic is chosen: lesson by
+// lesson, but the small words straight after the trip's, before the
+// games' and the stories'
+const SMALL = LESSONS.findIndex((l) => l.title === 'Small words') + 1
+const TRIP_END = LESSONS.findIndex((l) => l.title === 'Going home') + 1
+export const MEET: Array<Word> = [
+  ...WORDS.filter((w) => w.lesson <= TRIP_END),
+  ...WORDS.filter((w) => w.lesson === SMALL),
+  ...WORDS.filter((w) => w.lesson > TRIP_END && w.lesson !== SMALL),
+]
 
 export const COUNTRIES = WORDS.filter(
   (w) => w.tags.includes('country') && w.id !== '中国',

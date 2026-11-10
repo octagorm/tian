@@ -269,7 +269,7 @@ export const PART_MEANING: Record<string, string | undefined> = {
   早: 'early',
   占: 'occupy',
   苗: 'sprout',
-  句: 'sentence',
+  句: 'sentence (jù; once also gōu, hook)',
   令: 'order',
   元: 'first; yuan',
   斤: 'axe; half a kilo',

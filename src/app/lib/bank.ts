@@ -1,4 +1,4 @@
-import { WORDS } from '../data/words.ts'
+import { MEET, WORDS } from '../data/words.ts'
 import { TOPIC, topicWords } from '../data/topics.ts'
 import type { Word } from '../data/words.ts'
 
@@ -631,8 +631,8 @@ function byTopic(bank: Bank): Array<Word> {
         n++
       }
   return first.length
-    ? [...first, ...WORDS.filter((w) => !seen.has(w.id))]
-    : WORDS
+    ? [...first, ...MEET.filter((w) => !seen.has(w.id))]
+    : MEET
 }
 
 // The next words to meet, in the order they are met

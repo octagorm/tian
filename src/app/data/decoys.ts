@@ -13,7 +13,6 @@ const RAW = `
 友好|yǒu hǎo|friendly
 再说|zài shuō|besides; let's see later
 再次|zài cì|once more
-看见|kàn jiàn|to see
 意见|yì jiàn|opinion
 我的|wǒ de|my, mine
 我国|wǒ guó|our country
@@ -35,13 +34,10 @@ const RAW = `
 只有|zhǐ yǒu|only
 所有|suǒ yǒu|all
 还有|hái yǒu|and also
-这些|zhè xiē|these
 每个|měi ge|every, each
-那些|nà xiē|those
 那么|nà me|so, then
 那里|nà lǐ|there
 薯条|shǔ tiáo|French fries
-别人|bié rén|other people
 别墅|bié shù|villa
 请客|qǐng kè|to treat (pay)
 学问|xué wen|learning, knowledge
@@ -58,7 +54,6 @@ const RAW = `
 酒杯|jiǔ bēi|wine glass
 买卖|mǎi mai|business, trade
 买菜|mǎi cài|to buy groceries
-正在|zhèng zài|in the middle of
 分开|fēn kāi|to separate
 分数|fēn shù|score, mark
 汽车|qì chē|car

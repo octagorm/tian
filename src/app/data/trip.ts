@@ -451,11 +451,11 @@ export const CITIES: Array<City> = [
 + 羊肉串 多少 钱 ？ | How much are the lamb skewers?
 - 羊肉串 在 哪儿 ？ | Where are the lamb skewers? | They are right in front of you.
 - 羊肉串 好吃 吗 ？ | Are the lamb skewers good? | He has just told you they are. Ask the price.
-> grill: 五 块 一 个 。 | Five kuai each.
+> grill: 五 块 一 串 。 | Five kuai each.
 ? Ten, not too spicy.
-+ 我 要 十 个 ， 不 要 太 辣 。 | Ten, please, not too spicy.
-- 我 要 四 个 ， 不 要 太 辣 。 | Four, please, not too spicy. | 四 sì is four; 十 shí is ten. Listen for the tone!
-- 我 要 十 个 ， 要 很 辣 。 | Ten, please, very spicy. | 很辣 is very spicy. Use 不要太辣.
++ 我 要 十 串 ， 不 要 太 辣 。 | Ten, please, not too spicy.
+- 我 要 四 串 ， 不 要 太 辣 。 | Four, please, not too spicy. | 四 sì is four; 十 shí is ten. Listen for the tone!
+- 我 要 十 串 ， 要 很 辣 。 | Ten, please, very spicy. | 很辣 is very spicy. Use 不要太辣.
 > grill: 好 ！ 你 是 哪 国 人 ？ | Coming up! Where are you from?
 + 我 是=am {home} 人 。 | I'm from {home}.
 - 我 是=am {home} 。 | I am {home}. | Add 人: {home}人, a person from {home}.

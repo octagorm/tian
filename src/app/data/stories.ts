@@ -238,7 +238,7 @@ export const STORIES: Array<Story> = [
         },
       ],
       [
-        '女娲 找=found 了 红色 、 黄色 、 蓝色 、 白色 和 黑色 的 石头 。',
+        '女娲 找到 了 红色 、 黄色 、 蓝色 、 白色 和 黑色 的 石头 。',
         'Nüwa found stones: red, yellow, blue, white and black.',
         {
           set: ['hole', 'rain', 'flood', 'stones'],

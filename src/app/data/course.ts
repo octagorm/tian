@@ -1057,7 +1057,7 @@ export const COURSE: Array<Day> = [
           {
             k: 'read',
             title: 'A little',
-            text: '一点 _yìdiǎn_ is a little. 一 _yī_, one, changes like 不: it is _yì_ before the first three tones, and _yí_ before a fourth.',
+            text: '一点 _yìdiǎn_ is a little. 一 _yī_, one, changes like 不: it is _yì_ before the first three tones, and _yí_ before a fourth. Counted out, in numbers and in days and dates (一, 二, 三; 第一; 星期一) it stays _yī_.',
             show: { k: 'lines', zh: ['我 会 说 一点 中文 。'] },
           },
           {

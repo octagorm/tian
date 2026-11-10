@@ -404,7 +404,7 @@ liu: 星期 三 下午 两 点 开会 。 | There's a meeting on Wednesday at tw
 ? 星期 三 下午 两 点 | 星期 四 下午 两 点 | 星期 三 下午 四 点 | 星期 二 下午 两 点
 
 = number call
-sun: 你好 ， 我 是 孙 先生 。 请 刘 经理 给=to 我 打电话 。 | Hello, this is Mr Sun. Please ask Manager Liu to call me.
+sun: 你好 ， 我 姓 孙 。 请 刘 经理 给=to 我 打电话 。 | Hello, my name is Sun. Please ask Manager Liu to call me.
 sun: 我 的 号码 是 八三五六 。 | My number is 8356.
 @ Note down his number.
 ? 八三五六 | 八五三六 | 三八五六 | 八三五八
@@ -598,7 +598,7 @@ lin: 经理 ， 今天 我们 要 加班 吗 ？ | Do we have to work late today
 lin: 太 好 了 ！ 谢谢 经理 ！ | Great! Thank you!
 
 = welcome meet
-sun: 你好 ！ 我 是 孙 先生 ， 第一 次 来 你们 公司 。 | Hello! I'm Mr Sun, here at your company for the first time.
+sun: 你好 ！ 我 姓 孙 ， 第一 次 来 你们 公司 。 | Hello! My name is Sun, here at your company for the first time.
 + 欢迎 欢迎 ！ 请 进 ， 请 坐 。 | Welcome! Come in, have a seat.
 - 欢迎 欢迎 ！ 请 走 ， 请 坐 。 | Welcome! Please go, have a seat.
 - 再见 再见 ！ 请 进 ， 请 坐 。 | Goodbye! Come in, have a seat.
