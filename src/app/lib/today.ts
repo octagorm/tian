@@ -3,6 +3,7 @@ import { SCENES } from '../data/trip.ts'
 import {
   FADING,
   LINKS,
+  dayDate,
   dayKey,
   due,
   level,
@@ -52,7 +53,7 @@ const DAY = 86_400_000
 
 // Days since 1970 on the player's clock, to take turns by
 const dayNumber = (now: number) => {
-  const d = new Date(now)
+  const d = dayDate(now)
   return Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / DAY)
 }
 

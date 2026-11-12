@@ -17,7 +17,7 @@ import { english, plain, tokens, wordIds } from '../lib/text'
 import { toHanzi } from '../lib/numbers'
 import { lineChoices } from '../lib/choices'
 import { blip, say } from '../lib/audio'
-import { LINKS, dayKey, due, streak } from '../lib/bank'
+import { LINKS, dayDate, dayKey, due, streak } from '../lib/bank'
 import { useStore } from '../lib/store'
 import {
   LISTEN,
@@ -220,10 +220,10 @@ function Overview({
           </div>
           <div className="min-w-0 flex-1 text-center sm:pb-1 sm:text-left">
             <p className="zh-sans text-sm text-[var(--ink-2)]">
-              {zhDate(new Date(now))}
+              {zhDate(dayDate(now))}
             </p>
             <p className="text-2xl leading-tight font-black">
-              {new Date(now).toLocaleDateString('en-GB', {
+              {dayDate(now).toLocaleDateString('en-GB', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',

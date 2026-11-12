@@ -102,6 +102,10 @@ export const done = mutation({
   },
 })
 
+// The page's day turns at three in the night (TURN in src/app/lib/bank.ts),
+// so a reminder set between midnight and three belongs to the day before
+const TURN = 3 * 3_600_000
+
 // A reminder more late than this (the cron did not run) is not sent
 const LATE = 60 * 60_000
 
@@ -117,7 +121,7 @@ export const due = internalMutation({
       .take(500)
     const to = []
     for (const r of rows) {
-      const day = localDay(r.next, r.zone)
+      const day = localDay(r.next - TURN, r.zone)
       if (fresh(day, r.done) && now - r.next < LATE)
         to.push({ endpoint: r.endpoint, p256dh: r.p256dh, auth: r.auth })
       await ctx.db.patch('reminders', r._id, {
@@ -220,7 +224,7 @@ function offset(t: number, zone: string): number {
 }
 
 // The day on the clock of a zone at an instant, as 'YYYY-MM-DD' (the page's
-// dayKey, lib/bank.ts, in the player's own zone)
+// dayKey, lib/bank.ts, in the player's own zone, given the instant less TURN)
 export function localDay(t: number, zone: string): string {
   const w = wall(t, zone)
   const pad = (n: number) => String(n).padStart(2, '0')

@@ -159,6 +159,25 @@ describe('reminders', () => {
     expect(await sent(t)).toEqual([])
   })
 
+  test('a reminder after midnight belongs to the day before', async () => {
+    const t = convexTest(schema, modules)
+    vi.setSystemTime(at('2026-11-11T12:00:00Z'))
+    await t.mutation(api.reminders.set, {
+      ...phone,
+      time: '01:00',
+      zone: 'Europe/Oslo',
+      done: '2026-11-11',
+    })
+    // 01:00 on the 12th in Oslo: the 11th's session is done
+    vi.setSystemTime(at('2026-11-12T00:00:20Z'))
+    await t.mutation(internal.reminders.due, {})
+    expect(await sent(t)).toEqual([])
+    // The next night, the 12th's is not
+    vi.setSystemTime(at('2026-11-13T00:00:20Z'))
+    await t.mutation(internal.reminders.due, {})
+    expect(await sent(t)).toEqual([phone.endpoint])
+  })
+
   test('a reminder long overdue is not sent', async () => {
     const t = convexTest(schema, modules)
     vi.setSystemTime(at('2026-10-24T12:00:00Z'))

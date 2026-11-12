@@ -1478,6 +1478,23 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(award(b, NOON).seals).toEqual([])
   })
 
+  test('a day turns at three in the night', async () => {
+    const { dayKey, streak } = await import('../src/app/lib/bank')
+    const at = (y: number, m: number, d: number, h: number, min = 0) =>
+      new Date(y, m - 1, d, h, min).getTime()
+    expect(dayKey(at(2026, 11, 12, 2, 59))).toBe('2026-11-11')
+    expect(dayKey(at(2026, 11, 12, 3, 0))).toBe('2026-11-12')
+    expect(dayKey(at(2026, 11, 11, 23, 30))).toBe('2026-11-11')
+    const b = emptyBank()
+    b.days['2026-11-10'] = 5
+    b.days['2026-11-11'] = 5
+    // Half past one on the 12th is still the 11th: two days in a row
+    expect(streak(b, at(2026, 11, 12, 1, 30))).toBe(2)
+    // Across the change from summer time (25 October 2026 in Oslo)
+    for (const d of ['2026-10-24', '2026-10-25', '2026-10-26']) b.days[d] = 3
+    expect(streak(b, at(2026, 10, 26, 20))).toBe(3)
+  })
+
   test('streak seals follow the days with points', async () => {
     const { award } = await import('../src/app/lib/achievements')
     const { dayKey } = await import('../src/app/lib/bank')

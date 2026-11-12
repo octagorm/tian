@@ -8,7 +8,15 @@ import { CITIES, SCENES } from './data/trip'
 import { QUEST } from './data/quest'
 import { STORIES } from './data/stories'
 import { TOPIC } from './data/topics'
-import { BEHIND, dayKey, learnt, recallOf, streak, unmet } from './lib/bank'
+import {
+  BEHIND,
+  dayDate,
+  dayKey,
+  learnt,
+  recallOf,
+  streak,
+  unmet,
+} from './lib/bank'
 import { Pix } from './pixel/Pix'
 import { Account } from './account'
 import { Feedback } from './feedback'
@@ -838,8 +846,9 @@ const WEEKDAY_EN = [
 // days still to come paler. The first time the home screen sees today
 // stamped, it is pressed down with a thud.
 function Week({ bank }: { bank: Bank }) {
-  const now = new Date()
-  const days = streak(bank, now.getTime())
+  const days = streak(bank, Date.now())
+  // Today as the day turns, at three in the night
+  const now = dayDate(Date.now())
   // getDay() counts from Sunday
   const sinceMonday = (now.getDay() + 6) % 7
   const week = Array.from({ length: 7 }, (_, i) => {
