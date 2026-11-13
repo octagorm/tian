@@ -147,6 +147,9 @@ describe('pinyin', () => {
     expect(matches('xie4xie', 'xiè xie')).toBe(true)
     expect(matches('xie4xie5', 'xiè xie')).toBe(true)
     expect(matches('lv4se4', 'lǜ sè')).toBe(true)
+    expect(matches('zhong guo', 'Zhōng guó', false)).toBe(true)
+    expect(matches('zhong1guo2', 'Zhōng guó')).toBe(true)
+    expect(matches('Zhōngguó', 'Zhōng guó')).toBe(true)
     expect(matches('ni2hao3', 'nǐ hǎo')).toBe(false)
   })
 

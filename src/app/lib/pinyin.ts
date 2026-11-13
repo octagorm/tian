@@ -184,9 +184,10 @@ export function normalize(input: string, tones = true): string {
 
 // The forms of a word's pinyin that count as typing it right: with tone
 // marks or numbers (the neutral tone may be left out), or, with `tones`
-// false, without tones.
+// false, without tones. Case does not count: a name's capital (Zhōngguó)
+// is not part of what is typed.
 export function matches(input: string, p: string, tones = true): boolean {
-  const sylls = syllables(p)
+  const sylls = syllables(p.toLowerCase())
   const letters = sylls.map((s) => bare(s).replaceAll('ü', 'v')).join('')
   const typed = normalize(input, tones)
   if (!tones) return typed === letters
