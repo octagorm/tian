@@ -16,6 +16,7 @@ import { toggleMusic, useSound } from './lib/music'
 import { Fret } from './ornament/Borders'
 import { Pix } from './pixel/Pix'
 import { LINKS, holds, recall } from './lib/bank'
+import { backTo } from './lib/trail'
 import type { ReactNode } from 'react'
 import type { Card, Level, Link, Stage } from './lib/bank'
 import type { Token } from './lib/text'
@@ -643,10 +644,6 @@ export function SpeakButton({
 
 // Every game's page: a way home, the game's name in Chinese and English
 // over a band of fretwork, room on the right for a score, and the music
-// Whether the page open was reached from the home screen in this visit
-// (index.tsx keeps it), so that the arrow home can go back to it
-export const visit = { fromHome: false }
-
 export function Frame({
   title,
   zh,
@@ -672,9 +669,7 @@ export function Frame({
               // back to the home screen it was opened from, rather than
               // on to a new one: the browser's Back then leaves the game
               // behind, not back into it
-              if (!visit.fromHome) return
-              e.preventDefault()
-              window.history.back()
+              if (backTo('')) e.preventDefault()
             }}
             aria-label="Home"
             title="Home"

@@ -14,9 +14,10 @@ import { tokens, wordIds } from '../lib/text'
 import { blip } from '../lib/audio'
 import { hushMusic } from '../lib/music'
 import { READ_SIZES, READ_WIDTHS, useStore } from '../lib/store'
+import { backTo } from '../lib/trail'
 import { Frame, usePeek } from '../ui'
 import { CloudDivider } from '../ornament/Borders'
-import type { CSSProperties, ReactNode } from 'react'
+import type { CSSProperties, MouseEvent as ClickEvent, ReactNode } from 'react'
 import type { Text } from '../data/reader'
 import type { Bank, Stage } from '../lib/bank'
 import type { Help, Settings } from '../lib/store'
@@ -38,6 +39,13 @@ import './read.css'
 // aside once reading goes on, and a tap on the page brings them back.
 // Read to the end, the words met and read without being looked up count
 // as read.
+
+// Back to the shelf it was opened from, rather than a new shelf pushed
+// after the text: the shelf's own arrow home goes back a step at a time
+// otherwise, into the text again (lib/trail.ts)
+const toShelf = (e: ClickEvent) => {
+  if (backTo('read')) e.preventDefault()
+}
 
 // The text's id, from /#read/<id>
 const fromHash = () => window.location.hash.split('/')[1] ?? ''
@@ -613,6 +621,7 @@ function Reader({ text }: { text: Text }) {
       <header className="rd-top">
         <a
           href="#read"
+          onClick={toShelf}
           aria-label="All texts"
           title="All texts"
           className="rd-round"
@@ -779,7 +788,7 @@ function Reader({ text }: { text: Text }) {
                     <button type="button" className="rd-btn" onClick={finish}>
                       <Check size={18} aria-hidden="true" /> Finished
                     </button>
-                    <a className="rd-link" href="#read">
+                    <a className="rd-link" href="#read" onClick={toShelf}>
                       All texts
                     </a>
                   </div>
@@ -797,7 +806,7 @@ function Reader({ text }: { text: Text }) {
                         Next: <span className="zh">{next.zh}</span>
                       </a>
                     )}
-                    <a className="rd-link" href="#read">
+                    <a className="rd-link" href="#read" onClick={toShelf}>
                       All texts
                     </a>
                   </div>

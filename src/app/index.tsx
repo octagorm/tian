@@ -1,7 +1,8 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import { BankProvider } from './lib/store'
-import { Frame, PeekProvider, visit } from './ui'
+import { Frame, PeekProvider } from './ui'
+import { startTrail } from './lib/trail'
 import Home from './home'
 import { GAMES } from './registry'
 import { Reminders, SealToaster, TodayDock } from './daily'
@@ -21,6 +22,9 @@ const fromHash = (): GameId | null => {
   const h = window.location.hash.slice(1).split('/')[0]
   return GAMES.find((g) => g.id === h)?.id ?? null
 }
+
+// Every entry of the history numbered before the router hears of it
+startTrail()
 
 export default function Chinese() {
   // Whatever breaks, the page says so rather than going blank (mend.tsx)
@@ -88,7 +92,6 @@ function Router() {
       const prev = shown.current
       if (next === prev) return
       if (!prev) homeScroll.current = window.scrollY
-      visit.fromHome = !prev && !!next
       shown.current = next
       const update = () => {
         flushSync(() => setGame(next))
