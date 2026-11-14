@@ -50,11 +50,14 @@ export default defineSchema({
     .index('by_status', ['status']),
 
   // The word bank, as the page's own JSON, so it follows the account from
-  // device to device
+  // device to device, and the saves made in the minute from `since`, which
+  // are capped (convex/bank.ts)
   banks: defineTable({
     userId: v.id('users'),
     data: v.string(),
     updatedAt: v.number(),
+    since: v.optional(v.number()),
+    saves: v.optional(v.number()),
   }).index('by_user', ['userId']),
 
   // The player's own Gemini API key for the chat (convex/chat.ts),

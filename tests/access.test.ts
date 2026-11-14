@@ -4,6 +4,7 @@ import schema from '../convex/schema'
 import { api, internal } from '../convex/_generated/api'
 import { welcome } from '../convex/access'
 import { ADMIN_EMAIL } from '../convex/auth'
+import { SAVES } from '../convex/bank'
 
 // Who gets in: anyone who signs in with Google keeps a word bank on their
 // account. Each new account is sent to the admin's inbox on ymse.land, and
@@ -89,5 +90,28 @@ describe('access', () => {
     expect(await admin.query(api.bank.bank, {})).toBeNull()
     await admin.mutation(api.bank.save, progress)
     expect(await admin.query(api.bank.bank, {})).toEqual(progress.data)
+  })
+
+  // A page that saved in answer to each save (two devices that never
+  // agree) would go on for ever: over the cap nothing is written, so
+  // nothing comes back to answer
+  test('saves are capped by the minute, and nothing new is not written', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-11-14T12:00:00Z'))
+    const { t, ola } = await setup()
+    const bank = (n: number) => ({ data: JSON.stringify({ cards: {}, n }) })
+    const row = () => t.run((ctx) => ctx.db.query('banks').first())
+    await ola.mutation(api.bank.save, bank(0))
+    const first = await row()
+    vi.advanceTimersByTime(1000)
+    await ola.mutation(api.bank.save, bank(0))
+    expect(await row()).toEqual(first)
+    for (let n = 1; n < SAVES + 20; n++)
+      await ola.mutation(api.bank.save, bank(n))
+    expect(await ola.query(api.bank.bank, {})).toEqual(bank(SAVES - 1).data)
+    // and a minute later, saved again
+    vi.advanceTimersByTime(60_000)
+    await ola.mutation(api.bank.save, bank(99))
+    expect(await ola.query(api.bank.bank, {})).toEqual(bank(99).data)
   })
 })

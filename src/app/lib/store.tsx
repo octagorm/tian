@@ -20,6 +20,7 @@ import {
   luck,
   merge,
   newCard,
+  same,
   setCap,
   setMemory,
   stage,
@@ -519,10 +520,6 @@ function useAwards(bank: Bank, setBank: (f: (b: Bank) => Bank) => void) {
 }
 
 const SAVE_EVERY = 30_000
-
-const same = (a: Bank, b: Bank) =>
-  JSON.stringify(merge(a, emptyBank())) ===
-  JSON.stringify(merge(b, emptyBank()))
 
 function useAccount(local: Bank, setLocal: (b: Bank) => void): Account {
   const { isAuthenticated, isLoading } = useConvexAuth()

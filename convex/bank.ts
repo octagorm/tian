@@ -11,6 +11,16 @@ import { requireUser } from './access'
 // Convex's limit of 1 MiB per document
 const MAX = 900_000
 
+// Saves an account may make in a minute. The page saves every half minute
+// at most, and when it is hidden; a page that answers each copy from the
+// account with a save of its own (two devices that never agree,
+// lib/store.tsx) makes several a second, each one waking the other, as
+// Hola's once did. A save over the cap is not written, so nothing comes
+// back to answer, and such a loop stops. The browser keeps everything, and
+// its next save carries it all.
+export const SAVES = 30
+const MINUTE = 60_000
+
 export const bank = query({
   args: {},
   handler: async (ctx) => {
@@ -39,17 +49,28 @@ export const save = mutation({
       .query('banks')
       .withIndex('by_user', (q) => q.eq('userId', user._id))
       .first()
-    if (row)
-      await ctx.db.patch('banks', row._id, {
-        data,
-        updatedAt: Date.now(),
-      })
-    else
+    const now = Date.now()
+    if (!row) {
       await ctx.db.insert('banks', {
         userId: user._id,
         data,
-        updatedAt: Date.now(),
+        updatedAt: now,
+        since: now,
+        saves: 1,
       })
+      return
+    }
+    // (nothing new is not written either: a write wakes every device)
+    if (row.data === data) return
+    const within = now - (row.since ?? 0) < MINUTE
+    const saves = within ? (row.saves ?? 0) : 0
+    if (saves >= SAVES) return
+    await ctx.db.patch('banks', row._id, {
+      data,
+      updatedAt: now,
+      since: within ? row.since : now,
+      saves: saves + 1,
+    })
   },
 })
 

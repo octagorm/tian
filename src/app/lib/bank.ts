@@ -702,6 +702,21 @@ export function pick(
 const keysOf = (...rs: Array<object | undefined>) =>
   new Set(rs.flatMap((r) => (r ? Object.keys(r) : [])))
 
+// JSON with each object's keys in order, so that two devices holding the
+// same bank write the same text
+export const stable = (value: unknown): string =>
+  JSON.stringify(value, (_, v: unknown) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.fromEntries(
+          Object.entries(v).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+        )
+      : v,
+  )
+
+// Whether two banks hold the same, whatever the order of their keys
+export const same = (a: Partial<Bank>, b: Partial<Bank>) =>
+  stable(merge(a, emptyBank())) === stable(merge(b, emptyBank()))
+
 // Two banks made one, for a player with an account on two devices: for
 // each link of a word the memory answered last (and of each way it was
 // asked, the tally answered last), for days and scores the
@@ -711,7 +726,10 @@ const keysOf = (...rs: Array<object | undefined>) =>
 // so. A
 // bank saved before a field existed (from an older page, or the
 // account's copy) is read as having it empty, and a card saved before
-// the links as having its one memory in each.
+// the links as having its one memory in each. Of two as late as each
+// other, the same one is kept whichever bank is merged into which, so that
+// two devices merging each other's copy agree, and do not save their own
+// over the other's for ever (as Hola's once did).
 export function merge(one: Partial<Bank>, other: Partial<Bank>): Bank {
   const out = emptyBank()
   out.since = Math.max(one.since ?? 0, other.since ?? 0)
@@ -741,7 +759,7 @@ export function merge(one: Partial<Bank>, other: Partial<Bank>): Bank {
     for (const id of keysOf(a[k], b[k])) {
       const x = a[k]?.[id] ?? [0, 0]
       const y = b[k]?.[id] ?? [0, 0]
-      out[k][id] = x[1] >= y[1] ? x : y
+      out[k][id] = x[1] !== y[1] ? (x[1] > y[1] ? x : y) : x[0] >= y[0] ? x : y
     }
   }
   for (const id of keysOf(a.seals, b.seals)) {
@@ -753,13 +771,13 @@ export function merge(one: Partial<Bank>, other: Partial<Bank>): Bank {
   for (const id of keysOf(a.place, b.place)) {
     const x = a.place?.[id]
     const y = b.place?.[id]
-    const last = !x ? y : !y ? x : y.t > x.t ? y : x
+    const last = !x ? y : !y ? x : later(x, y, (l) => [l.p, l.w ?? -1])
     const done = Math.max(x?.done ?? 0, y?.done ?? 0)
     if (last) out.place[id] = done ? { ...last, done } : last
   }
   const ta = a.topics?.on ? a.topics : out.topics
   const tb = b.topics?.on ? b.topics : out.topics
-  out.topics = tb.t > ta.t ? tb : ta
+  out.topics = later(ta, tb)
   return out
 }
 
@@ -773,7 +791,16 @@ function after(bank: Partial<Bank>, since: number): Partial<Bank> {
   return { cards }
 }
 
-const later = (a: Memory, b: Memory) => (a.t >= b.t ? a : b)
+// Of two things, the one answered or changed later, and of two as late,
+// the one whose text (of what `by` takes from it) sorts last
+function later<T extends { t: number }>(
+  x: T,
+  y: T,
+  by: (v: T) => unknown = (v) => v,
+): T {
+  if (x.t !== y.t) return x.t > y.t ? x : y
+  return stable(by(x)) >= stable(by(y)) ? x : y
+}
 
 // Of two tallies one way, the one answered last
 function laterWays(x: Card, y: Card): Card['d'] {
@@ -782,22 +809,40 @@ function laterWays(x: Card, y: Card): Card['d'] {
   for (const k of DIRS) {
     const a = x.d[k]
     const b = y.d[k]
-    const last = !a ? b : !b ? a : b[2] > a[2] ? b : a
+    const last =
+      !a || !b
+        ? (a ?? b)
+        : a[2] !== b[2]
+          ? a[2] > b[2]
+            ? a
+            : b
+          : stable(a) >= stable(b)
+            ? a
+            : b
     if (last) d[k] = last
   }
   return d
 }
 
-// The answers logged on either device, each once, the last LOG of them
+// The answers logged on either device, each once, the last LOG of them,
+// the same whichever bank is merged into which
 function bothLogs(x: Card, y: Card): Card['log'] {
   if (!x.log || !y.log) return x.log ?? y.log
   const seen = new Map<string, LogEntry>()
-  for (const e of [...x.log, ...y.log]) seen.set(`${e[0]} ${e[1]}`, e)
-  return [...seen.values()].sort((a, b) => a[0] - b[0]).slice(-LOG)
+  for (const e of [...x.log, ...y.log]) {
+    const k = `${e[0]} ${e[1]}`
+    const had = seen.get(k)
+    if (!had || JSON.stringify(e) > JSON.stringify(had)) seen.set(k, e)
+  }
+  return [...seen.entries()]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([, e]) => e)
+    .sort((a, b) => a[0] - b[0])
+    .slice(-LOG)
 }
 
 function both(x: Card, y: Card): Card {
-  const last = x.t >= y.t ? x : y
+  const last = later(x, y, (c) => [c.n, c.x])
   const d = laterWays(x, y)
   const log = bothLogs(x, y)
   return {
@@ -818,5 +863,6 @@ const progress = (p: Path) =>
 function laterPath(a: Path | null, b: Path | null): Path | null {
   if (!a || !b) return a ?? b
   if (a.d !== b.d) return a.d > b.d ? a : b
-  return progress(b) > progress(a) ? b : a
+  if (progress(a) !== progress(b)) return progress(a) > progress(b) ? a : b
+  return stable(a) >= stable(b) ? a : b
 }

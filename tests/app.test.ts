@@ -34,6 +34,8 @@ import {
   newCard,
   pick,
   recall,
+  same,
+  stable,
   weakest,
 } from '../src/app/lib/bank'
 import type { Bank, Card } from '../src/app/lib/bank'
@@ -1456,6 +1458,104 @@ describe('the daily habit: Today, seals, the garden, mahjong', () => {
     expect(merge(b, { ...a, path: { ...p, d: '2026-10-17' } }).path?.d).toBe(
       '2026-10-17',
     )
+  })
+
+  // Two devices that never agree on the merged bank save over each other
+  // for ever (as Hola's once did, a million calls): so merge must give the
+  // same bank whichever is merged into which, and devices that sync through
+  // the account, as useAccount does (lib/store.tsx), must stop saving.
+  // Random banks from a seed, small numbers so that ties are many, each as
+  // the page holds it (read through merge).
+  test('two or three devices that sync through the account settle, whatever their banks hold', () => {
+    let seed = 11
+    const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+    const n = (k: number) => Math.floor(r() * k)
+    const maybe = <T extends object>(p: number, x: T) => (r() < p ? x : {})
+    const ids = ['你好', '谢谢', '再见']
+    const link = () => ({
+      s: n(3),
+      t: n(4),
+      ...maybe(0.4, { d: n(3) + 4 }),
+      ...maybe(0.2, { l: n(3) }),
+      ...maybe(0.2, { f: 1 as const }),
+    })
+    const log = () =>
+      Array.from({ length: n(10) }, () => [
+        n(4),
+        ['hs', 'hm', 'h>s', 'm>h'][n(4)],
+        n(3) - 1,
+        n(3),
+        n(3),
+      ]).sort((a, b) => Number(a[0]) - Number(b[0]))
+    const some = (): Bank => {
+      const b = emptyBank()
+      for (const id of ids) {
+        if (r() < 0.8)
+          b.cards[id] = {
+            hs: link(),
+            hm: link(),
+            sm: link(),
+            t: n(4),
+            n: n(3),
+            x: n(2),
+            i: n(4),
+            ...maybe(0.5, {
+              d: { 'h>s': [n(2), n(3), n(3)], 'm>s': [n(2), n(3), n(3)] },
+            }),
+            ...maybe(0.6, { log: log() as Card['log'] }),
+          }
+        if (r() < 0.25) b.later[id] = n(4)
+        if (r() < 0.15) b.gone[id] = n(4)
+      }
+      b.tones['13'] = [n(3), n(3)]
+      b.sounds['zh-z-j'] = [n(3), n(3)]
+      if (r() < 0.5) b.seals.first = n(3) + 1
+      if (r() < 0.5) b.garden['1'] = n(2) + 1
+      if (r() < 0.8)
+        b.path = {
+          d: `2026-10-2${n(2)}`,
+          t: n(3),
+          steps: [{ k: 'game', arg: 'abc'[n(3)], ...maybe(0.3, { done: 1 }) }],
+          met: n(3),
+          known: 0,
+          s0: {},
+        }
+      if (r() < 0.8)
+        b.place.text = { p: n(3), t: n(2), ...maybe(0.5, { w: n(3) }) }
+      b.topics = { on: [{ id: 'food', p: (n(3) + 1) as 1 | 2 | 3 }], t: n(2) }
+      b.days.d = n(5)
+      if (r() < 0.2) b.since = n(3)
+      // (half of them with their keys in another order)
+      return merge(n(2) ? (JSON.parse(stable(b)) as Bank) : b, emptyBank())
+    }
+    for (let k = 0; k < 400; k++) {
+      const [a, b] = [some(), some()]
+      expect(same(merge(a, b), merge(b, a)), `banks ${k}`).toBe(true)
+      const devices = k % 2 ? [a, b] : [a, b, some()]
+      const account: { bank: Bank | null } = { bank: null }
+      let saves = 0
+      const queue = devices.map((_, i) => i)
+      const save = (bank: Bank) => {
+        account.bank = merge(
+          JSON.parse(JSON.stringify(bank)) as Bank,
+          emptyBank(),
+        )
+        saves++
+        queue.push(...devices.map((_, i) => i))
+      }
+      while (queue.length && saves < 40) {
+        const i = queue.shift() ?? 0
+        const theirs = account.bank
+        const both = merge(devices[i], theirs ?? emptyBank())
+        if (!same(both, devices[i])) devices[i] = both
+        if (!theirs || !same(both, theirs)) save(both)
+        // (the save half a minute after a change)
+        else if (!same(devices[i], theirs)) save(devices[i])
+      }
+      expect(saves, `banks ${k}`).toBeLessThan(40)
+      for (const d of devices)
+        expect(same(d, devices[0]), `banks ${k}`).toBe(true)
+    }
   })
 
   test('every seal has a check, a character and its pinyin', async () => {
