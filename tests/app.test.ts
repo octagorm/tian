@@ -500,6 +500,28 @@ describe('bank', () => {
     expect(reverse).toBeLessThan(400)
   })
 
+  test('a name is not asked for its pinyin, as its meaning gives it', async () => {
+    const { questionsFor } = await import('../src/app/quiz')
+    const { namesItself } = await import('../src/app/lib/choices')
+    const at = (h: string) => WORDS.find((x) => x.h === h)!
+    for (const h of ['北京', '西安', '王', '油条', '道德经', '女娲'])
+      expect(namesItself(at(h)), h).toBe(true)
+    for (const h of ['谢谢', '道', '中国'])
+      expect(namesItself(at(h)), h).toBe(false)
+    // the sound and its meaning is the weakest link
+    const card = {
+      ...newCard(0, 9),
+      sm: { s: 0.2, t: 0 },
+      d: { 'm>s': [3, 4, 0] } as Card['d'],
+    }
+    const w = at('北京')
+    const kinds = Array.from(
+      { length: 50 },
+      () => questionsFor([w], { [w.id]: card }, D)[0].kind,
+    )
+    expect(kinds).not.toContain('say')
+  })
+
   test('a card saved before the links has its one memory in each', () => {
     const old = { s: 4, t: 7, n: 3, x: 1, i: 2 }
     const bank = { cards: { 你好: old } } as unknown as Partial<Bank>

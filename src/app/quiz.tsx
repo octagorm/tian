@@ -3,7 +3,7 @@ import { CalendarClock, X } from 'lucide-react'
 import { WORDS } from './data/words'
 import { join, matches, syllables } from './lib/pinyin'
 import { blip } from './lib/audio'
-import { wordChoices } from './lib/choices'
+import { namesItself, wordChoices } from './lib/choices'
 import { KNOWN, missRate, missRates, weakest } from './lib/bank'
 import { useStore } from './lib/store'
 import { Btn, Ruby, shuffle } from './ui'
@@ -611,8 +611,12 @@ export function EnterToContinue({ onEnter }: { onEnter: () => void }) {
 // counted: its character and sound by ear while that is learnt, and
 // mostly by typing the pinyin once it lasts; its character and meaning
 // either way round; its sound and meaning mostly by ear, else the pinyin
-// for a meaning
-function waysOf(link: Link, c: Card | undefined): Array<[Kind, number]> {
+// for a meaning, unless the meaning is the pinyin (Beijing, lib/choices.ts)
+function waysOf(
+  w: Word,
+  link: Link,
+  c: Card | undefined,
+): Array<[Kind, number]> {
   if (link === 'hs')
     return c && c.hs.s >= KNOWN
       ? [
@@ -625,6 +629,7 @@ function waysOf(link: Link, c: Card | undefined): Array<[Kind, number]> {
       ['meaning', 1],
       ['reverse', 1],
     ]
+  if (namesItself(w)) return [['hear', 1]]
   return [
     ['hear', 2],
     ['say', 1],
@@ -646,7 +651,7 @@ export function questionsFor(
   for (const w of words) {
     const c = cards[w.id]
     const link = c ? weakest(c, now, random) : 'hm'
-    const ways = waysOf(link, c).map(
+    const ways = waysOf(w, link, c).map(
       ([kind, share]) =>
         [kind, share * (missRate(c, DIR_OF[kind], rates) + 0.15)] as const,
     )

@@ -61,6 +61,20 @@ export function soundsSame(a: Word, b: Word): boolean {
   )
 }
 
+// A word whose meaning begins with its own pinyin, tones left off: a
+// name (北京, Beijing; 王, Wang, a surname), or a word English writes as
+// pinyin (油条, youtiao). Asked for the pinyin of "Beijing", the answer
+// is in the question, so such words are not asked that way.
+export function namesItself(w: Word): boolean {
+  const plain = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/[^a-z]/gi, '')
+      .toLowerCase()
+  const head = w.e.replace(/^the\s+/i, '').split(/[,;:(]/)[0]
+  return plain(head) === plain(syllables(w.p).map(bare).join(''))
+}
+
 const length = (w: Word) => spoken(w).bare.length
 
 // What a choice shows: the pinyin for a meaning, the meaning for a
