@@ -1,0 +1,278 @@
+{
+  "title": "天天 – Episode 4: Welcome back! How was Suzhou?",
+  "cast": {
+    "Lin": {
+      "voice": "Lin",
+      "style": "a warm, playful podcast host, natural and lively in English; when she speaks Chinese, clear, a little slower, every tone exact"
+    },
+    "Erik": {
+      "voice": "Erik",
+      "style": "a friendly beginner on a podcast, relaxed and funny in English; his Chinese careful and a little slow, every tone as written"
+    },
+    "Xiao Wang": {
+      "voice": "Despina",
+      "style": "a cheerful young woman, a software developer, back at work after a holiday in China and happy to talk about it, in standard Mandarin Chinese, natural and warm, clear enough for a learner"
+    }
+  },
+  "lines": [
+    { "chime": true },
+    { "who": "Lin", "text": "你好！ Welcome back to 天天. I'm Lin." },
+    {
+      "who": "Erik",
+      "text": "And I'm Erik. 你好！ And I need help with something small, but important. A colleague of mine has just come back from a week in China. Shanghai, and then Suzhou. Mostly a holiday, I think. And on Monday I'll see her at the coffee machine."
+    },
+    { "who": "Lin", "text": "And you want to say more than 你好." },
+    {
+      "who": "Erik",
+      "text": "I want to ask how her trip was. And then ask something about Suzhou, and understand the answer, and react like a normal person."
+    },
+    {
+      "who": "Lin",
+      "text": "Small talk! The most useful Chinese there is. Today there are about ten new words, and we'll say each of them many times. The rest you know already: 好吃, 美, 累, 甜, 丝巾, all of those are coming back."
+    },
+    { "chime": true },
+    {
+      "who": "Lin",
+      "text": "Monday morning. The coffee machine. Your colleague, 小王, Xiao Wang, is back."
+    },
+    {
+      "who": "Erik",
+      "text": "小王，早上 好！你 回来 了！欢迎 回来！",
+      "style": "a beginner greeting a colleague, warm and pleased, careful with every tone"
+    },
+    {
+      "who": "Xiao Wang",
+      "text": "早上 好！谢谢，我 回来 了！",
+      "style": "cheerful, a little surprised and delighted to be greeted in Chinese"
+    },
+    { "who": "Erik", "text": "你 的 旅行 怎么样？" },
+    { "who": "Xiao Wang", "text": "很 好！很 开心！" },
+    { "who": "Erik", "text": "你 去 了 哪儿？" },
+    {
+      "who": "Xiao Wang",
+      "text": "我 去 了 上海 和 苏州。工作 了 两 天，玩 了 五 天！",
+      "style": "cheerful, then laughing a little on the last part, a small confession"
+    },
+    { "who": "Erik", "text": "太 好 了！" },
+    {
+      "who": "Lin",
+      "text": "Very nice. Let's go through it. The very first thing: 你回来了！ You're back! 回来, come back. 回, to return, and 来, to come, which you know from 欢迎再来."
+    },
+    { "who": "Erik", "text": "回来. And then I said 欢迎回来." },
+    {
+      "who": "Lin",
+      "text": "欢迎回来, welcome back. 欢迎, welcome, and 回来, come back. That's the perfect first line. And she said 我回来了, I'm back. The 了 says it has happened: I have come back."
+    },
+    { "who": "Erik", "text": "Then the big question. 你的旅行怎么样?" },
+    {
+      "who": "Lin",
+      "text": "旅行, a trip, travel. And 怎么样, how is it, how was it. 怎么样 is a wonderful word. Put anything in front of it and you have a question. 你的旅行怎么样? How was your trip? 苏州怎么样? How was Suzhou? 饺子怎么样? How are the dumplings?"
+    },
+    {
+      "who": "Erik",
+      "text": "怎么样. 你的旅行怎么样. And she said 很好，很开心."
+    },
+    {
+      "who": "Lin",
+      "text": "开心, happy, having a good time. 开, open, and 心, the heart. An open heart. 很开心, I had a great time."
+    },
+    {
+      "who": "Erik",
+      "text": "Then I asked 你去了哪儿? Where did you go? And she said 上海和苏州."
+    },
+    {
+      "who": "Lin",
+      "text": "Shanghai and Suzhou. 苏州 is close to Shanghai, about half an hour on the high-speed train. And then she said something funny. 工作了两天，玩了五天."
+    },
+    { "who": "Erik", "text": "Worked for two days, and... 玩 for five days?" },
+    {
+      "who": "Lin",
+      "text": "玩 is to play. But grown-ups 玩 too. It means having fun, going out, doing things for pleasure. And when you travel somewhere on holiday, you go there to 玩. 去苏州玩, go to Suzhou for fun. So: two days of work, five days of holiday."
+    },
+    { "who": "Erik", "text": "That's a good ratio. And I said 太好了. Great!" },
+    {
+      "who": "Lin",
+      "text": "Like 太贵了 and 太早了, but this time a happy one. Say it all after me."
+    },
+    {
+      "who": "Lin",
+      "text": "你回来了！ 欢迎回来！ 你的旅行怎么样？ 很开心！ 你去了哪儿？ 去苏州玩。 太好了！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    { "chime": true },
+    {
+      "who": "Lin",
+      "text": "Now the follow-up questions. This is where the conversation really starts. Erik asks about Suzhou."
+    },
+    { "who": "Erik", "text": "苏州 怎么样？" },
+    {
+      "who": "Xiao Wang",
+      "text": "苏州 很 美！有 很 多 园林，也 有 很 多 河。",
+      "style": "warm and enthusiastic, remembering something lovely"
+    },
+    { "who": "Erik", "text": "园林？" },
+    {
+      "who": "Xiao Wang",
+      "text": "园林 是 中国 的 老 公园。很 美。",
+      "style": "explaining kindly and simply, a little slower, to a colleague who is learning"
+    },
+    { "who": "Erik", "text": "你 喜欢 哪 个 园林？" },
+    {
+      "who": "Xiao Wang",
+      "text": "我 喜欢 拙政园。很 美！可是 人 很 多，很 多！",
+      "style": "fond at first, then laughing and rolling her eyes about the crowds"
+    },
+    {
+      "who": "Lin",
+      "text": "Good, you're using 怎么样 already. 苏州怎么样? And she said 苏州很美, Suzhou is beautiful. Then two new words. 园林 and 河."
+    },
+    {
+      "who": "Erik",
+      "text": "园林. She explained it to me: 中国的老公园. A Chinese old park."
+    },
+    {
+      "who": "Lin",
+      "text": "Nicely done of her. 园林 is a classical Chinese garden. 园, garden, the same 园 as in 公园, and 林, woods, a grove. Suzhou is famous for them: walled gardens built by scholars and officials, with ponds, strange rocks, little bridges and windows shaped like flowers or the moon, each framing a view. Several of them are on UNESCO's World Heritage list."
+    },
+    { "who": "Erik", "text": "And 河?" },
+    {
+      "who": "Lin",
+      "text": "河 is a river, and also a canal. Suzhou is a city of canals, with white houses and black roofs along the water, and people sometimes call it the Venice of the East. 有很多河, there are lots of canals."
+    },
+    {
+      "who": "Erik",
+      "text": "Then I asked her 你喜欢哪个园林? Which garden do you like?"
+    },
+    {
+      "who": "Lin",
+      "text": "喜欢, to like. 我喜欢, I like. 你喜欢吗? Do you like it? A very useful one. And 哪个, which one: 哪, which, like 哪国人, and 个. She said 拙政园, Zhuōzhèngyuán, the Humble Administrator's Garden, the biggest and most famous one. Don't worry about learning that name."
+    },
+    {
+      "who": "Erik",
+      "text": "And then 人很多，很多! Lots of people. I understood that one. She didn't look happy about it."
+    },
+    {
+      "who": "Lin",
+      "text": "Popular gardens get very crowded, especially on holidays. And 可是 means but. 很美，可是人很多. Beautiful, but crowded. Now a question everyone asks. Go on, Erik."
+    },
+    { "who": "Erik", "text": "天气 怎么样？热 吗？" },
+    { "who": "Xiao Wang", "text": "不 热。天气 很 好！" },
+    {
+      "who": "Lin",
+      "text": "天气, the weather. 天, the sky, which you know from 天天, and 气, air. The air of the sky. 天气怎么样? How's the weather? And 热, hot. 热吗? Was it hot? 不热, not hot. 天气很好, the weather was lovely."
+    },
+    { "who": "Erik", "text": "天气. 热. And if it had been hot?" },
+    {
+      "who": "Lin",
+      "text": "Then 很热, or in a Suzhou summer, 太热了! Your turn."
+    },
+    {
+      "who": "Lin",
+      "text": "苏州怎么样？ 苏州很美！ 有很多园林。 有很多河。 你喜欢哪个园林？ 天气怎么样？ 热吗？ 不热。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    { "chime": true },
+    {
+      "who": "Lin",
+      "text": "Food. Never skip the food question. It's the safest question in China."
+    },
+    { "who": "Erik", "text": "你 吃 了 什么？苏州 菜 好吃 吗？" },
+    {
+      "who": "Xiao Wang",
+      "text": "很 好吃！苏州 菜 有 一点 甜。",
+      "style": "happy, savouring the memory, a little teasing on the last word"
+    },
+    { "who": "Erik", "text": "甜？我 喜欢 甜 的！" },
+    {
+      "who": "Xiao Wang",
+      "text": "哈哈，那 你 去 苏州 吧！",
+      "style": "laughing warmly"
+    },
+    { "who": "Erik", "text": "你 买 了 什么？" },
+    { "who": "Xiao Wang", "text": "我 给 妈妈 买 了 一 条 丝巾。" },
+    {
+      "who": "Lin",
+      "text": "You knew all of that! 苏州菜, Suzhou food. 菜 is a dish, and also a region's cooking. And Suzhou cooking really is known for being a little sweet. There's a famous fish, fried and shaped like a squirrel, in a sweet and sour sauce."
+    },
+    {
+      "who": "Erik",
+      "text": "A squirrel fish. Of course. And she said 有一点甜: a little sweet."
+    },
+    {
+      "who": "Lin",
+      "text": "有一点, a little, before a word that's a bit too much. 有一点甜, a bit sweet. 有一点累, a bit tired. Then you said 我喜欢甜的, I like sweet things. And she said 那你去苏州吧! Then you should go to Suzhou!"
+    },
+    {
+      "who": "Erik",
+      "text": "And she bought her mother 一条丝巾. A silk scarf."
+    },
+    {
+      "who": "Lin",
+      "text": "With 条, for long, thin things. Suzhou has been a city of silk for many hundreds of years, so a silk scarf is just the right present. Now, she's had a long flight. What do you ask?"
+    },
+    { "who": "Erik", "text": "你 累 不 累？" },
+    {
+      "who": "Xiao Wang",
+      "text": "有 一点 累。可是 很 开心！",
+      "style": "a little tired, then bright and smiling"
+    },
+    { "who": "Erik", "text": "你 喜欢 苏州 吗？" },
+    { "who": "Xiao Wang", "text": "很 喜欢！你 也 去 吧！" },
+    { "who": "Erik", "text": "好！我 想 去 苏州 玩！" },
+    {
+      "who": "Lin",
+      "text": "Two nice things there. 你累不累? Are you tired? You say the word, then 不, then the word again. 累不累, tired or not tired. It's a softer, friendlier question than 你累吗. 好不好, 贵不贵, 热不热 work the same way."
+    },
+    { "who": "Erik", "text": "累不累. 热不热. 喜欢不喜欢?" },
+    {
+      "who": "Lin",
+      "text": "Yes! That works too. And she said 很喜欢! I like it a lot. 你也去吧, you should go too. And you said 我想去苏州玩, I'd like to go to Suzhou for fun. 想, to want to, 去, go, 苏州, 玩. Say these after me."
+    },
+    {
+      "who": "Lin",
+      "text": "你吃了什么？ 好吃吗？ 有一点甜。 你买了什么？ 你累不累？ 你喜欢苏州吗？ 很喜欢！ 我想去苏州玩。",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    { "chime": true },
+    {
+      "who": "Lin",
+      "text": "One last thing, to impress Xiao Wang. There's an old saying about Suzhou, and you know almost every word in it. 上有天堂，下有苏杭。"
+    },
+    {
+      "who": "Erik",
+      "text": "上, up, above. 下, down, below. 有, there is. 天 is the sky... and 天堂?"
+    },
+    {
+      "who": "Lin",
+      "text": "天堂 is heaven, paradise. And 苏杭 is Suzhou and Hangzhou, two lovely cities, taking one character from each name. Above, there is heaven. Below, there are Suzhou and Hangzhou."
+    },
+    { "who": "Erik", "text": "So if I say that at the coffee machine..." },
+    {
+      "who": "Lin",
+      "text": "She will laugh, and she will be very pleased. Try it. 上有天堂，下有苏杭。",
+      "style": "warm, then saying the Chinese saying slowly and clearly, every tone exact, like a little poem"
+    },
+    {
+      "who": "Erik",
+      "text": "上 有 天堂，下 有 苏杭。",
+      "style": "a beginner trying a classical saying, slow and careful, a little proud"
+    },
+    {
+      "who": "Lin",
+      "text": "很好！ Let's put the whole chat together. Your colleague is back. You say:"
+    },
+    {
+      "who": "Lin",
+      "text": "欢迎回来！ 你的旅行怎么样？ 你去了哪儿？ 苏州怎么样？ 天气怎么样？ 好吃吗？ 你喜欢吗？ 太好了！",
+      "style": "Say each Chinese word or line slowly and clearly, every tone exact, then stay completely silent for three full seconds so the listener can repeat it."
+    },
+    { "who": "Erik", "text": "I think I'm ready for Monday. 谢谢, Lin!" },
+    {
+      "who": "Lin",
+      "text": "不客气！ And Erik, when you go to Suzhou yourself, I want to hear all about it. 你的旅行怎么样?"
+    },
+    { "who": "Erik", "text": "很开心！ I hope. 再见！" },
+    { "who": "Lin", "text": "再见！ 天天向上。" },
+    { "chime": true }
+  ]
+}
