@@ -2,16 +2,21 @@ import { getAuthUserId } from '@convex-dev/auth/server'
 import { ConvexError, v } from 'convex/values'
 import { internalMutation, mutation, query } from './_generated/server'
 import { internal } from './_generated/api'
+import type { Doc, Id } from './_generated/dataModel'
 import type { MutationCtx, QueryCtx } from './_generated/server'
 
 // The daily reminder: a notification at a time of day the player chooses,
 // unless Today's session is done already. A web page cannot ask for a
 // notification later by itself, so the browser subscribes to Web Push
 // (src/app/lib/reminder.ts) and the subscription is kept here, keyed by its
-// endpoint, with the time and the time zone. Each minute a cron (crons.ts)
-// takes the reminders due, skips those whose day is done, and has
-// convex/push.ts send the rest; the service worker (public/sw.js) shows
-// them. Nobody needs an account; the endpoint is the key.
+// endpoint, with the time and the time zone. Each reminder is scheduled
+// for its own minute (`ring`, by Convex's scheduler): it is skipped if its
+// day is done, or convex/push.ts sends it and the service worker
+// (public/sw.js) shows it, and it is scheduled again for the next day. So
+// a reminder costs a call or two a day, and none are made when nobody has
+// one (a cron each minute, as it was, made 1440 a day). Once an hour a cron
+// (crons.ts, `sweep`) sees to any whose turn was lost. Nobody needs an
+// account; the endpoint is the key. Hola does the same; keep the two alike.
 
 // The public half of the keys pushes are signed with (VAPID), for the page
 // to subscribe with; null when they are not set (`npx convex env set`)
@@ -47,7 +52,7 @@ export const set = mutation({
     const next = nextAt(time, zone, Date.now())
     const row = await byEndpoint(ctx, endpoint)
     if (!row) {
-      await ctx.db.insert('reminders', {
+      const id = await ctx.db.insert('reminders', {
         endpoint,
         p256dh,
         auth,
@@ -57,14 +62,17 @@ export const set = mutation({
         done,
         userId,
       })
+      await ctx.db.patch('reminders', id, { job: await ringAt(ctx, id, next) })
       return
     }
+    await unring(ctx, row)
     await ctx.db.patch('reminders', row._id, {
       p256dh,
       auth,
       time,
       zone,
       next,
+      job: await ringAt(ctx, row._id, next),
       done: done !== undefined && fresh(done, row.done) ? done : row.done,
       userId,
     })
@@ -76,7 +84,9 @@ export const remove = mutation({
   args: { endpoint: v.string() },
   handler: async (ctx, { endpoint }) => {
     const row = await byEndpoint(ctx, endpoint)
-    if (row) await ctx.db.delete('reminders', row._id)
+    if (!row) return
+    await unring(ctx, row)
+    await ctx.db.delete('reminders', row._id)
   },
 })
 
@@ -106,31 +116,78 @@ export const done = mutation({
 // so a reminder set between midnight and three belongs to the day before
 const TURN = 3 * 3_600_000
 
-// A reminder more late than this (the cron did not run) is not sent
+// A reminder more late than this (its turn was lost) is not sent
 const LATE = 60 * 60_000
 
-// The reminders due: each is sent unless its day is done, and set for the
-// same time the next day
-export const due = internalMutation({
+// How often the cron sweeps (crons.ts)
+export const SWEEP = 60 * 60_000
+
+// A reminder's turn, scheduled for the time it is due (`at`): sent unless
+// its day is done, and scheduled for the same time the next day. A turn
+// left from before the time was changed finds another `next`, and does
+// nothing.
+export const ring = internalMutation({
+  args: { id: v.id('reminders'), at: v.number() },
+  handler: async (ctx, { id, at }) => {
+    const r = await ctx.db.get('reminders', id)
+    if (r && r.next === at) await turn(ctx, r, Date.now())
+  },
+})
+
+// The net under the turns, once an hour: a reminder due within the hour
+// with no turn waiting gets one (those kept from when a cron sent them
+// all, too), and one whose turn was lost has it now
+export const sweep = internalMutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now()
     const rows = await ctx.db
       .query('reminders')
-      .withIndex('by_next', (q) => q.lte('next', now))
+      .withIndex('by_next', (q) => q.lte('next', now + SWEEP))
       .take(500)
-    const to = []
     for (const r of rows) {
-      const day = localDay(r.next - TURN, r.zone)
-      if (fresh(day, r.done) && now - r.next < LATE)
-        to.push({ endpoint: r.endpoint, p256dh: r.p256dh, auth: r.auth })
-      await ctx.db.patch('reminders', r._id, {
-        next: nextAt(r.time, r.zone, now),
-      })
+      if (await waiting(ctx, r)) continue
+      if (r.next <= now) await turn(ctx, r, now)
+      else
+        await ctx.db.patch('reminders', r._id, {
+          job: await ringAt(ctx, r._id, r.next),
+        })
     }
-    if (to.length) await ctx.scheduler.runAfter(0, internal.push.send, { to })
   },
 })
+
+// A reminder that is due: sent unless its day is done or it is too late,
+// and set for the same time the next day
+async function turn(ctx: MutationCtx, r: Doc<'reminders'>, now: number) {
+  const day = localDay(r.next - TURN, r.zone)
+  if (fresh(day, r.done) && now - r.next < LATE)
+    await ctx.scheduler.runAfter(0, internal.push.send, {
+      to: [{ endpoint: r.endpoint, p256dh: r.p256dh, auth: r.auth }],
+    })
+  const next = nextAt(r.time, r.zone, now)
+  await ctx.db.patch('reminders', r._id, {
+    next,
+    job: await ringAt(ctx, r._id, next),
+  })
+}
+
+const ringAt = (ctx: MutationCtx, id: Id<'reminders'>, at: number) =>
+  ctx.scheduler.runAt(at, internal.reminders.ring, { id, at })
+
+// Whether a reminder's turn is scheduled still, or running now
+async function waiting(ctx: MutationCtx, r: Doc<'reminders'>) {
+  const job = r.job && (await ctx.db.system.get('_scheduled_functions', r.job))
+  return (
+    !!job && (job.state.kind === 'pending' || job.state.kind === 'inProgress')
+  )
+}
+
+// Takes a reminder's turn off the schedule, before it is changed or deleted
+async function unring(ctx: MutationCtx, r: Doc<'reminders'>) {
+  if (!r.job) return
+  const job = await ctx.db.system.get('_scheduled_functions', r.job)
+  if (job?.state.kind === 'pending') await ctx.scheduler.cancel(r.job)
+}
 
 // Subscriptions the push service says are gone (the browser unsubscribed,
 // or notifications were turned off)
@@ -139,7 +196,9 @@ export const gone = internalMutation({
   handler: async (ctx, { endpoints }) => {
     for (const endpoint of endpoints) {
       const row = await byEndpoint(ctx, endpoint)
-      if (row) await ctx.db.delete('reminders', row._id)
+      if (!row) continue
+      await unring(ctx, row)
+      await ctx.db.delete('reminders', row._id)
     }
   },
 })

@@ -83,8 +83,9 @@ export default defineSchema({
     // 'HH:MM', on the clock of `zone` (IANA)
     time: v.string(),
     zone: v.string(),
-    // When the next one is due
+    // When the next one is due, and its turn on Convex's schedule
     next: v.number(),
+    job: v.optional(v.id('_scheduled_functions')),
     // The last day the session was done, 'YYYY-MM-DD' in `zone`
     done: v.optional(v.string()),
     userId: v.optional(v.id('users')),
