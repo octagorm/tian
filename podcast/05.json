@@ -1,0 +1,1089 @@
+{
+  "title": "天天 – Episode 5: One long, slow conversation",
+  "gap": 0.7,
+  "cast": {
+    "Lin": {
+      "voice": "Lin",
+      "style": "a warm Chinese teacher chatting with a beginner over coffee, in standard Mandarin, slowly and clearly, with a small pause after each sentence, every tone exact, friendly and never rushed"
+    },
+    "Erik": {
+      "voice": "Erik",
+      "style": "a beginner speaking Mandarin slowly and carefully, every tone as written, relaxed and good-humoured"
+    }
+  },
+  "lines": [
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "你好！ Welcome to 天天. I'm Lin.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "And I'm Erik. 你好！ Lin, today is a bit different, isn't it?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "It is. Today there's no lesson. Just the two of us, talking. A long conversation, almost all in Chinese, and slowly, so you can follow every word.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "All in Chinese. For a long time. Okay. And what happens when I don't understand something?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "Then you stop me and ask. And you ask in Chinese. Do you know how?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "Hmm. Something with 什么?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "Almost. You say the word, and then 是什么意思? 意思 is meaning. 什么意思, what meaning. So: 周末是什么意思? What does 周末 mean?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "是什么意思. 周末是什么意思. Got it.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "And then I explain, and from then on we use the word. That's the whole game. Most of the words you know already from Tian. About ten will be new, and you'll hear each one many times.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "And if you speak too fast?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "We'll learn how to say that, in Chinese, in a minute. Ready? It's Saturday morning, and we're in a café.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "Ready. 好！",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "早上 好，Erik！"
+    },
+    {
+      "who": "Erik",
+      "text": "早上 好，Lin！"
+    },
+    {
+      "who": "Lin",
+      "text": "你 想 喝 什么？咖啡 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 想 喝 咖啡。你 呢？"
+    },
+    {
+      "who": "Lin",
+      "text": "我 不 喝 咖啡。我 要 一 杯 茶。"
+    },
+    {
+      "who": "Erik",
+      "text": "好。我 要 一 杯 咖啡，你 要 一 杯 茶。"
+    },
+    {
+      "who": "Lin",
+      "text": "今天 是 星期六。我 很 喜欢 星期六。我 很 喜欢 周末。"
+    },
+    {
+      "who": "Erik",
+      "text": "对不起，Lin。“周末” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "周末？星期六 和 星期天，就 是 周末。周末, the weekend. 周 is the week, and 末 is the end. 周末.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "周末，weekend。哦，我 懂 了！星期六 和 星期天 是 周末。",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "是。周末 你 不 工作 吧？"
+    },
+    {
+      "who": "Erik",
+      "text": "周末 我 不 工作！我 很 喜欢 周末！"
+    },
+    {
+      "who": "Lin",
+      "text": "我 也 很 喜欢 周末。周末 你 喜欢 去 哪儿？"
+    },
+    {
+      "who": "Erik",
+      "text": "周末 我 喜欢 去 公园。我 也 喜欢 去 书店 和 电影院。"
+    },
+    {
+      "who": "Lin",
+      "text": "你 一 个 人 去 公园，还 是 你 和 朋友 去？我 也 想 去 那 个 电影院，那 个 电影院 很 好。",
+      "style": "a friendly teacher who is enjoying the chat and forgets herself, speaking a little too fast for a beginner, but every tone still exact"
+    },
+    {
+      "who": "Erik",
+      "text": "Sorry, sorry, Lin! That was too fast for me.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "哦，对不起！我 说 慢 一点。慢 is slow. 慢 一点, a bit slower. And you can say it to anyone in China: 请 说 慢 一点. Please speak a bit slower.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "请 说 慢 一点。慢，slow。请 说 慢 一点！"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好！我 说 慢 一点。你 一 个 人 去 公园 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "不，我 和 朋友 去。"
+    },
+    {
+      "who": "Lin",
+      "text": "你们 一起 去？"
+    },
+    {
+      "who": "Erik",
+      "text": "“一起” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "一起, together. 我 和 你，我们 在 这 儿 一起 喝 咖啡。We're having coffee together. 一起.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "哦！一起！我 和 朋友 一起 去 公园。我们 一起 去 电影院。"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好。你们 一起 去 电影院，一起 去 公园。"
+    },
+    {
+      "who": "Erik",
+      "text": "Lin，周末 你 喜欢 去 哪儿？"
+    },
+    {
+      "who": "Lin",
+      "text": "我 喜欢 去 书店。我 也 喜欢 和 妈妈 一起 喝 茶。"
+    },
+    {
+      "who": "Erik",
+      "text": "和 妈妈 一起 喝 茶。很 好！"
+    },
+    {
+      "who": "Lin",
+      "text": "下 个 星期六，我们 一起 去 公园 吧！"
+    },
+    {
+      "who": "Erik",
+      "text": "好 啊！下 个 周末，我们 一起 去 公园！"
+    },
+    {
+      "pause": 1.2
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，今天 天气 怎么样？"
+    },
+    {
+      "who": "Erik",
+      "text": "今天 天气……不 好。"
+    },
+    {
+      "who": "Lin",
+      "text": "是，今天 很 冷。"
+    },
+    {
+      "who": "Erik",
+      "text": "“冷” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "冷？Hmm. 热 你 懂 吧？苏州 不 热。冷 is the opposite of 热. 冷, cold. 今天 很 冷, it's cold today.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "冷，cold。今天 很 冷！哦，我 懂 了。今天 太 冷 了！"
+    },
+    {
+      "who": "Lin",
+      "text": "挪威 冷 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "挪威 很 冷！挪威 太 冷 了！"
+    },
+    {
+      "who": "Lin",
+      "text": "北京 也 很 冷。北京 的 早上 很 冷，晚上 也 很 冷。"
+    },
+    {
+      "who": "Erik",
+      "text": "早上 冷，晚上 冷。你 喜欢 冷 的 天气 吗？"
+    },
+    {
+      "who": "Lin",
+      "text": "我 不 喜欢 冷 的 天气。我 喜欢 热 的 天气。你 呢？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 是 挪威 人。我 喜欢 冷 的 天气！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，好。星期四 天气 也 不 好。星期四 下雨 了。"
+    },
+    {
+      "who": "Erik",
+      "text": "“下雨” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "下雨. 下 is down, and 雨 is rain. Rain comes down: 下雨, it rains. 星期四 下雨 了, it rained on Thursday.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "下雨。星期四 下雨 了。今天 不 下雨，可是 很 冷。"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好！挪威 下雨 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "挪威 下雨！挪威 有 一 个……Bergen。Bergen 天天 下雨！"
+    },
+    {
+      "who": "Lin",
+      "text": "天天？天天 下雨？"
+    },
+    {
+      "who": "Erik",
+      "text": "是，天天！天天 is every day, right? Like our podcast!",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "是，天天, every day. 天 is day, and 天天 is day after day. That's why the podcast is called 天天: a little Chinese every day. Bergen 天天 下雨, it rains every day in Bergen.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "Bergen 天天 下雨。我 天天 学 中文！"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好！你 天天 学 中文，Bergen 天天 下雨。"
+    },
+    {
+      "who": "Erik",
+      "text": "北京 天天 下雨 吗？"
+    },
+    {
+      "who": "Lin",
+      "text": "不，北京 不 天天 下雨。北京 下雨 不 多。"
+    },
+    {
+      "who": "Erik",
+      "text": "那 很 好。"
+    },
+    {
+      "pause": 1.2
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，上 个 周末 你 去 了 哪儿？"
+    },
+    {
+      "who": "Erik",
+      "text": "上 个 周末 我 去 了 长城！"
+    },
+    {
+      "who": "Lin",
+      "text": "长城！长城 怎么样？"
+    },
+    {
+      "who": "Erik",
+      "text": "长城 很 美！可是 也 很 累！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，长城 很 长。你 一 个 人 去 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "不，我 和 朋友 一起 去。"
+    },
+    {
+      "who": "Lin",
+      "text": "那 天 天气 怎么样？冷 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "很 冷！可是 没有 下雨。"
+    },
+    {
+      "who": "Lin",
+      "text": "那 很 好。你 有 照片 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "“照片” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "照片, a photo. 你 的 微信 有 很 多 照片 吧？Your phone is full of 照片.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "哦，照片！有，我 有 很 多 照片！这 是 长城 的 照片。"
+    },
+    {
+      "who": "Lin",
+      "text": "哇，很 美！这 个 人 是 你 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "是 我！我 很 累！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈。这 张 照片 很 好。这 个……是 兔子 吗？",
+      "style": "playful, slow and clear"
+    },
+    {
+      "who": "Erik",
+      "text": "“这 张 照片”？张？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "张 is a measure word for flat things: a ticket, a photo. 一 张 照片, one photo. 这 张 照片, this photo. You met it with the train ticket.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "一 张 照片。这 张 照片。不 是 兔子！是 我 的 朋友！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，对不起！你 的 朋友 很 好。你 给 妈妈 照片 了 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "给 了！我 给 妈妈 很 多 照片。妈妈 很 喜欢 长城 的 照片。"
+    },
+    {
+      "pause": 1.2
+    },
+    {
+      "who": "Lin",
+      "text": "你 妈妈 在 哪儿？在 挪威 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "在，她 在 挪威。"
+    },
+    {
+      "who": "Lin",
+      "text": "你 的 家 在 挪威 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "“家” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "家, home. And also family. 我 的 家 在 北京, my home is in Beijing. 你 的 家 在 哪儿? Where is your home?",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "家，home。我 的 家 在 挪威。我 妈妈 在 家。"
+    },
+    {
+      "who": "Lin",
+      "text": "你 想 家 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "想 家？想 is want. Want home?",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "想 is want, yes. But 想 is also to miss someone. 想 家, to miss home. 我 想 妈妈, I miss my mum. 你 想 家 吗? Do you miss home?",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "哦！想 家，miss home。我……有 一点 想 家。我 想 妈妈。"
+    },
+    {
+      "who": "Lin",
+      "text": "我 懂。你 想 妈妈，那 你 给 妈妈 照片 吧！",
+      "style": "gently, slowly"
+    },
+    {
+      "who": "Erik",
+      "text": "我 天天 给 妈妈 照片！长城 的 照片，北京 的 照片，烤鸭 的 照片！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈！你 妈妈 会 说 中文 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "不 会。可是 她 会 说 “你好” 和 “谢谢”。"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好！"
+    },
+    {
+      "who": "Erik",
+      "text": "她 也 想 学 中文！"
+    },
+    {
+      "who": "Lin",
+      "text": "太 好 了！"
+    },
+    {
+      "pause": 1.2
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，这 个 星期 你 工作 累 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "很 累！公司 的 工作 很 多。我 早上 八 点 去 公司，晚上 七 点 回来。"
+    },
+    {
+      "who": "Lin",
+      "text": "太 累 了！周末 你 要 休息。"
+    },
+    {
+      "who": "Erik",
+      "text": "“休息” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "休息, to rest, to take a break. 不 工作，喝 茶，休息. No work, a cup of tea: 休息.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "休息。今天 我 不 工作。今天 我 休息！"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好。周末 你 要 休息。你 的 经理 也 要 休息！"
+    },
+    {
+      "who": "Erik",
+      "text": "哈哈，我 的 经理 不 休息。他 天天 工作！"
+    },
+    {
+      "who": "Lin",
+      "text": "天天 工作？那 他 很 累。"
+    },
+    {
+      "who": "Erik",
+      "text": "他 很 累，可是 他 很 开心。"
+    },
+    {
+      "who": "Lin",
+      "text": "你 学 中文 累 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "有 一点 累。"
+    },
+    {
+      "who": "Lin",
+      "text": "学 中文 有意思 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "有意思？意思 is meaning. 有意思……has meaning?",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "That's how it's built: 有, to have, and 意思, meaning. But together, 有意思 means interesting, fun. 学 中文 有意思 吗? Is learning Chinese interesting?",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "哦！有意思，interesting。学 中文 很 有意思！"
+    },
+    {
+      "who": "Lin",
+      "text": "长城 有意思 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "长城 很 有意思！可是 很 累。"
+    },
+    {
+      "who": "Lin",
+      "text": "天天 有意思 吗？",
+      "style": "teasing, slow and clear"
+    },
+    {
+      "who": "Erik",
+      "text": "天天 很 有意思！天天 太 有意思 了！",
+      "style": "laughing, careful with every tone"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，谢谢！"
+    },
+    {
+      "who": "Erik",
+      "text": "Lin，你 的 工作 有意思 吗？"
+    },
+    {
+      "who": "Lin",
+      "text": "我 的 工作 很 有意思。我 天天 说 中文！"
+    },
+    {
+      "pause": 1.2
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，你 饿 了 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "饿 了！我 很 饿！"
+    },
+    {
+      "who": "Lin",
+      "text": "我 也 饿 了。我们 一起 去 饭店 吃 烤鸭 吧！"
+    },
+    {
+      "who": "Erik",
+      "text": "烤鸭！好 啊！我 很 喜欢 烤鸭。烤鸭 贵 吗？"
+    },
+    {
+      "who": "Lin",
+      "text": "不 贵。今天 我 请 你。"
+    },
+    {
+      "who": "Erik",
+      "text": "你 请 我？请 is please?",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "请 is please, yes. But 我 请 你 means I'm treating you: I'll pay. 今天 我 请 你, today it's on me.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "哦！谢谢，Lin！你 太 好 了！"
+    },
+    {
+      "who": "Lin",
+      "text": "不客气。下次 你 请 我！"
+    },
+    {
+      "who": "Erik",
+      "text": "“下次” 是 什么 意思？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "下次, next time. You know 下 个 星期, next week. 下次 is next time. 今天 我 请 你，下次 你 请 我. Today I treat you, next time you treat me.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "今天 你 请 我，下次 我 请 你。下次 我们 一起 去 长城！"
+    },
+    {
+      "who": "Lin",
+      "text": "好！下次 我们 一起 去 长城。可是 不 要 下雨！"
+    },
+    {
+      "who": "Erik",
+      "text": "不 要 下雨，也 不 要 太 冷！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，好。下次 你 也 给 我 很 多 照片。"
+    },
+    {
+      "who": "Erik",
+      "text": "好！下次 我 给 你 照片。"
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，你 今天 说 了 很 多 中文！"
+    },
+    {
+      "who": "Erik",
+      "text": "是！今天 很 有意思。也 有 一点 累。"
+    },
+    {
+      "who": "Lin",
+      "text": "那 我们 去 吃 烤鸭，休息 一点。"
+    },
+    {
+      "who": "Erik",
+      "text": "好！我们 一起 去！"
+    },
+    {
+      "who": "Lin",
+      "text": "走 吧！",
+      "style": "cheerful, slow and clear"
+    },
+    {
+      "who": "Erik",
+      "text": "“走”？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，走, to go, to walk. 走吧, let's go! That one's a bonus.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "走 吧！"
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，你 想 吃 什么？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 想 吃 烤鸭！"
+    },
+    {
+      "who": "Lin",
+      "text": "好，一 个 烤鸭。你 也 想 吃 饺子 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "想！我 很 喜欢 饺子。我 也 想 吃 包子。"
+    },
+    {
+      "who": "Lin",
+      "text": "饺子 和 包子……太 多 了 吧？"
+    },
+    {
+      "who": "Erik",
+      "text": "不 多！我 很 饿！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，好。你 吃 辣 的 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "一点 辣 可以。太 辣 不 可以！"
+    },
+    {
+      "who": "Lin",
+      "text": "好，那 我们 要 一 个 不 辣 的 菜。"
+    },
+    {
+      "who": "Erik",
+      "text": "你 想 喝 什么？茶 吗？"
+    },
+    {
+      "who": "Lin",
+      "text": "是，我 要 茶。你 呢？"
+    },
+    {
+      "who": "Erik",
+      "text": "我 要 一 杯 水。"
+    },
+    {
+      "pause": 1.5
+    },
+    {
+      "who": "Lin",
+      "text": "烤鸭！Erik，好吃 吗？",
+      "style": "delighted, slowly and clearly"
+    },
+    {
+      "who": "Erik",
+      "text": "很 好吃！太 好吃 了！"
+    },
+    {
+      "who": "Lin",
+      "text": "饺子 呢？"
+    },
+    {
+      "who": "Erik",
+      "text": "饺子 也 很 好吃。包子 有 一点 甜。"
+    },
+    {
+      "who": "Lin",
+      "text": "北京 的 烤鸭 很 有名……很 好吃。挪威 有 烤鸭 吗？",
+      "style": "slowly, catching herself and choosing a simpler word"
+    },
+    {
+      "who": "Erik",
+      "text": "挪威 没有 烤鸭。挪威 有 很 多 鱼……fish！"
+    },
+    {
+      "who": "Lin",
+      "text": "鱼, fish. That one's for another day.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "今天 我 不 学 鱼。今天 我 休息！"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈，好，你 休息！"
+    },
+    {
+      "pause": 1.5
+    },
+    {
+      "who": "Erik",
+      "text": "Lin，一共 多少 钱？"
+    },
+    {
+      "who": "Lin",
+      "text": "一共 一 百 八十 块。可是 Erik，今天 我 请 你！"
+    },
+    {
+      "who": "Erik",
+      "text": "谢谢，Lin！下次 我 请 你！"
+    },
+    {
+      "who": "Lin",
+      "text": "好，下次 你 请 我。"
+    },
+    {
+      "who": "Erik",
+      "text": "下次 我们 去 吃 饺子。饺子 很 便宜！",
+      "style": "laughing"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈！好，下次 吃 饺子。"
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "Erik，下 个 周末 我们 一起 去 公园，好 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "好！下 个 星期六，我们 一起 去 公园。"
+    },
+    {
+      "who": "Lin",
+      "text": "可是 如果……可是 下 个 星期六 下雨，怎么办？",
+      "style": "slowly, catching herself and choosing simpler words"
+    },
+    {
+      "who": "Erik",
+      "text": "下雨？那 我们 不 去 公园。我们 去 电影院！"
+    },
+    {
+      "who": "Lin",
+      "text": "很 好！下雨，我们 去 电影院。不 下雨，我们 去 公园。"
+    },
+    {
+      "who": "Erik",
+      "text": "太 冷 呢？"
+    },
+    {
+      "who": "Lin",
+      "text": "太 冷，我们 去 书店，喝 茶。"
+    },
+    {
+      "who": "Erik",
+      "text": "书店 不 冷。书店 很 好！"
+    },
+    {
+      "who": "Lin",
+      "text": "你 想 叫 你 的 朋友 吗？我们 一起 去。"
+    },
+    {
+      "who": "Erik",
+      "text": "好！我 的 朋友 也 想 学 中文。我们 三 个 人 一起 去。"
+    },
+    {
+      "who": "Lin",
+      "text": "太 好 了！他 叫 什么 名字？"
+    },
+    {
+      "who": "Erik",
+      "text": "他 叫 Ola。他 是 挪威 人。他 不 会 说 中文。"
+    },
+    {
+      "who": "Lin",
+      "text": "没关系。他 会 说 “是 什么 意思？” 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "不 会。可是 我 会！",
+      "style": "laughing, careful with every tone"
+    },
+    {
+      "who": "Lin",
+      "text": "哈哈。他 也 要 会 说 “请 说 慢 一点”。"
+    },
+    {
+      "who": "Erik",
+      "text": "请 说 慢 一点！我 天天 说 “请 说 慢 一点”！"
+    },
+    {
+      "who": "Lin",
+      "text": "你 今天 说 了 很 多 中文。累 吗？"
+    },
+    {
+      "who": "Erik",
+      "text": "有 一点 累。可是 很 开心。今天 很 有意思。"
+    },
+    {
+      "who": "Lin",
+      "text": "那 你 回 家 休息 吧。"
+    },
+    {
+      "who": "Erik",
+      "text": "回 家？回来 的 回？",
+      "style": "a learner stopping to ask about a word, curious and a little puzzled, the Chinese slow and careful"
+    },
+    {
+      "who": "Lin",
+      "text": "回来 的 回, yes. 回 is to go back. 回 家, to go home. 你 回 家 休息 吧, go home and rest.",
+      "style": "explaining a word to a learner, kind and unhurried: the Chinese slow and clear with every tone exact, the English natural"
+    },
+    {
+      "who": "Erik",
+      "text": "好。我 回 家 休息。Lin，谢谢 你 的 烤鸭！"
+    },
+    {
+      "who": "Lin",
+      "text": "不客气！下 个 周末 见！"
+    },
+    {
+      "who": "Erik",
+      "text": "下 个 周末 见！再见！"
+    },
+    {
+      "chime": true
+    },
+    {
+      "who": "Lin",
+      "text": "And that was it. Erik, how was that?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "Long! But I followed almost all of it. Can we go through the new ones?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "Of course. I'll say each, and you say it after me.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "周末. the weekend.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "周末.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "请说慢一点. please speak a bit slower.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "请说慢一点.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "一起. together.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "一起.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "冷. cold.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "冷.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "下雨. to rain.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "下雨.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "天天. every day.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "天天.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "照片. a photo.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "照片.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "家. home, family.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "家.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "想家. to miss home.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "想家.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "休息. to rest.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "休息.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "有意思. interesting.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "有意思.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "我请你. it's on me.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "我请你.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "下次. next time.",
+      "style": "Say the Chinese slowly and clearly, every tone exact, then the English plainly"
+    },
+    {
+      "who": "Erik",
+      "text": "下次.",
+      "style": "repeating a word after the teacher, slowly and carefully, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "And the question that got us there: 是什么意思?",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "是什么意思? And if it's too fast: 请说慢一点!",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Lin",
+      "text": "Perfect. 下次见, see you next time: 见 as in 再见.",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "who": "Erik",
+      "text": "下次 见！再见！",
+      "style": "natural, relaxed English, as on a friendly podcast; any Chinese word in it said slowly and clearly, every tone exact"
+    },
+    {
+      "chime": true
+    }
+  ]
+}

@@ -16,8 +16,13 @@ The episode is a JSON file: the cast, and the lines in order.
         {"who": "Mei", "text": "Hi! 你好！"},
         {"pause": 1.5},
         {"chime": true}
-      ]
+      ],
+      "gap": 0.45,
+      "tempo": 1
     }
+
+`gap` (seconds between runs) and `tempo` (the whole episode's speed, pitch
+kept) are optional.
 
 A voice is a Gemini prebuilt voice, one of the game's designed voices
 (scripts/voices.json), or one of `designed`, made once and kept there
@@ -149,7 +154,9 @@ def main():
     work = CACHE / args.episode.stem
     work.mkdir(exist_ok=True)
     gap = work / "gap.wav"
-    silence(gap, 0.45)
+    # An episode may ask for longer gaps between the runs, or for all of it
+    # a little slower ("tempo" below 1, pitch kept), to be easier to follow
+    silence(gap, episode.get("gap", 0.45))
     parts = []
     todo = runs(episode["lines"])
     for i, run in enumerate(todo):
@@ -176,7 +183,7 @@ def main():
     listing.write_text("".join(f"file '{p.resolve()}'\n" for p in parts))
     ffmpeg(
         "-f", "concat", "-safe", 0, "-i", listing,
-        "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",
+        "-af", (f"atempo={episode['tempo']}," if "tempo" in episode else "") + "loudnorm=I=-16:TP=-1.5:LRA=11",
         "-ar", 44100, "-ac", 1, "-b:a", "96k", args.out,
     )
     print(f"wrote {args.out}")
