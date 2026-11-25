@@ -2786,3 +2786,12 @@ describe('the office', () => {
     expect(promotion(RANKS.length - 1, day(0), 99)).toBe(false)
   })
 })
+
+describe('podcast episode words', () => {
+  test('are all words of the course', async () => {
+    const { EPISODE_WORDS } = await import('../src/app/data/podcast')
+    const { WORD } = await import('../src/app/data/words')
+    for (const [n, ids] of Object.entries(EPISODE_WORDS))
+      for (const id of ids) expect(WORD[id], `episode ${n}: ${id}`).toBeTruthy()
+  })
+})

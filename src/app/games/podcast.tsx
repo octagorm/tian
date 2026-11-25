@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Check, Copy, Rss } from 'lucide-react'
-import { Btn, Frame } from '../ui'
+import { Check, Copy, Plus, Rss } from 'lucide-react'
+import { EPISODE_WORDS } from '../data/podcast'
+import { WORD } from '../data/words'
+import { useStore } from '../lib/store'
+import { Btn, Frame, Ruby } from '../ui'
 
 // The podcast, 天天: its episodes to play here, and links that open a
 // podcast app ready to follow it. The feed and the files are on R2, served
@@ -28,6 +31,47 @@ const APPS = (() => {
     },
   ]
 })()
+
+/** The new words of an episode, from the number in its title */
+function EpisodeWords({ title }: { title: string }) {
+  const { bank, meet } = useStore()
+  const n = Number(/Episode (\d+)/.exec(title)?.[1])
+  const words = (EPISODE_WORDS[n] ?? []).flatMap((id) => WORD[id] ?? [])
+  if (!words.length) return null
+  const fresh = words.filter((w) => !bank.cards[w.id]).map((w) => w.id)
+  return (
+    <div className="mt-3">
+      <p className="mb-2 text-sm text-[var(--ink-2)]">New words in it:</p>
+      <div className="flex flex-wrap gap-2">
+        {words.map((w) => (
+          <div
+            key={w.id}
+            className="rounded-lg border border-[var(--paper-2)] bg-[var(--paper)] px-2 py-1 text-center"
+          >
+            <Ruby h={w.h} p={w.p} className="text-xl" />
+            <div className="text-xs text-[var(--ink-2)]">{w.g}</div>
+          </div>
+        ))}
+      </div>
+      {fresh.length > 0 ? (
+        <button
+          type="button"
+          onClick={() => meet(fresh)}
+          className="mt-3 inline-flex items-center gap-1 rounded-full bg-[var(--jade)] px-3 py-1 text-xs font-bold text-white"
+        >
+          <Plus size={14} /> Learn{' '}
+          {fresh.length === 1
+            ? 'the new word'
+            : `the ${fresh.length} new words`}
+        </button>
+      ) : (
+        <p className="mt-2 text-xs text-[var(--jade)]">
+          All in your word bank.
+        </p>
+      )}
+    </div>
+  )
+}
 
 function parse(xml: string): Array<Episode> {
   const doc = new DOMParser().parseFromString(xml, 'application/xml')
@@ -113,6 +157,7 @@ export default function Podcast() {
                 src={ep.audio}
                 className="mt-3 w-full"
               />
+              <EpisodeWords title={ep.title} />
             </li>
           ))}
         </ol>
